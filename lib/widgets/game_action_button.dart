@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 class GameActionButton extends StatefulWidget {
   final String label;
   final IconData icon;
-  final VoidCallback onPressed;
+  final void Function()? onPressed;
   final bool isEnabled;
   final bool isPrimary;
   final bool showShine;
@@ -76,7 +76,7 @@ class _GameActionButtonState extends State<GameActionButton>
     if (!widget.isEnabled) return;
     setState(() => _isPressed = false);
     _controller.reverse();
-    widget.onPressed();
+    widget.onPressed?.call();
   }
 
   void _handleTapCancel() {

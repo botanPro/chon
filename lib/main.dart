@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
+import 'screens/auth/login_screen.dart';
+import 'services/auth_service.dart';
 
 void main() {
   SystemChrome.setSystemUIOverlayStyle(
@@ -10,7 +13,12 @@ void main() {
       statusBarIconBrightness: Brightness.light,
     ),
   );
-  runApp(const MainApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => AuthService(),
+      child: const MainApp(),
+    ),
+  );
 }
 
 class MainApp extends StatelessWidget {
@@ -60,8 +68,50 @@ class MainApp extends StatelessWidget {
             borderRadius: BorderRadius.all(Radius.circular(16)),
           ),
         ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: const Color(0xFF1E1E2E),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: Colors.amber.shade600.withOpacity(0.5),
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: Colors.amber.shade600.withOpacity(0.2),
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: Colors.amber.shade600,
+            ),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(
+              color: Colors.red.shade400,
+            ),
+          ),
+          labelStyle: TextStyle(
+            color: Colors.amber.shade600.withOpacity(0.8),
+          ),
+          prefixIconColor: Colors.amber.shade600.withOpacity(0.8),
+        ),
       ),
-      home: const HomeScreen(),
+      home: Consumer<AuthService>(
+        builder: (context, auth, _) {
+          return auth.isAuthenticated
+              ? const HomeScreen()
+              : const LoginScreen();
+        },
+      ),
+      routes: {
+        '/home': (context) => const HomeScreen(),
+        '/login': (context) => const LoginScreen(),
+      },
     );
   }
 }
