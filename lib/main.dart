@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/auth/phone_verification_screen.dart';
+import 'screens/profile_screen.dart';
 import 'services/auth_service.dart';
 
 void main() {
@@ -110,6 +111,7 @@ class MainApp extends StatelessWidget {
       ),
       routes: {
         '/home': (context) => const HomeScreen(),
+        '/profile': (context) => const ProfileScreen(),
       },
     );
   }

@@ -6,11 +6,15 @@ class AuthService extends ChangeNotifier {
   String? _userPhone;
   String? _verificationId;
   bool _isNewUser = false;
+  double _balance = 0.0;
+  List<Transaction> _transactions = [];
 
   bool get isAuthenticated => _isAuthenticated;
   String? get userId => _userId;
   String? get userPhone => _userPhone;
   bool get isNewUser => _isNewUser;
+  double get balance => _balance;
+  List<Transaction> get transactions => _transactions;
 
   // Format phone number to standard format
   String _formatPhoneNumber(String phone) {
@@ -63,6 +67,7 @@ class AuthService extends ChangeNotifier {
         // For testing purposes
         _isAuthenticated = true;
         _userId = 'user_${_userPhone}';
+        _balance = 1234.56; // Initial balance for testing
         notifyListeners();
         return true;
       }
@@ -80,6 +85,57 @@ class AuthService extends ChangeNotifier {
 
       _isAuthenticated = true;
       _userId = 'user_${_userPhone}';
+      _balance = 0.0; // New users start with 0 balance
+      notifyListeners();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Deposit funds
+  Future<bool> deposit(double amount, String method) async {
+    try {
+      // TODO: Implement actual deposit logic
+      await Future.delayed(const Duration(seconds: 1));
+
+      _balance += amount;
+      _transactions.add(
+        Transaction(
+          type: TransactionType.deposit,
+          amount: amount,
+          method: method,
+          timestamp: DateTime.now(),
+          status: TransactionStatus.completed,
+        ),
+      );
+      notifyListeners();
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Withdraw funds
+  Future<bool> withdraw(double amount, String method) async {
+    try {
+      // TODO: Implement actual withdrawal logic
+      await Future.delayed(const Duration(seconds: 1));
+
+      if (amount > _balance) {
+        return false;
+      }
+
+      _balance -= amount;
+      _transactions.add(
+        Transaction(
+          type: TransactionType.withdrawal,
+          amount: amount,
+          method: method,
+          timestamp: DateTime.now(),
+          status: TransactionStatus.completed,
+        ),
+      );
       notifyListeners();
       return true;
     } catch (e) {
@@ -93,6 +149,37 @@ class AuthService extends ChangeNotifier {
     _userPhone = null;
     _verificationId = null;
     _isNewUser = false;
+    _balance = 0.0;
+    _transactions.clear();
     notifyListeners();
   }
+}
+
+enum TransactionType {
+  deposit,
+  withdrawal,
+  gameWin,
+  gameLoss,
+}
+
+enum TransactionStatus {
+  pending,
+  completed,
+  failed,
+}
+
+class Transaction {
+  final TransactionType type;
+  final double amount;
+  final String method;
+  final DateTime timestamp;
+  final TransactionStatus status;
+
+  Transaction({
+    required this.type,
+    required this.amount,
+    required this.method,
+    required this.timestamp,
+    required this.status,
+  });
 }

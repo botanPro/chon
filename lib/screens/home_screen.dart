@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../widgets/game_card.dart';
 import '../models/game.dart';
+import '../services/auth_service.dart';
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -164,14 +166,37 @@ class HomeScreen extends StatelessWidget {
                                 size: 16,
                               ),
                               const SizedBox(width: 4),
-                              const Text(
-                                '\$1',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.bold,
+                              Consumer<AuthService>(
+                                builder: (context, auth, _) => Text(
+                                  '\$${auth.balance.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                             ],
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Material(
+                          color: Theme.of(context)
+                              .colorScheme
+                              .surface
+                              .withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(12),
+                          child: InkWell(
+                            onTap: () =>
+                                Navigator.pushNamed(context, '/profile'),
+                            borderRadius: BorderRadius.circular(12),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              child: Icon(
+                                Icons.person_rounded,
+                                color: Theme.of(context).colorScheme.primary,
+                                size: 24,
+                              ),
+                            ),
                           ),
                         ),
                       ],
