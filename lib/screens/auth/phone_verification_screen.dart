@@ -22,7 +22,7 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
   @override
   void initState() {
     super.initState();
-    _phoneController.text = '750'; // Default prefix after +964
+    _phoneController.text = ''; // Default prefix after +964
   }
 
   @override
@@ -147,9 +147,13 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
                         Expanded(
                           child: TextFormField(
                             controller: _phoneController,
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               hintText: '750XXXXXXX',
                               prefixIcon: Icon(Icons.phone),
+                              // Hint text opacity
+                              hintStyle: TextStyle(
+                                color: Colors.white.withOpacity(0.3),
+                              ),
                               border: InputBorder.none,
                               contentPadding:
                                   EdgeInsets.symmetric(horizontal: 16),
@@ -157,14 +161,14 @@ class _PhoneVerificationScreenState extends State<PhoneVerificationScreen> {
                             keyboardType: TextInputType.phone,
                             inputFormatters: [
                               FilteringTextInputFormatter.digitsOnly,
-                              LengthLimitingTextInputFormatter(9),
+                              LengthLimitingTextInputFormatter(10),
                             ],
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Please enter your phone number';
                               }
-                              if (value.length != 9) {
-                                return 'Phone number must be 9 digits';
+                              if (value.length != 10) {
+                                return 'Phone number must be 10 digits';
                               }
                               if (!value.startsWith('750') &&
                                   !value.startsWith('751') &&
