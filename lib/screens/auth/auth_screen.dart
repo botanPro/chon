@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'verification_screen.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -217,7 +218,44 @@ class SignUpDrawer extends StatefulWidget {
   State<SignUpDrawer> createState() => _SignUpDrawerState();
 }
 
-class _SignUpDrawerState extends State<SignUpDrawer> {
+class _SignUpDrawerState extends State<SignUpDrawer>
+    with TickerProviderStateMixin {
+  bool _showPassword = false;
+  late AnimationController _slideController;
+  late Animation<Offset> _slideAnimation;
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _slideController = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(-1, 0), // Start from left side
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _slideController,
+      curve: Curves.easeOutCubic,
+    ));
+
+    // Start the animation after a brief delay
+    Future.delayed(const Duration(milliseconds: 200), () {
+      _slideController.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _slideController.dispose();
+    _phoneController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final textTheme = GoogleFonts.interTextTheme();
@@ -326,14 +364,14 @@ class _SignUpDrawerState extends State<SignUpDrawer> {
                   _buildTextField(
                     label: 'Phone Number',
                     icon: Icons.phone_outlined,
-                    controller: TextEditingController(),
+                    controller: _phoneController,
                     isPhone: true,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
                     label: 'Password',
                     icon: Icons.lock_outline,
-                    controller: TextEditingController(),
+                    controller: _passwordController,
                     isPassword: true,
                   ),
                   const SizedBox(height: 32),
@@ -546,7 +584,7 @@ class _SignUpDrawerState extends State<SignUpDrawer> {
               Expanded(
                 child: TextField(
                   controller: controller,
-                  obscureText: isPassword,
+                  obscureText: isPassword && !_showPassword,
                   cursorColor: const Color(0xFF96C3BC),
                   style: const TextStyle(
                     color: Colors.white,
@@ -566,6 +604,27 @@ class _SignUpDrawerState extends State<SignUpDrawer> {
                         ? Icon(
                             icon,
                             color: Colors.white.withOpacity(0.5),
+                          )
+                        : null,
+                    suffixIcon: isPassword
+                        ? GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                _showPassword = !_showPassword;
+                              });
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: SvgPicture.asset(
+                                _showPassword
+                                    ? 'assets/icons/Hide.svg'
+                                    : 'assets/icons/Show.svg',
+                                colorFilter: ColorFilter.mode(
+                                  Colors.white.withOpacity(0.5),
+                                  BlendMode.srcIn,
+                                ),
+                              ),
+                            ),
                           )
                         : null,
                     border: OutlineInputBorder(
