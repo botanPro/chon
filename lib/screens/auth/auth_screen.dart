@@ -180,8 +180,8 @@ class _AuthScreenState extends State<AuthScreen>
                           begin: Alignment.centerLeft,
                           end: Alignment.centerRight,
                           colors: [
-                            Color(0xFFEDEEEE),
-                            Color(0xFF97C4BD),
+                            Color(0xFF94C1BA),
+                            Color(0xFF151B1A),
                           ],
                         ).createShader(bounds);
                       },
@@ -256,8 +256,8 @@ class _SignUpDrawerState extends State<SignUpDrawer> {
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                       colors: [
-                        Color(0xFFEDEEEE),
-                        Color(0xFF97C4BD),
+                        Color(0xFF94C1BA),
+                        Color(0xFF151B1A),
                       ],
                     ).createShader(bounds);
                   },
@@ -324,14 +324,15 @@ class _SignUpDrawerState extends State<SignUpDrawer> {
                 children: [
                   _buildTextField(
                     label: 'Phone Number',
-                    hint: 'Enter your phone number',
                     icon: Icons.phone_outlined,
+                    controller: TextEditingController(),
+                    isPhone: true,
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
                     label: 'Password',
-                    hint: 'Create a password',
                     icon: Icons.lock_outline,
+                    controller: TextEditingController(),
                     isPassword: true,
                   ),
                   const SizedBox(height: 32),
@@ -387,11 +388,8 @@ class _SignUpDrawerState extends State<SignUpDrawer> {
                         child: Container(
                           height: 56,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.03),
+                            color: const Color(0xFF151918),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.1),
-                            ),
                           ),
                           child: Material(
                             color: Colors.transparent,
@@ -427,11 +425,8 @@ class _SignUpDrawerState extends State<SignUpDrawer> {
                         child: Container(
                           height: 56,
                           decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.03),
+                            color: const Color(0xFF151918),
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.1),
-                            ),
                           ),
                           child: Material(
                             color: Colors.transparent,
@@ -480,7 +475,7 @@ class _SignUpDrawerState extends State<SignUpDrawer> {
                         child: Text(
                           'Sign in',
                           style: textTheme.bodyMedium?.copyWith(
-                            color: const Color(0xFF6F6F6F),
+                            color: const Color(0xFF96C3BC),
                             fontWeight: FontWeight.w600,
                             fontFamily: 'Inter',
                           ),
@@ -500,9 +495,10 @@ class _SignUpDrawerState extends State<SignUpDrawer> {
 
   Widget _buildTextField({
     required String label,
-    required String hint,
     required IconData icon,
+    required TextEditingController controller,
     bool isPassword = false,
+    bool isPhone = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -510,43 +506,77 @@ class _SignUpDrawerState extends State<SignUpDrawer> {
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withOpacity(0.7),
-            fontSize: 14,
+            color: Colors.white.withOpacity(0.5),
             fontWeight: FontWeight.w500,
             fontFamily: 'Inter',
           ),
         ),
         const SizedBox(height: 8),
         Container(
+          height: 56,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.05),
+            color: const Color(0xFF101513),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.1),
-            ),
           ),
-          child: TextField(
-            obscureText: isPassword,
-            style: const TextStyle(
-              color: Colors.white,
-              fontFamily: 'Inter',
-            ),
-            decoration: InputDecoration(
-              hintText: hint,
-              hintStyle: TextStyle(
-                color: Colors.white.withOpacity(0.3),
-                fontFamily: 'Inter',
+          child: Row(
+            children: [
+              if (isPhone)
+                Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Text(
+                    '+964 | ',
+                    style: TextStyle(
+                      color: Colors.white.withOpacity(0.3),
+                      fontFamily: 'Inter',
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              Expanded(
+                child: TextField(
+                  controller: controller,
+                  obscureText: isPassword,
+                  cursorColor: const Color(0xFF96C3BC),
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontFamily: 'Inter',
+                  ),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: const Color(0xFF101513),
+                    hintText: isPhone
+                        ? '751 XXX XXXX'
+                        : 'Enter your ${label.toLowerCase()}',
+                    hintStyle: TextStyle(
+                      color: Colors.white.withOpacity(0.3),
+                      fontFamily: 'Inter',
+                    ),
+                    prefixIcon: !isPhone
+                        ? Icon(
+                            icon,
+                            color: Colors.white.withOpacity(0.5),
+                          )
+                        : null,
+                    border: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide.none,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: isPhone ? 8 : 16,
+                      vertical: 16,
+                    ),
+                  ),
+                ),
               ),
-              prefixIcon: Icon(
-                icon,
-                color: Colors.white.withOpacity(0.5),
-              ),
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-            ),
+            ],
           ),
         ),
       ],
