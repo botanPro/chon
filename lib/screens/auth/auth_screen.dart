@@ -585,6 +585,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                 child: TextField(
                   controller: controller,
                   obscureText: isPassword && !_showPassword,
+                  maxLength: isPhone ? 10 : null,
                   cursorColor: const Color(0xFF96C3BC),
                   style: const TextStyle(
                     color: Colors.white,

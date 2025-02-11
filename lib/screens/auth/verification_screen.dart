@@ -185,7 +185,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
               Container(
                 height: 56,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1C2221),
+                  color: const Color.fromARGB(255, 240, 240, 240),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Material(
@@ -202,7 +202,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                           Text(
                             'Next',
                             style: GoogleFonts.inter(
-                              color: Colors.white,
+                              color: const Color(0xFF090C0B),
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
@@ -210,7 +210,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                           const SizedBox(width: 8),
                           const Icon(
                             Icons.arrow_forward,
-                            color: Colors.white,
+                            color: const Color(0xFF090C0B),
                             size: 20,
                           ),
                         ],
