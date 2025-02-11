@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'verification_screen.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -345,7 +346,17 @@ class _SignUpDrawerState extends State<SignUpDrawer> {
                     child: Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: () {},
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const VerificationScreen(
+                                phoneNumber:
+                                    '+964 751 XXX XXXX', // TODO: Pass actual phone number
+                              ),
+                            ),
+                          );
+                        },
                         borderRadius: BorderRadius.circular(12),
                         child: Center(
                           child: Text(
