@@ -79,6 +79,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              Image.asset('assets/images/otp.png',
+                  height: 208, width: double.infinity, fit: BoxFit.cover),
               const SizedBox(height: 40),
               Text(
                 'Check your inbox',
