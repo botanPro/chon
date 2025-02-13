@@ -192,7 +192,11 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   color: Colors.transparent,
                   child: InkWell(
                     onTap: () {
-                      // TODO: Implement verification logic
+                      // Navigate to main screen and remove all previous routes
+                      Navigator.of(context).pushNamedAndRemoveUntil(
+                        '/home',
+                        (route) => false,
+                      );
                     },
                     borderRadius: BorderRadius.circular(12),
                     child: Center(

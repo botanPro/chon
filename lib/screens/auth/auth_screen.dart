@@ -347,7 +347,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                 Text(
                   'Enter your personal information create your account',
                   style: textTheme.bodyLarge?.copyWith(
-                    color: Colors.white.withOpacity(0.7),
+                    color: Colors.white.withOpacity(0.5),
                     fontFamily: 'Inter',
                   ),
                 ),
@@ -586,12 +586,15 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                   controller: controller,
                   obscureText: isPassword && !_showPassword,
                   maxLength: isPhone ? 10 : null,
+                  keyboardType:
+                      isPhone ? TextInputType.phone : TextInputType.text,
                   cursorColor: const Color(0xFF96C3BC),
                   style: const TextStyle(
                     color: Colors.white,
                     fontFamily: 'Inter',
                   ),
                   decoration: InputDecoration(
+                    counterText: '',
                     filled: true,
                     fillColor: const Color(0xFF101513),
                     hintText: isPhone
