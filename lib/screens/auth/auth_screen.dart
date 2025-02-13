@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'verification_screen.dart';
 
+
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
 
@@ -621,8 +622,8 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                               padding: const EdgeInsets.all(16),
                               child: SvgPicture.asset(
                                 _showPassword
-                                    ? 'assets/icons/Hide.svg'
-                                    : 'assets/icons/Show.svg',
+                                    ? 'assets/icons/Show.svg'
+                                    : 'assets/icons/Hide.svg',
                                 colorFilter: ColorFilter.mode(
                                   Colors.white.withOpacity(0.5),
                                   BlendMode.srcIn,
