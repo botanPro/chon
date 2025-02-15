@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'personal_info_screen.dart';
 
 class VerificationScreen extends StatefulWidget {
   final String phoneNumber;
@@ -192,11 +193,17 @@ class _VerificationScreenState extends State<VerificationScreen> {
                   color: Colors.transparent,
                   child: InkWell(
                     onTap: () {
-                      // Navigate to main screen and remove all previous routes
-                      Navigator.of(context).pushNamedAndRemoveUntil(
-                        '/home',
-                        (route) => false,
-                      );
+                      // Check if OTP is correct (for now, any 6 digits)
+                      String enteredOTP =
+                          _controllers.map((c) => c.text).join();
+                      if (enteredOTP.length == 6) {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const PersonalInfoScreen(),
+                          ),
+                        );
+                      }
                     },
                     borderRadius: BorderRadius.circular(12),
                     child: Center(
