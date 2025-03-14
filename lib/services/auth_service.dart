@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'navigation_service.dart';
 
 class AuthService extends ChangeNotifier {
   bool _isAuthenticated = false;
@@ -69,6 +70,10 @@ class AuthService extends ChangeNotifier {
         _userId = 'user_${_userPhone}';
         _balance = 1234.56; // Initial balance for testing
         notifyListeners();
+        
+        // Navigate to home screen
+        NavigationService().navigateToReplacement('/home');
+        
         return true;
       }
       return false;
@@ -87,6 +92,10 @@ class AuthService extends ChangeNotifier {
       _userId = 'user_${_userPhone}';
       _balance = 0.0; // New users start with 0 balance
       notifyListeners();
+      
+      // Navigate to home screen
+      NavigationService().navigateToReplacement('/home');
+      
       return true;
     } catch (e) {
       return false;
@@ -151,6 +160,14 @@ class AuthService extends ChangeNotifier {
     _isNewUser = false;
     _balance = 0.0;
     _transactions.clear();
+    
+    // Reset navigation state
+    final navigationService = NavigationService();
+    navigationService.resetNavigation();
+    
+    // Navigate to auth screen
+    navigationService.navigateToReplacement('/auth');
+    
     notifyListeners();
   }
 }

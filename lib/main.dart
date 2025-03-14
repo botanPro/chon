@@ -6,6 +6,8 @@ import 'screens/home_screen.dart';
 import 'screens/auth/auth_screen.dart';
 import 'screens/profile_screen.dart';
 import 'services/auth_service.dart';
+import 'services/navigation_service.dart';
+import 'layouts/main_layout.dart';
 
 // Design tokens
 const kSpacing = 8.0;
@@ -34,267 +36,83 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Get the navigation service instance
+    final navigationService = NavigationService();
+    
     return MaterialApp(
-      title: 'Prize Games',
+      title: 'Game App',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        useMaterial3: true,
-        brightness: Brightness.dark,
-        colorScheme: ColorScheme.dark(
-          primary: Colors.amber.shade400,
-          secondary: Colors.deepPurple.shade300,
-          tertiary: Colors.pink.shade300,
-          surface: const Color(0xFF1E1E2E),
-          background: const Color(0xFF13131D),
-          error: Colors.red.shade400,
-          onPrimary: Colors.black,
-          onSecondary: Colors.white,
-          onSurface: Colors.white,
-          onBackground: Colors.white,
-          onError: Colors.white,
+        primaryColor: const Color(0xFF00B894),
+        scaffoldBackgroundColor: const Color(0xFF090C0B),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF00B894),
+          brightness: Brightness.dark,
         ),
-        textTheme: GoogleFonts.poppinsTextTheme(
-          ThemeData.dark().textTheme.copyWith(
-                // Display
-                displayLarge: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -0.5,
-                  color: Colors.white,
-                ),
-                displayMedium: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -0.5,
-                  color: Colors.white,
-                ),
-                displaySmall: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -0.5,
-                  color: Colors.white,
-                ),
-                // Headline
-                headlineLarge: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.5,
-                  color: Colors.white,
-                ),
-                headlineMedium: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.5,
-                  color: Colors.white,
-                ),
-                headlineSmall: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.5,
-                  color: Colors.white,
-                ),
-                // Title
-                titleLarge: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0,
-                  color: Colors.white,
-                ),
-                titleMedium: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0,
-                  color: Colors.white,
-                ),
-                titleSmall: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0,
-                  color: Colors.white,
-                ),
-                // Body
-                bodyLarge: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.normal,
-                  letterSpacing: 0,
-                  color: Colors.white,
-                ),
-                bodyMedium: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.normal,
-                  letterSpacing: 0,
-                  color: Colors.white,
-                ),
-                bodySmall: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.normal,
-                  letterSpacing: 0,
-                  color: Colors.white,
+        useMaterial3: true,
+        textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+      ),
+      // Use the navigation key from our service
+      navigatorKey: navigationService.navigatorKey,
+      // Define routes
+      initialRoute: '/',
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/':
+            return MaterialPageRoute(
+              builder: (_) => Consumer<AuthService>(
+                builder: (context, authService, _) {
+                  return authService.isAuthenticated 
+                      ? const AppNavigator() 
+                      : const AuthScreen();
+                },
+              ),
+            );
+          case '/home':
+            return MaterialPageRoute(builder: (_) => const AppNavigator());
+          case '/auth':
+            return MaterialPageRoute(builder: (_) => const AuthScreen());
+          case '/profile':
+            return MaterialPageRoute(builder: (_) => const ProfileScreen());
+          default:
+            return MaterialPageRoute(
+              builder: (_) => Scaffold(
+                body: Center(
+                  child: Text('No route defined for ${settings.name}'),
                 ),
               ),
-        ),
-        cardTheme: CardTheme(
-          elevation: 8,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(kRadius),
-          ),
-          color: const Color(0xFF1E1E2E),
-        ),
-        elevatedButtonTheme: ElevatedButtonThemeData(
-          style: ElevatedButton.styleFrom(
-            elevation: 4,
-            padding: const EdgeInsets.symmetric(
-              horizontal: kSpacing * 4,
-              vertical: kSpacing * 2,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(kRadius),
-            ),
-            backgroundColor: Colors.amber.shade400,
-            foregroundColor: Colors.black,
-          ),
-        ),
-        outlinedButtonTheme: OutlinedButtonThemeData(
-          style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(
-              horizontal: kSpacing * 4,
-              vertical: kSpacing * 2,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(kRadius),
-            ),
-            side: BorderSide(
-              color: Colors.amber.shade400,
-              width: 2,
-            ),
-            foregroundColor: Colors.amber.shade400,
-          ),
-        ),
-        textButtonTheme: TextButtonThemeData(
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(
-              horizontal: kSpacing * 2,
-              vertical: kSpacing,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(kRadius),
-            ),
-            foregroundColor: Colors.amber.shade400,
-          ),
-        ),
-        iconButtonTheme: IconButtonThemeData(
-          style: IconButton.styleFrom(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(kRadius),
-            ),
-            padding: const EdgeInsets.all(kSpacing * 1.5),
-            foregroundColor: Colors.amber.shade400,
-          ),
-        ),
-        snackBarTheme: SnackBarThemeData(
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(kRadius),
-          ),
-          contentTextStyle: const TextStyle(
-            fontFamily: 'Poppins',
-            color: Colors.white,
-          ),
-          backgroundColor: const Color(0xFF1E1E2E),
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          filled: true,
-          fillColor: const Color(0xFF1E1E2E),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: kSpacing * 2,
-            vertical: kSpacing * 2,
-          ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(kRadius),
-            borderSide: BorderSide(
-              color: Colors.amber.shade400.withOpacity(0.5),
-              width: 2,
-            ),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(kRadius),
-            borderSide: BorderSide(
-              color: Colors.amber.shade400.withOpacity(0.2),
-              width: 2,
-            ),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(kRadius),
-            borderSide: BorderSide(
-              color: Colors.amber.shade400,
-              width: 2,
-            ),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(kRadius),
-            borderSide: BorderSide(
-              color: Colors.red.shade400,
-              width: 2,
-            ),
-          ),
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(kRadius),
-            borderSide: BorderSide(
-              color: Colors.red.shade400,
-              width: 2,
-            ),
-          ),
-          labelStyle: TextStyle(
-            color: Colors.amber.shade400.withOpacity(0.8),
-            fontWeight: FontWeight.w500,
-          ),
-          hintStyle: TextStyle(
-            color: Colors.white.withOpacity(0.5),
-            fontWeight: FontWeight.normal,
-          ),
-          errorStyle: TextStyle(
-            color: Colors.red.shade400,
-            fontWeight: FontWeight.w500,
-          ),
-          prefixIconColor: Colors.amber.shade400.withOpacity(0.8),
-          suffixIconColor: Colors.amber.shade400.withOpacity(0.8),
-        ),
-        dividerTheme: DividerThemeData(
-          color: Colors.white.withOpacity(0.1),
-          thickness: 1,
-          space: kSpacing * 3,
-        ),
-        progressIndicatorTheme: ProgressIndicatorThemeData(
-          color: Colors.amber.shade400,
-          linearTrackColor: Colors.amber.shade400.withOpacity(0.1),
-          circularTrackColor: Colors.amber.shade400.withOpacity(0.1),
-        ),
-        bottomSheetTheme: const BottomSheetThemeData(
-          backgroundColor: Color(0xFF1E1E2E),
-          modalBackgroundColor: Color(0xFF1E1E2E),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(kRadius * 2),
-            ),
-          ),
-        ),
-        dialogTheme: DialogTheme(
-          backgroundColor: const Color(0xFF1E1E2E),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(kRadius),
-          ),
-        ),
-        fontFamily: 'Inter',
-      ),
-      home: Consumer<AuthService>(
-        builder: (context, auth, _) {
-          return auth.isAuthenticated ? const HomeScreen() : const AuthScreen();
-        },
-      ),
-      routes: {
-        '/home': (context) => const HomeScreen(),
-        '/profile': (context) => const ProfileScreen(),
+            );
+        }
       },
     );
+  }
+}
+
+/// A stateful widget that handles the navigation between different screens
+/// using the bottom navigation bar.
+class AppNavigator extends StatefulWidget {
+  const AppNavigator({super.key});
+
+  @override
+  State<AppNavigator> createState() => _AppNavigatorState();
+}
+
+class _AppNavigatorState extends State<AppNavigator> {
+  // Get the navigation service instance
+  final NavigationService _navigationService = NavigationService();
+  
+  @override
+  Widget build(BuildContext context) {
+    return MainLayout(
+      body: _navigationService.getScreenForIndex(_navigationService.currentIndex),
+      currentIndex: _navigationService.currentIndex,
+      onNavigationTap: _handleNavigation,
+    );
+  }
+  
+  void _handleNavigation(int index) {
+    setState(() {
+      _navigationService.navigateToTabIndex(index);
+    });
   }
 }

@@ -6,6 +6,7 @@ class Game {
   final IconData icon;
   final String prize;
   final double prizeValue;
+  final double rating;
 
   const Game({
     required this.title,
@@ -13,5 +14,6 @@ class Game {
     required this.icon,
     required this.prize,
     required this.prizeValue,
+    this.rating = 0.0,
   });
 }
