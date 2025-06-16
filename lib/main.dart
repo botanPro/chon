@@ -9,20 +9,36 @@ import 'services/auth_service.dart';
 import 'services/navigation_service.dart';
 import 'layouts/main_layout.dart';
 
-// Design tokens
-const kSpacing = 8.0;
-const kRadius = 16.0;
-const kAnimationDuration = Duration(milliseconds: 300);
+/// Application-wide design tokens for consistent styling
+class AppDesign {
+  /// Standard spacing unit used throughout the app (8.0)
+  static const double spacing = 8.0;
 
+  /// Standard border radius for UI elements (16.0)
+  static const double radius = 16.0;
+
+  /// Default animation duration for transitions (300ms)
+  static const animationDuration = Duration(milliseconds: 300);
+
+  /// Primary brand color
+  static const Color primaryColor = Color(0xFF00B894);
+
+  /// Background color for screens
+  static const Color backgroundColor = Color(0xFF090C0B);
+
+  /// Navigation bar color
+  static const Color navBarColor = Color(0xFF13131D);
+
+  // Private constructor to prevent instantiation
+  AppDesign._();
+}
+
+/// Entry point of the application
 void main() {
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Color(0xFF13131D),
-      systemNavigationBarIconBrightness: Brightness.light,
-    ),
-  );
+  // Configure system UI appearance
+  _configureSystemUI();
+
+  // Initialize the app with AuthService as the root provider
   runApp(
     ChangeNotifierProvider(
       create: (_) => AuthService(),
@@ -31,60 +47,80 @@ void main() {
   );
 }
 
+/// Configures the system UI elements like status bar and navigation bar
+void _configureSystemUI() {
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      systemNavigationBarColor: AppDesign.navBarColor,
+      systemNavigationBarIconBrightness: Brightness.light,
+    ),
+  );
+}
+
+/// Root application widget that configures the MaterialApp and theme
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    // Get the navigation service instance
+    // Get the navigation service instance for app-wide navigation
     final navigationService = NavigationService();
-    
+
     return MaterialApp(
       title: 'Game App',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primaryColor: const Color(0xFF00B894),
-        scaffoldBackgroundColor: const Color(0xFF090C0B),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF00B894),
-          brightness: Brightness.dark,
-        ),
-        useMaterial3: true,
-        textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
-      ),
-      // Use the navigation key from our service
+      theme: _buildAppTheme(),
+      // Use the navigation key from our service for programmatic navigation
       navigatorKey: navigationService.navigatorKey,
-      // Define routes
       initialRoute: '/',
-      onGenerateRoute: (settings) {
-        switch (settings.name) {
-          case '/':
-            return MaterialPageRoute(
-              builder: (_) => Consumer<AuthService>(
-                builder: (context, authService, _) {
-                  return authService.isAuthenticated 
-                      ? const AppNavigator() 
-                      : const AuthScreen();
-                },
-              ),
-            );
-          case '/home':
-            return MaterialPageRoute(builder: (_) => const AppNavigator());
-          case '/auth':
-            return MaterialPageRoute(builder: (_) => const AuthScreen());
-          case '/profile':
-            return MaterialPageRoute(builder: (_) => const ProfileScreen());
-          default:
-            return MaterialPageRoute(
-              builder: (_) => Scaffold(
-                body: Center(
-                  child: Text('No route defined for ${settings.name}'),
-                ),
-              ),
-            );
-        }
-      },
+      onGenerateRoute: _generateRoute,
     );
+  }
+
+  /// Builds the app-wide theme configuration
+  ThemeData _buildAppTheme() {
+    return ThemeData(
+      primaryColor: AppDesign.primaryColor,
+      scaffoldBackgroundColor: AppDesign.backgroundColor,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: AppDesign.primaryColor,
+        brightness: Brightness.dark,
+      ),
+      useMaterial3: true,
+      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
+    );
+  }
+
+  /// Generates routes based on route name
+  Route<dynamic> _generateRoute(RouteSettings settings) {
+    switch (settings.name) {
+      case '/':
+        return MaterialPageRoute(
+          builder: (_) => Consumer<AuthService>(
+            builder: (context, authService, _) {
+              return authService.isAuthenticated
+                  ? const AppNavigator()
+                  : const AuthScreen();
+            },
+          ),
+        );
+      case '/home':
+        return MaterialPageRoute(builder: (_) => const AppNavigator());
+      case '/auth':
+        return MaterialPageRoute(builder: (_) => const AuthScreen());
+      case '/profile':
+        return MaterialPageRoute(builder: (_) => const ProfileScreen());
+      default:
+        return MaterialPageRoute(
+          builder: (_) => Scaffold(
+            body: Center(
+              child: Text('No route defined for ${settings.name}'),
+            ),
+          ),
+        );
+    }
   }
 }
 
@@ -98,18 +134,20 @@ class AppNavigator extends StatefulWidget {
 }
 
 class _AppNavigatorState extends State<AppNavigator> {
-  // Get the navigation service instance
+  // Get the navigation service instance for managing tab navigation
   final NavigationService _navigationService = NavigationService();
-  
+
   @override
   Widget build(BuildContext context) {
     return MainLayout(
-      body: _navigationService.getScreenForIndex(_navigationService.currentIndex),
+      body:
+          _navigationService.getScreenForIndex(_navigationService.currentIndex),
       currentIndex: _navigationService.currentIndex,
       onNavigationTap: _handleNavigation,
     );
   }
-  
+
+  /// Handles navigation between bottom tabs
   void _handleNavigation(int index) {
     setState(() {
       _navigationService.navigateToTabIndex(index);

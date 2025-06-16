@@ -1,191 +1,256 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'dart:ui';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
-import '../widgets/game_action_button.dart';
-import 'transaction_history_screen.dart';
 
+/// ProfileScreen displays the user's profile information including their
+/// balance, level, and account management options.
+///
+/// This screen uses a custom circular progress indicator to display the user's
+/// balance with a teal accent color scheme on a dark background.
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    // Access auth service to get user data (currently using dummy data)
     final auth = context.watch<AuthService>();
-    final phone = auth.userPhone ?? '';
     final balance = auth.balance;
 
     return Scaffold(
-      backgroundColor: theme.colorScheme.background,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(
-          'Profile',
-          style: theme.textTheme.titleLarge?.copyWith(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
+      appBar: _buildAppBar(),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF0A1615), // Darker teal-black at top
+              Color(0xFF0A0E0D), // Dark background in middle
+              Color(0xFF0E1211), // Slightly lighter at bottom
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildLevelIndicator(),
+                _buildBalanceCircle(),
+                _buildAccountSection(),
+                _buildMoreSection(),
+                _buildLogoutButton(context),
+              ],
+            ),
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    theme.colorScheme.primary.withOpacity(0.2),
-                    theme.colorScheme.background,
-                  ],
-                ),
+    );
+  }
+
+  /// Builds the app bar with user name and avatar
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      automaticallyImplyLeading: false,
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // First name with bold weight
+          const Text(
+            'Bashdar ',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          // Last name with regular weight
+          const Text(
+            'Hakim',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.w400,
+            ),
+          ),
+          const Spacer(),
+          // User avatar with teal border
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: const Color(0xFF00B894),
+                width: 2,
               ),
-              child: Column(
-                children: [
-                  Container(
-                    width: 100,
-                    height: 100,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withOpacity(0.1),
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: theme.colorScheme.primary,
-                        width: 2,
-                      ),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Image.asset(
+                'assets/images/avatar.png',
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  // Fallback avatar if image fails to load
+                  return CircleAvatar(
+                    backgroundColor: const Color(0xFF00B894).withOpacity(0.2),
+                    child: const Icon(
+                      Icons.person,
+                      color: Color(0xFF00B894),
+                      size: 24,
                     ),
-                    child: Center(
-                      child: Icon(
-                        Icons.person_rounded,
-                        size: 48,
-                        color: theme.colorScheme.primary,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    phone,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.primary.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: theme.colorScheme.primary.withOpacity(0.2),
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.account_balance_wallet_rounded,
-                          size: 16,
-                          color: theme.colorScheme.primary,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '\$${balance.toStringAsFixed(2)}',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+      centerTitle: false,
+    );
+  }
+
+  /// Builds the level indicator with star icon
+  Widget _buildLevelIndicator() {
+    return const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.star,
+            color: Color(0xFF94C1BA),
+            size: 16,
+          ),
+          SizedBox(width: 4),
+          Text(
+            'Level 5',
+            style: TextStyle(
+              color: Color(0xFF94C1BA),
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Builds the circular balance display with progress indicator
+  Widget _buildBalanceCircle() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 40),
+      child: Center(
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Outer glow effect
+            Container(
+              width: 240,
+              height: 240,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF94C1BA).withOpacity(0.1),
+                    blurRadius: 40,
+                    spreadRadius: 5,
                   ),
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(24),
+
+            // Progress circle background (darker ring)
+            Container(
+              width: 220,
+              height: 220,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.transparent,
+                border: Border.all(
+                  color: const Color(0xFF1A2322).withOpacity(0.8),
+                  width: 15,
+                ),
+              ),
+            ),
+
+            // Animated progress circle (65% complete)
+            SizedBox(
+              width: 220,
+              height: 220,
+              child: Transform.rotate(
+                angle: -0.65, // Rotate to match design
+                child: CustomPaint(
+                  painter: CircleProgressPainter(
+                    progress: 0.65,
+                    progressColor: const Color(0xFF94C1BA),
+                    backgroundColor: Colors.transparent,
+                    strokeWidth: 15,
+                  ),
+                ),
+              ),
+            ),
+
+            // Inner circle with balance display
+            Container(
+              width: 180,
+              height: 180,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF0A0E0D),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 10,
+                    spreadRadius: 1,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const Text(
+                    'Balance',
+                    style: TextStyle(
+                      color: Colors.white54,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const SizedBox(height: 15),
+                  // Balance with dollar sign
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: _buildActionButton(
-                          context,
-                          icon: Icons.add_rounded,
-                          label: 'Deposit',
-                          onTap: () => _showDepositDialog(context),
+                      const Padding(
+                        padding: EdgeInsets.only(top: 4),
+                        child: Text(
+                          '\$',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.w300,
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: _buildActionButton(
-                          context,
-                          icon: Icons.remove_rounded,
-                          label: 'Withdraw',
-                          onTap: () => _showWithdrawDialog(context),
+                      const Text(
+                        '1,000,000',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 36,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: -0.5,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 24),
-                  _buildMenuItem(
-                    context,
-                    icon: Icons.history_rounded,
-                    title: 'Transaction History',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              const TransactionHistoryScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                  _buildMenuItem(
-                    context,
-                    icon: Icons.emoji_events_rounded,
-                    title: 'My Prizes',
-                    onTap: () {
-                      // TODO: Implement prizes screen
-                    },
-                  ),
-                  _buildMenuItem(
-                    context,
-                    icon: Icons.settings_rounded,
-                    title: 'Settings',
-                    onTap: () {
-                      // TODO: Implement settings screen
-                    },
-                  ),
-                  _buildMenuItem(
-                    context,
-                    icon: Icons.help_outline_rounded,
-                    title: 'Help & Support',
-                    onTap: () {
-                      // TODO: Implement help & support screen
-                    },
-                  ),
-                  const SizedBox(height: 24),
-                  GameActionButton(
-                    label: 'Logout',
-                    icon: Icons.logout_rounded,
-                    onPressed: () async {
-                      final confirmed = await _showLogoutConfirmation(context);
-                      if (confirmed == true) {
-                        await context.read<AuthService>().signOut();
-                        if (context.mounted) {
-                          Navigator.pushReplacementNamed(context, '/');
-                        }
-                      }
-                    },
-                    isPrimary: false,
-                  ),
                 ],
               ),
             ),
@@ -195,297 +260,210 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButton(
-    BuildContext context, {
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-  }) {
-    final theme = Theme.of(context);
-    return Material(
-      color: theme.colorScheme.surface,
-      borderRadius: BorderRadius.circular(16),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 20,
-          ),
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: theme.colorScheme.primary.withOpacity(0.2),
+  /// Builds the Account section with menu items
+  Widget _buildAccountSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(left: 24, top: 16, bottom: 8),
+          child: Text(
+            'Account',
+            style: TextStyle(
+              color: Colors.white38,
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
             ),
-            borderRadius: BorderRadius.circular(16),
           ),
-          child: Column(
-            children: [
-              Icon(
-                icon,
-                color: theme.colorScheme.primary,
-                size: 32,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                label,
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ],
+        ),
+        _buildMenuItem(
+          icon: Icons.person_outline,
+          title: 'Edit Profile',
+          onTap: () {
+            // TODO: Navigate to Edit Profile screen
+          },
+        ),
+        _buildMenuItem(
+          icon: Icons.notifications_outlined,
+          title: 'Notifications',
+          onTap: () {
+            // TODO: Navigate to Notifications screen
+          },
+        ),
+      ],
+    );
+  }
+
+  /// Builds the More section with additional menu items
+  Widget _buildMoreSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(left: 24, top: 24, bottom: 8),
+          child: Text(
+            'More',
+            style: TextStyle(
+              color: Colors.white38,
+              fontSize: 18,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+        _buildMenuItem(
+          icon: Icons.help_outline,
+          title: 'Privacy & Policy',
+          onTap: () {
+            // TODO: Navigate to Privacy & Policy screen
+          },
+        ),
+        _buildMenuItem(
+          icon: Icons.star_outline,
+          title: 'Rate Us',
+          onTap: () {
+            // TODO: Implement app rating functionality
+          },
+        ),
+        _buildMenuItem(
+          icon: Icons.group_outlined,
+          title: 'Social Media',
+          onTap: () {
+            // TODO: Navigate to Social Media links screen
+          },
+        ),
+      ],
+    );
+  }
+
+  /// Builds the logout button at the bottom of the screen
+  Widget _buildLogoutButton(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
+      child: ElevatedButton.icon(
+        onPressed: () async {
+          // TODO: Implement confirmation dialog before logout
+          await context.read<AuthService>().signOut();
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF4D2626),
+          foregroundColor: Colors.white,
+          minimumSize: const Size(double.infinity, 56),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
+          ),
+          elevation: 0,
+        ),
+        icon: const Icon(Icons.logout),
+        label: const Text(
+          'Log out',
+          style: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ),
     );
   }
 
-  Widget _buildMenuItem(
-    BuildContext context, {
+  /// Reusable menu item widget used for both Account and More sections
+  Widget _buildMenuItem({
     required IconData icon,
     required String title,
     required VoidCallback onTap,
   }) {
-    final theme = Theme.of(context);
-    return Material(
-      color: Colors.transparent,
-      child: ListTile(
-        onTap: onTap,
-        leading: Icon(
-          icon,
-          color: theme.colorScheme.primary,
-        ),
-        title: Text(
-          title,
-          style: theme.textTheme.titleMedium?.copyWith(
-            color: Colors.white,
-          ),
-        ),
-        trailing: Icon(
-          Icons.chevron_right_rounded,
-          color: theme.colorScheme.primary.withOpacity(0.5),
-        ),
-      ),
-    );
-  }
-
-  Future<bool?> _showLogoutConfirmation(BuildContext context) {
-    return showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        title: const Text(
-          'Logout',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: const Text(
-          'Are you sure you want to logout?',
-          style: TextStyle(color: Colors.white70),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Logout'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDepositDialog(BuildContext context) {
-    final theme = Theme.of(context);
-    final controller = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: theme.colorScheme.surface,
-        title: const Text(
-          'Deposit',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
+    return InkWell(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+        child: Row(
           children: [
-            TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
-              ],
-              decoration: const InputDecoration(
-                labelText: 'Amount',
-                prefixText: '\$',
-                border: OutlineInputBorder(),
+            Icon(
+              icon,
+              color: Colors.white,
+              size: 24,
+            ),
+            const SizedBox(width: 16),
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
               ),
-              style: const TextStyle(color: Colors.white),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'Choose payment method:',
-              style: TextStyle(color: Colors.white70),
+            const Spacer(),
+            const Icon(
+              Icons.chevron_right,
+              color: Colors.white54,
+              size: 24,
             ),
-            const SizedBox(height: 8),
-            _buildPaymentMethod(context, 'Credit Card', Icons.credit_card),
-            _buildPaymentMethod(context, 'PayPal', Icons.payment),
-            _buildPaymentMethod(
-                context, 'Bank Transfer', Icons.account_balance),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              final amount = double.tryParse(controller.text);
-              if (amount != null && amount > 0) {
-                final success = await context
-                    .read<AuthService>()
-                    .deposit(amount, 'Credit Card');
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                            'Successfully deposited \$${amount.toStringAsFixed(2)}'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Failed to deposit. Please try again.'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              }
-            },
-            child: const Text('Deposit'),
-          ),
-        ],
       ),
     );
   }
+}
 
-  void _showWithdrawDialog(BuildContext context) {
-    final theme = Theme.of(context);
-    final controller = TextEditingController();
-    final balance = context.read<AuthService>().balance;
+/// Custom painter that draws a circular progress indicator with customizable
+/// colors and stroke width.
+///
+/// Used to create the balance progress circle in the profile screen.
+class CircleProgressPainter extends CustomPainter {
+  final double progress;
+  final Color progressColor;
+  final Color backgroundColor;
+  final double strokeWidth;
 
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: theme.colorScheme.surface,
-        title: const Text(
-          'Withdraw',
-          style: TextStyle(color: Colors.white),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: controller,
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
-              ],
-              decoration: InputDecoration(
-                labelText: 'Amount (max \$${balance.toStringAsFixed(2)})',
-                prefixText: '\$',
-                border: const OutlineInputBorder(),
-              ),
-              style: const TextStyle(color: Colors.white),
-            ),
-            const SizedBox(height: 16),
-            const Text(
-              'Choose withdrawal method:',
-              style: TextStyle(color: Colors.white70),
-            ),
-            const SizedBox(height: 8),
-            _buildPaymentMethod(context, 'Bank Account', Icons.account_balance),
-            _buildPaymentMethod(context, 'PayPal', Icons.payment),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () async {
-              final amount = double.tryParse(controller.text);
-              if (amount != null && amount > 0 && amount <= balance) {
-                final success = await context
-                    .read<AuthService>()
-                    .withdraw(amount, 'Bank Account');
-                if (context.mounted) {
-                  Navigator.pop(context);
-                  if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                            'Successfully withdrew \$${amount.toStringAsFixed(2)}'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Failed to withdraw. Please try again.'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              } else {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Invalid amount'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-              }
-            },
-            child: const Text('Withdraw'),
-          ),
-        ],
-      ),
+  CircleProgressPainter({
+    required this.progress,
+    required this.progressColor,
+    required this.backgroundColor,
+    required this.strokeWidth,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width / 2) - (strokeWidth / 2);
+
+    // Draw background circle if needed
+    if (backgroundColor != Colors.transparent) {
+      final backgroundPaint = Paint()
+        ..color = backgroundColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth;
+
+      canvas.drawCircle(center, radius, backgroundPaint);
+    }
+
+    // Draw progress arc
+    final progressPaint = Paint()
+      ..color = progressColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    // Using radians: 0 is at the right (3 o'clock), we want to start from top
+    const startAngle = -90.0 * (3.14159 / 180); // Start from top (270 degrees)
+    final sweepAngle = progress * 2 * 3.14159; // Full circle is 2*PI radians
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      startAngle,
+      sweepAngle,
+      false,
+      progressPaint,
     );
   }
 
-  Widget _buildPaymentMethod(
-      BuildContext context, String title, IconData icon) {
-    final theme = Theme.of(context);
-    return Material(
-      color: Colors.transparent,
-      child: ListTile(
-        onTap: () {
-          // TODO: Implement payment method selection
-          Navigator.pop(context);
-        },
-        leading: Icon(
-          icon,
-          color: theme.colorScheme.primary,
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(color: Colors.white),
-        ),
-        trailing: Icon(
-          Icons.chevron_right_rounded,
-          color: theme.colorScheme.primary.withOpacity(0.5),
-        ),
-      ),
-    );
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    if (oldDelegate is CircleProgressPainter) {
+      return oldDelegate.progress != progress ||
+          oldDelegate.progressColor != progressColor ||
+          oldDelegate.backgroundColor != backgroundColor ||
+          oldDelegate.strokeWidth != strokeWidth;
+    }
+    return true;
   }
 }

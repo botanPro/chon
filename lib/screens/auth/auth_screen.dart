@@ -48,7 +48,16 @@ class _AuthScreenState extends State<AuthScreen>
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (context) => const SignUpDrawer(),
+      builder: (context) => const SignUpDrawer(isSignIn: false),
+    );
+  }
+
+  void _showSignInDrawer() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => const SignUpDrawer(isSignIn: true),
     );
   }
 
@@ -130,7 +139,7 @@ class _AuthScreenState extends State<AuthScreen>
                       SizedBox(
                         height: 56,
                         child: TextButton(
-                          onPressed: () {},
+                          onPressed: _showSignInDrawer,
                           style: TextButton.styleFrom(
                             foregroundColor: const Color(0xFF6F6F6F),
                           ),
@@ -212,7 +221,12 @@ class _AuthScreenState extends State<AuthScreen>
 }
 
 class SignUpDrawer extends StatefulWidget {
-  const SignUpDrawer({super.key});
+  final bool isSignIn;
+
+  const SignUpDrawer({
+    super.key,
+    this.isSignIn = false,
+  });
 
   @override
   State<SignUpDrawer> createState() => _SignUpDrawerState();
@@ -258,8 +272,6 @@ class _SignUpDrawerState extends State<SignUpDrawer>
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = GoogleFonts.interTextTheme();
-
     return Container(
       height: MediaQuery.of(context).size.height * 0.9,
       decoration: const BoxDecoration(
@@ -300,28 +312,48 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                       ],
                     ).createShader(bounds);
                   },
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Row(
                     children: [
-                      Text(
-                        'WELCOME TO',
-                        style: textTheme.headlineMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontFamily: 'Inter',
-                          letterSpacing: -0.5,
-                          fontSize: 30,
-                        ),
-                      ),
-                      Text(
-                        'OUR GAMING AREA',
-                        style: textTheme.headlineMedium?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                          fontFamily: 'Inter',
-                          letterSpacing: -0.5,
-                          fontSize: 30,
-                        ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'WELCOME TO',
+                            style: GoogleFonts.inter(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: -0.5,
+                              fontSize: 30,
+                            ),
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                'OUR ',
+                                style: GoogleFonts.inter(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.5,
+                                  fontSize: 30,
+                                ),
+                              ),
+                              const Icon(
+                                Icons.sports_esports,
+                                color: Colors.white,
+                                size: 30,
+                              ),
+                              Text(
+                                ' GAME AREA',
+                                style: GoogleFonts.inter(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -0.5,
+                                  fontSize: 30,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -336,19 +368,21 @@ class _SignUpDrawerState extends State<SignUpDrawer>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Sign up Account',
-                  style: textTheme.titleLarge?.copyWith(
+                  widget.isSignIn ? 'Sign In Account' : 'Sign Up Account',
+                  style: GoogleFonts.inter(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
-                    fontFamily: 'Inter',
+                    fontSize: 20,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Enter your personal information create your account',
-                  style: textTheme.bodyLarge?.copyWith(
+                  widget.isSignIn
+                      ? 'Enter your credentials to access your account'
+                      : 'Enter your personal information to create your account',
+                  style: GoogleFonts.inter(
                     color: Colors.white.withOpacity(0.5),
-                    fontFamily: 'Inter',
+                    fontSize: 14,
                   ),
                 ),
               ],
@@ -361,18 +395,55 @@ class _SignUpDrawerState extends State<SignUpDrawer>
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildTextField(
-                    label: 'Phone Number',
-                    icon: Icons.phone_outlined,
-                    controller: _phoneController,
-                    isPhone: true,
-                  ),
+                  _buildPhoneField(),
                   const SizedBox(height: 16),
-                  _buildTextField(
-                    label: 'Password',
-                    icon: Icons.lock_outline,
-                    controller: _passwordController,
-                    isPassword: true,
+                  _buildPasswordField(),
+                  const SizedBox(height: 32),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        widget.isSignIn
+                            ? 'Don\'t have an account? '
+                            : 'Already have an account? ',
+                        style: GoogleFonts.inter(
+                          color: Colors.white.withOpacity(0.7),
+                          fontSize: 14,
+                        ),
+                      ),
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.pop(context);
+                          Future.delayed(const Duration(milliseconds: 300), () {
+                            if (widget.isSignIn) {
+                              showModalBottomSheet(
+                                context: context,
+                                backgroundColor: Colors.transparent,
+                                isScrollControlled: true,
+                                builder: (context) =>
+                                    const SignUpDrawer(isSignIn: false),
+                              );
+                            } else {
+                              showModalBottomSheet(
+                                context: context,
+                                backgroundColor: Colors.transparent,
+                                isScrollControlled: true,
+                                builder: (context) =>
+                                    const SignUpDrawer(isSignIn: true),
+                              );
+                            }
+                          });
+                        },
+                        child: Text(
+                          widget.isSignIn ? 'Sign up' : 'Sign in',
+                          style: GoogleFonts.inter(
+                            color: const Color(0xFF00B894),
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 32),
                   Container(
@@ -385,25 +456,45 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                       color: Colors.transparent,
                       child: InkWell(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const VerificationScreen(
-                                phoneNumber:
-                                    '+964 751 XXX XXXX', // TODO: Pass actual phone number
+                          if (widget.isSignIn) {
+                            // Handle sign in - for now, just navigate to home
+                            // In a real app, you'd validate credentials first
+                            Navigator.of(context).pushNamedAndRemoveUntil(
+                              '/home',
+                              (route) => false,
+                            );
+                          } else {
+                            // Handle sign up - navigate to verification
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => VerificationScreen(
+                                  phoneNumber: '+964 ${_phoneController.text}',
+                                ),
                               ),
-                            ),
-                          );
+                            );
+                          }
                         },
                         borderRadius: BorderRadius.circular(12),
-                        child: Center(
-                          child: Text(
-                            'Sign up',
-                            style: textTheme.titleMedium?.copyWith(
-                              color: Colors.black,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Inter',
-                            ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                widget.isSignIn ? 'Sign in' : 'Sign up',
+                                style: GoogleFonts.inter(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const Icon(
+                                Icons.arrow_forward,
+                                color: Colors.black,
+                                size: 20,
+                              ),
+                            ],
                           ),
                         ),
                       ),
@@ -419,18 +510,76 @@ class _SignUpDrawerState extends State<SignUpDrawer>
     );
   }
 
-  Widget _buildTextField({
-    required String label,
-    required IconData icon,
-    required TextEditingController controller,
-    bool isPassword = false,
-    bool isPhone = false,
-  }) {
+  Widget _buildPhoneField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          label,
+          'Phone Number',
+          style: GoogleFonts.inter(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 56,
+          decoration: BoxDecoration(
+            color: const Color(0xFF151918),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.1),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.only(left: 16, right: 8),
+                child: Text(
+                  '+964 |',
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
+              Expanded(
+                child: TextField(
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  style: GoogleFonts.inter(
+                    color: Colors.white,
+                    fontSize: 16,
+                  ),
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    hintText: '750 999 9999',
+                    hintStyle: GoogleFonts.inter(
+                      color: Colors.white.withOpacity(0.3),
+                      fontSize: 16,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 16,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPasswordField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Password',
           style: GoogleFonts.inter(
             fontSize: 14,
             fontWeight: FontWeight.w500,
@@ -449,42 +598,36 @@ class _SignUpDrawerState extends State<SignUpDrawer>
             ),
           ),
           child: TextField(
-            controller: controller,
-            obscureText: isPassword && !_showPassword,
-            keyboardType: isPhone ? TextInputType.phone : TextInputType.text,
+            controller: _passwordController,
+            obscureText: !_showPassword,
             style: GoogleFonts.inter(
               color: Colors.white,
               fontSize: 16,
             ),
             decoration: InputDecoration(
               border: InputBorder.none,
-              prefixIcon: Icon(
-                icon,
-                color: Colors.white.withOpacity(0.5),
-              ),
-              suffixIcon: isPassword
-                  ? IconButton(
-                      icon: Icon(
-                        _showPassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                        color: Colors.white.withOpacity(0.5),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _showPassword = !_showPassword;
-                        });
-                      },
-                    )
-                  : null,
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 16,
                 vertical: 16,
               ),
-              hintText: isPhone ? '+964 XXX XXX XXXX' : 'Enter your password',
+              hintText: '@Example25',
               hintStyle: GoogleFonts.inter(
                 color: Colors.white.withOpacity(0.3),
                 fontSize: 16,
+              ),
+              suffixIcon: IconButton(
+                icon: Icon(
+                  _showPassword
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  color: Colors.white.withOpacity(0.5),
+                  size: 22,
+                ),
+                onPressed: () {
+                  setState(() {
+                    _showPassword = !_showPassword;
+                  });
+                },
               ),
             ),
           ),

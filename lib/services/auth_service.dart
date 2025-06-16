@@ -1,25 +1,42 @@
 import 'package:flutter/material.dart';
 import 'navigation_service.dart';
 
+/// Service that handles all authentication and user-related functionality.
+///
+/// This includes user registration, login, session management, and financial transactions.
+/// Currently uses dummy data and mock implementations that will be replaced with
+/// actual API calls in production.
 class AuthService extends ChangeNotifier {
+  // User authentication state
   bool _isAuthenticated = false;
   String? _userId;
   String? _userPhone;
   String? _verificationId;
   bool _isNewUser = false;
+
+  // User financial data
   double _balance = 0.0;
   List<Transaction> _transactions = [];
+  List<GameResult> _gameHistory = [];
 
+  // Public getters
   bool get isAuthenticated => _isAuthenticated;
   String? get userId => _userId;
   String? get userPhone => _userPhone;
   bool get isNewUser => _isNewUser;
   double get balance => _balance;
-  List<Transaction> get transactions => _transactions;
+  List<Transaction> get transactions => List.unmodifiable(_transactions);
+  List<GameResult> get gameHistory => List.unmodifiable(_gameHistory);
 
-  // Format phone number to standard format
+  /// Formats a phone number to the standard international format.
+  ///
+  /// Handles different input formats and ensures the number has the correct
+  /// country code prefix (+964 for Iraq).
+  ///
+  /// [phone] The phone number to format
+  /// Returns the formatted phone number
   String _formatPhoneNumber(String phone) {
-    // Remove any spaces, dashes, or other characters
+    // Remove any non-digit characters
     phone = phone.replaceAll(RegExp(r'[^0-9]'), '');
 
     // If number starts with 0, replace it with +964
@@ -34,20 +51,26 @@ class AuthService extends ChangeNotifier {
     return phone;
   }
 
-  // Check if account exists and send OTP
+  /// Checks if an account exists for the given phone number and sends OTP.
+  ///
+  /// This is the first step in the authentication flow. It determines if the
+  /// user is new or existing and triggers the OTP verification process.
+  ///
+  /// [phone] The phone number to check
+  /// Returns true if OTP was sent successfully, false otherwise
   Future<bool> checkPhoneAndSendOTP(String phone) async {
     try {
       final formattedPhone = _formatPhoneNumber(phone);
-      // TODO: Implement actual phone verification
-      // For now, simulate API call
+
+      // TODO: Replace with actual API call to verify phone and send OTP
       await Future.delayed(const Duration(seconds: 1));
 
-      // Simulate checking if user exists (for testing, assume numbers starting with 751 are existing users)
+      // MOCK IMPLEMENTATION: Simulate checking if user exists
+      // In production, this would be an API call to the backend
       _isNewUser = !formattedPhone.contains('751');
       _userPhone = formattedPhone;
       _verificationId = 'test-verification-id';
 
-      // In real implementation, this would trigger actual OTP sending
       notifyListeners();
       return true;
     } catch (e) {
@@ -58,22 +81,33 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Verify OTP
+  /// Verifies the OTP code entered by the user.
+  ///
+  /// This is the second step in the authentication flow. If successful,
+  /// it will either complete the login process or prompt for additional
+  /// registration information for new users.
+  ///
+  /// [otp] The OTP code entered by the user
+  /// Returns true if verification was successful, false otherwise
   Future<bool> verifyOTP(String otp) async {
     try {
-      // TODO: Implement actual OTP verification
+      // TODO: Replace with actual OTP verification API call
       await Future.delayed(const Duration(seconds: 1));
 
+      // MOCK IMPLEMENTATION: For testing purposes, accept "123456" as valid
       if (otp == '123456') {
-        // For testing purposes
         _isAuthenticated = true;
         _userId = 'user_${_userPhone}';
-        _balance = 1234.56; // Initial balance for testing
+        _balance = 1000000; // Initial balance for testing
+
+        // Add sample game history for testing UI
+        _addSampleGameHistory();
+
         notifyListeners();
-        
+
         // Navigate to home screen
         NavigationService().navigateToReplacement('/home');
-        
+
         return true;
       }
       return false;
@@ -82,30 +116,130 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Complete registration with additional details
+  /// Adds a new game result to the user's history.
+  ///
+  /// Also updates the user's balance and transaction history if the game
+  /// resulted in a financial win or loss.
+  ///
+  /// [result] The game result to add
+  void addGameResult(GameResult result) {
+    _gameHistory.add(result);
+
+    // Also add a transaction if there was a win or loss with money
+    if (result.winAmount > 0) {
+      _transactions.add(
+        Transaction(
+          type: TransactionType.gameWin,
+          amount: result.winAmount,
+          method: result.gameType,
+          timestamp: result.timestamp,
+          status: TransactionStatus.completed,
+        ),
+      );
+      _balance += result.winAmount;
+    }
+
+    notifyListeners();
+  }
+
+  /// Adds sample game history data for testing purposes.
+  ///
+  /// This is used to populate the UI with realistic-looking data
+  /// during development and testing.
+  void _addSampleGameHistory() {
+    _gameHistory = [
+      GameResult(
+        gameType: 'Trivia Challenge',
+        position: 'Top 1',
+        score: 3,
+        totalQuestions: 3,
+        winAmount: 50.0,
+        timestamp: DateTime.now().subtract(const Duration(hours: 2)),
+      ),
+      GameResult(
+        gameType: 'Daily Quiz',
+        position: 'Top 3',
+        score: 7,
+        totalQuestions: 10,
+        winAmount: 20.0,
+        timestamp: DateTime.now().subtract(const Duration(days: 1)),
+      ),
+      GameResult(
+        gameType: 'Speed Challenge',
+        position: 'Top 5',
+        score: 4,
+        totalQuestions: 5,
+        winAmount: 10.0,
+        timestamp: DateTime.now().subtract(const Duration(days: 2)),
+      ),
+      GameResult(
+        gameType: 'Trivia Challenge',
+        position: 'Top 10',
+        score: 2,
+        totalQuestions: 3,
+        winAmount: 5.0,
+        timestamp: DateTime.now().subtract(const Duration(days: 3)),
+      ),
+      GameResult(
+        gameType: 'Daily Quiz',
+        position: 'Top 20',
+        score: 5,
+        totalQuestions: 10,
+        winAmount: 0.0,
+        timestamp: DateTime.now().subtract(const Duration(days: 4)),
+      ),
+    ];
+
+    // Add corresponding transactions for wins
+    for (final game in _gameHistory) {
+      if (game.winAmount > 0) {
+        _transactions.add(
+          Transaction(
+            type: TransactionType.gameWin,
+            amount: game.winAmount,
+            method: game.gameType,
+            timestamp: game.timestamp,
+            status: TransactionStatus.completed,
+          ),
+        );
+      }
+    }
+  }
+
+  /// Completes the registration process for new users.
+  ///
+  /// This is called after OTP verification for new users to collect
+  /// additional required information.
+  ///
+  /// [password] The user's chosen password
+  /// Returns true if registration was completed successfully, false otherwise
   Future<bool> completeRegistration(String password) async {
     try {
-      // TODO: Implement actual registration
+      // TODO: Replace with actual API call to complete registration
       await Future.delayed(const Duration(seconds: 1));
 
       _isAuthenticated = true;
       _userId = 'user_${_userPhone}';
       _balance = 0.0; // New users start with 0 balance
       notifyListeners();
-      
+
       // Navigate to home screen
       NavigationService().navigateToReplacement('/home');
-      
+
       return true;
     } catch (e) {
       return false;
     }
   }
 
-  // Deposit funds
+  /// Deposits funds into the user's account.
+  ///
+  /// [amount] The amount to deposit
+  /// [method] The payment method used (e.g., "Credit Card", "PayPal")
+  /// Returns true if deposit was successful, false otherwise
   Future<bool> deposit(double amount, String method) async {
     try {
-      // TODO: Implement actual deposit logic
+      // TODO: Replace with actual payment gateway integration
       await Future.delayed(const Duration(seconds: 1));
 
       _balance += amount;
@@ -125,12 +259,17 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Withdraw funds
+  /// Withdraws funds from the user's account.
+  ///
+  /// [amount] The amount to withdraw
+  /// [method] The withdrawal method (e.g., "Bank Transfer")
+  /// Returns true if withdrawal was successful, false otherwise
   Future<bool> withdraw(double amount, String method) async {
     try {
-      // TODO: Implement actual withdrawal logic
+      // TODO: Replace with actual withdrawal API integration
       await Future.delayed(const Duration(seconds: 1));
 
+      // Validate sufficient funds
       if (amount > _balance) {
         return false;
       }
@@ -152,7 +291,11 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  /// Signs out the current user and clears all user data.
+  ///
+  /// This resets the authentication state and navigates back to the auth screen.
   Future<void> signOut() async {
+    // Reset all user-related data
     _isAuthenticated = false;
     _userId = null;
     _userPhone = null;
@@ -160,43 +303,98 @@ class AuthService extends ChangeNotifier {
     _isNewUser = false;
     _balance = 0.0;
     _transactions.clear();
-    
-    // Reset navigation state
+    _gameHistory.clear();
+
+    // Reset navigation state and redirect to auth screen
     final navigationService = NavigationService();
     navigationService.resetNavigation();
-    
-    // Navigate to auth screen
     navigationService.navigateToReplacement('/auth');
-    
+
     notifyListeners();
   }
 }
 
+/// Represents the type of financial transaction.
 enum TransactionType {
+  /// Money added to the account
   deposit,
+
+  /// Money removed from the account
   withdrawal,
+
+  /// Money won from playing games
   gameWin,
+
+  /// Money lost from playing games
   gameLoss,
 }
 
+/// Represents the status of a transaction.
 enum TransactionStatus {
+  /// Transaction is being processed
   pending,
+
+  /// Transaction completed successfully
   completed,
+
+  /// Transaction failed to complete
   failed,
 }
 
+/// Represents a financial transaction in the user's account.
 class Transaction {
+  /// The type of transaction (deposit, withdrawal, etc.)
   final TransactionType type;
+
+  /// The monetary amount of the transaction
   final double amount;
+
+  /// The method or source of the transaction
   final String method;
+
+  /// When the transaction occurred
   final DateTime timestamp;
+
+  /// Current status of the transaction
   final TransactionStatus status;
 
+  /// Creates a new transaction record
   Transaction({
     required this.type,
     required this.amount,
     required this.method,
     required this.timestamp,
     required this.status,
+  });
+}
+
+/// Represents the result of a game played by the user.
+class GameResult {
+  /// The type or name of the game
+  final String gameType;
+
+  /// The user's position in the game (e.g., "Top 1")
+  final String position;
+
+  /// The user's score in the game
+  final int score;
+
+  /// The total number of questions or challenges in the game
+  final int totalQuestions;
+
+  /// The amount of money won (0 if no win)
+  final double winAmount;
+
+  /// When the game was played
+  final DateTime timestamp;
+
+  /// Creates a new game result record
+  GameResult({
+    required this.gameType,
+    required this.position,
+    required this.score,
+    required this.totalQuestions,
+    required this.winAmount,
+    required this.timestamp,
   });
 }

@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
+import 'trivia_game_screen.dart';
 
 class PaymentMethodScreen extends StatefulWidget {
   final double amount;
   final String gameName;
 
   const PaymentMethodScreen({
-    super.key, 
+    super.key,
     required this.amount,
     required this.gameName,
   });
@@ -53,36 +54,36 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
             ),
           ),
           _buildPaymentOption(
-            0, 
-            'Visa Card', 
+            0,
+            'Visa Card',
             Icons.credit_card,
             Colors.blue,
             'Just a random text here',
           ),
           _buildPaymentOption(
-            1, 
-            'Master Card', 
+            1,
+            'Master Card',
             Icons.credit_card,
             Colors.orange,
             'Just a random text here',
           ),
           _buildPaymentOption(
-            2, 
-            'Apple Pay', 
+            2,
+            'Apple Pay',
             Icons.apple,
             Colors.white,
             'Just a random text here',
           ),
           _buildPaymentOption(
-            3, 
-            'Stripe', 
+            3,
+            'Stripe',
             Icons.attach_money,
             Colors.purple,
             'Just a random text here',
           ),
           _buildPaymentOption(
-            4, 
-            'PayPal', 
+            4,
+            'PayPal',
             Icons.account_balance_wallet,
             Colors.blue,
             'Just a random text here',
@@ -130,15 +131,10 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
     );
   }
 
-  Widget _buildPaymentOption(
-    int index, 
-    String title, 
-    IconData icon,
-    Color iconColor,
-    String description
-  ) {
+  Widget _buildPaymentOption(int index, String title, IconData icon,
+      Color iconColor, String description) {
     bool isSelected = _selectedPaymentMethod == index;
-    
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 8),
       child: GestureDetector(
@@ -248,15 +244,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context); // Close dialog
-              Navigator.pop(context); // Close payment screen
-              
-              // Show success message
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Payment successful!'),
-                  backgroundColor: Colors.green,
-                ),
-              );
+              _showPaymentSuccessAndNavigate();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
@@ -268,4 +256,63 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
       ),
     );
   }
-} 
+
+  void _showPaymentSuccessAndNavigate() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF101513),
+        title: const Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 28),
+            SizedBox(width: 10),
+            Text(
+              'Payment Successful',
+              style: TextStyle(color: Colors.white),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Your payment for ${widget.gameName} has been processed successfully.',
+              style: const TextStyle(color: Colors.white70),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Get ready to play!',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context); // Close success dialog
+              Navigator.pop(context); // Close payment screen
+
+              // Navigate to the trivia game screen
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const TriviaGameScreen(),
+                ),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Start Game'),
+          ),
+        ],
+      ),
+    );
+  }
+}
