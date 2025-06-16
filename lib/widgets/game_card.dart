@@ -11,6 +11,7 @@ import '../screens/pattern_rush_screen.dart';
 import '../screens/sound_symphony_screen.dart';
 import '../screens/gravity_puzzle_screen.dart';
 import '../screens/time_painter_screen.dart';
+import '../screens/payment_method_screen.dart';
 
 class GameCard extends StatelessWidget {
   final Game game;
@@ -123,7 +124,18 @@ class GameCard extends StatelessWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      // Navigate to payment screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PaymentMethodScreen(
+                            amount: game.prizeValue,
+                            gameName: game.title,
+                          ),
+                        ),
+                      );
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.black,

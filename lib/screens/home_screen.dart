@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/game_card.dart';
 import '../models/game.dart';
 import '../services/auth_service.dart';
+import '../screens/payment_method_screen.dart';
 import 'package:provider/provider.dart';
 import 'dart:async';
 
@@ -427,7 +428,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       SizedBox(
                                         width: double.infinity,
                                         child: ElevatedButton(
-                                          onPressed: () {},
+                                          onPressed: () {
+                                            // Navigate to payment screen
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => PaymentMethodScreen(
+                                                  amount: game.prizeValue,
+                                                  gameName: game.title,
+                                                ),
+                                              ),
+                                            );
+                                          },
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: Colors.white,
                                             foregroundColor: Colors.black,
