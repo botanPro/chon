@@ -3,7 +3,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'verification_screen.dart';
 
-
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
 
@@ -411,129 +410,6 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                     ),
                   ),
                   const SizedBox(height: 32),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Divider(color: Colors.white.withOpacity(0.1)),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Text(
-                          'OR',
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: Colors.white.withOpacity(0.5),
-                            fontFamily: 'Inter',
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Divider(color: Colors.white.withOpacity(0.1)),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Container(
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF151918),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () {},
-                              borderRadius: BorderRadius.circular(12),
-                              child: Center(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.g_mobiledata,
-                                      color: Colors.white.withOpacity(0.9),
-                                      size: 24,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Google',
-                                      style: textTheme.titleMedium?.copyWith(
-                                        color: Colors.white.withOpacity(0.9),
-                                        fontFamily: 'Inter',
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Container(
-                          height: 56,
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF151918),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () {},
-                              borderRadius: BorderRadius.circular(12),
-                              child: Center(
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.apple,
-                                      color: Colors.white.withOpacity(0.9),
-                                      size: 24,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      'Apple',
-                                      style: textTheme.titleMedium?.copyWith(
-                                        color: Colors.white.withOpacity(0.9),
-                                        fontFamily: 'Inter',
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Already have an account? ',
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withOpacity(0.7),
-                          fontFamily: 'Inter',
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: Text(
-                          'Sign in',
-                          style: textTheme.bodyMedium?.copyWith(
-                            color: const Color(0xFF96C3BC),
-                            fontWeight: FontWeight.w600,
-                            fontFamily: 'Inter',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
                 ],
               ),
             ),
@@ -555,103 +431,62 @@ class _SignUpDrawerState extends State<SignUpDrawer>
       children: [
         Text(
           label,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.5),
+          style: GoogleFonts.inter(
+            fontSize: 14,
             fontWeight: FontWeight.w500,
-            fontFamily: 'Inter',
+            color: Colors.white,
           ),
         ),
         const SizedBox(height: 8),
         Container(
           height: 56,
           decoration: BoxDecoration(
-            color: const Color(0xFF101513),
+            color: const Color(0xFF151918),
             borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.1),
+              width: 1,
+            ),
           ),
-          child: Row(
-            children: [
-              if (isPhone)
-                Padding(
-                  padding: const EdgeInsets.only(left: 16),
-                  child: Text(
-                    '+964 | ',
-                    style: TextStyle(
-                      color: Colors.white.withOpacity(0.3),
-                      fontFamily: 'Inter',
-                      fontSize: 16,
-                    ),
-                  ),
-                ),
-              Expanded(
-                child: TextField(
-                  controller: controller,
-                  obscureText: isPassword && !_showPassword,
-                  maxLength: isPhone ? 10 : null,
-                  keyboardType:
-                      isPhone ? TextInputType.phone : TextInputType.text,
-                  cursorColor: const Color(0xFF96C3BC),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontFamily: 'Inter',
-                  ),
-                  decoration: InputDecoration(
-                    counterText: '',
-                    filled: true,
-                    fillColor: const Color(0xFF101513),
-                    hintText: isPhone
-                        ? '751 XXX XXXX'
-                        : 'Enter your ${label.toLowerCase()}',
-                    hintStyle: TextStyle(
-                      color: Colors.white.withOpacity(0.3),
-                      fontFamily: 'Inter',
-                    ),
-                    prefixIcon: !isPhone
-                        ? Icon(
-                            icon,
-                            color: Colors.white.withOpacity(0.5),
-                          )
-                        : null,
-                    suffixIcon: isPassword
-                        ? GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                _showPassword = !_showPassword;
-                              });
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: SvgPicture.asset(
-                                _showPassword
-                                    ? 'assets/icons/Show.svg'
-                                    : 'assets/icons/Hide.svg',
-                                colorFilter: ColorFilter.mode(
-                                  Colors.white.withOpacity(0.5),
-                                  BlendMode.srcIn,
-                                ),
-                              ),
-                            ),
-                          )
-                        : null,
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    contentPadding: EdgeInsets.symmetric(
-                      horizontal: isPhone ? 8 : 16,
-                      vertical: 16,
-                    ),
-                  ),
-                ),
+          child: TextField(
+            controller: controller,
+            obscureText: isPassword && !_showPassword,
+            keyboardType: isPhone ? TextInputType.phone : TextInputType.text,
+            style: GoogleFonts.inter(
+              color: Colors.white,
+              fontSize: 16,
+            ),
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              prefixIcon: Icon(
+                icon,
+                color: Colors.white.withOpacity(0.5),
               ),
-            ],
+              suffixIcon: isPassword
+                  ? IconButton(
+                      icon: Icon(
+                        _showPassword
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                        color: Colors.white.withOpacity(0.5),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _showPassword = !_showPassword;
+                        });
+                      },
+                    )
+                  : null,
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
+              hintText: isPhone ? '+964 XXX XXX XXXX' : 'Enter your password',
+              hintStyle: GoogleFonts.inter(
+                color: Colors.white.withOpacity(0.3),
+                fontSize: 16,
+              ),
+            ),
           ),
         ),
       ],
