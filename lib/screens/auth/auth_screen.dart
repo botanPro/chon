@@ -2,6 +2,95 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'verification_screen.dart';
+import 'dart:math';
+
+// Animated gradient background painter
+class AnimatedGradientPainter extends CustomPainter {
+  final double animationValue;
+  final List<Color> colors;
+
+  AnimatedGradientPainter({
+    required this.animationValue,
+    required this.colors,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    // Create a rect for the entire canvas
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+
+    // Create more dynamic gradient with animated positions and colors
+    final gradient = LinearGradient(
+      begin: Alignment(
+        0.0,
+        -0.5 + 0.3 * sin(animationValue * pi * 2),
+      ),
+      end: Alignment(
+        0.2 * cos(animationValue * pi),
+        1.0,
+      ),
+      colors: [
+        colors[0],
+        Color.lerp(
+                colors[1], colors[2], sin(animationValue * pi) * 0.5 + 0.5) ??
+            colors[1],
+        Color.lerp(colors[2], colors[3],
+                cos(animationValue * pi * 0.5) * 0.5 + 0.5) ??
+            colors[2],
+        colors[3],
+      ],
+      stops: [
+        0.0,
+        0.3 + 0.2 * sin(animationValue * pi * 2),
+        0.6 + 0.2 * cos(animationValue * pi),
+        1.0,
+      ],
+    );
+
+    // Draw the gradient
+    final paint = Paint()..shader = gradient.createShader(rect);
+    canvas.drawRect(rect, paint);
+
+    // Add animated overlay pattern
+    final patternPaint = Paint()
+      ..color = Colors.white.withOpacity(0.015)
+      ..strokeWidth = 0.6;
+
+    // Draw animated grid pattern
+    const spacing = 40.0;
+    for (double i = 0; i < size.width; i += spacing) {
+      final offset = 10 * sin((i / size.width + animationValue * 2) * pi * 2);
+      canvas.drawLine(
+          Offset(i, 0), Offset(i + offset, size.height), patternPaint);
+    }
+
+    for (double i = 0; i < size.height; i += spacing) {
+      final offset = 10 * cos((i / size.height + animationValue * 2) * pi * 2);
+      canvas.drawLine(
+          Offset(0, i), Offset(size.width, i + offset), patternPaint);
+    }
+
+    // Add some subtle moving light spots
+    final spotPaint = Paint()..color = Colors.white.withOpacity(0.02);
+
+    for (int i = 0; i < 5; i++) {
+      final x = size.width * (0.2 + 0.6 * sin(animationValue * pi + i * 1.2));
+      final y =
+          size.height * (0.2 + 0.6 * cos(animationValue * pi * 0.7 + i * 0.8));
+      final radius = 50.0 + 30.0 * sin(animationValue * pi * 2 + i);
+
+      canvas.drawCircle(
+        Offset(x, y),
+        radius,
+        spotPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant AnimatedGradientPainter oldDelegate) =>
+      oldDelegate.animationValue != animationValue;
+}
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({super.key});
@@ -14,6 +103,15 @@ class _AuthScreenState extends State<AuthScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
+  late AnimationController _backgroundAnimationController;
+
+  // Background gradient colors
+  final List<Color> _gradientColors = [
+    const Color(0xFF1c2221), // Teal 50 (darkest)
+    const Color(0xFF323e3c), // Teal 100
+    const Color(0xFF495d5a), // Teal 200
+    const Color(0xFF1c2221).withOpacity(0.9), // Darker overlay
+  ];
 
   @override
   void initState() {
@@ -31,15 +129,23 @@ class _AuthScreenState extends State<AuthScreen>
       curve: Curves.easeOutCubic,
     ));
 
-    // Start the animation after a brief delay
+    // Initialize background animation controller with faster animation
+    _backgroundAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 15),
+    );
+
+    // Start the animations after a brief delay
     Future.delayed(const Duration(milliseconds: 200), () {
       _slideController.forward();
+      _backgroundAnimationController.repeat();
     });
   }
 
   @override
   void dispose() {
     _slideController.dispose();
+    _backgroundAnimationController.dispose();
     super.dispose();
   }
 
@@ -69,36 +175,42 @@ class _AuthScreenState extends State<AuthScreen>
       backgroundColor: const Color(0xFF13131D),
       body: Stack(
         children: [
-          // Background pattern
+          // Animated gradient background
           Positioned.fill(
-            child: GridView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 4,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-              ),
-              itemBuilder: (context, index) => Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.03),
-                  borderRadius: BorderRadius.circular(16),
+            child: AnimatedBuilder(
+              animation: _backgroundAnimationController,
+              builder: (context, child) {
+                return CustomPaint(
+                  painter: AnimatedGradientPainter(
+                    animationValue: _backgroundAnimationController.value,
+                    colors: _gradientColors,
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Background grid pattern with reduced opacity
+          Positioned.fill(
+            child: Opacity(
+              opacity: 0.3,
+              child: GridView.builder(
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  mainAxisSpacing: 8,
+                  crossAxisSpacing: 8,
+                ),
+                itemBuilder: (context, index) => Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.03),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
               ),
             ),
           ),
-          // Gradient overlay
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Colors.black.withOpacity(0.9),
-                  Colors.black,
-                ],
-              ),
-            ),
-          ),
+
           // Content
           SafeArea(
             child: Stack(
@@ -188,25 +300,53 @@ class _AuthScreenState extends State<AuthScreen>
                     child: ShaderMask(
                       shaderCallback: (Rect bounds) {
                         return const LinearGradient(
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                           colors: [
-                            Color(0xFF94C1BA),
-                            Color(0xFF151B1A),
+                            Color(0xFF96c3bc), // Teal 500
+                            Color(0xFF7b9f9a), // Teal 400
+                            Color(0xFF627d79), // Teal 300
                           ],
+                          stops: [0.0, 0.5, 1.0],
                         ).createShader(bounds);
                       },
-                      child: Text(
-                        'SLOGAN MOST\nBE 🎮 THERE 💎',
-                        style: textTheme.displaySmall?.copyWith(
-                          fontSize: 35,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.white,
-                          height: 1.2,
-                          letterSpacing: -1,
-                          fontFamily: 'Inter',
-                        ),
-                        textAlign: TextAlign.center,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'COMPETE',
+                            style: textTheme.displaySmall?.copyWith(
+                              fontSize: 38,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              height: 1.0,
+                              letterSpacing: -1,
+                              fontFamily: 'Inter',
+                            ),
+                          ),
+                          Text(
+                            'WIN',
+                            style: textTheme.displaySmall?.copyWith(
+                              fontSize: 38,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              height: 1.0,
+                              letterSpacing: -1,
+                              fontFamily: 'Inter',
+                            ),
+                          ),
+                          Text(
+                            'EARN',
+                            style: textTheme.displaySmall?.copyWith(
+                              fontSize: 38,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              height: 1.0,
+                              letterSpacing: -1,
+                              fontFamily: 'Inter',
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -307,9 +447,11 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                       colors: [
-                        Color(0xFF94C1BA),
-                        Color(0xFF151B1A),
+                        Color(0xFF96c3bc), // Teal 500
+                        Color(0xFF7b9f9a), // Teal 400
+                        Color(0xFF627d79), // Teal 300
                       ],
+                      stops: [0.0, 0.5, 1.0],
                     ).createShader(bounds);
                   },
                   child: Row(
@@ -437,7 +579,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                         child: Text(
                           widget.isSignIn ? 'Sign up' : 'Sign in',
                           style: GoogleFonts.inter(
-                            color: const Color(0xFF00B894),
+                            color: const Color(0xFF96c3bc), // Teal 500
                             fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),

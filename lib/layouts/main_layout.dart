@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 /// A layout widget that provides a consistent structure for the main screens
 /// of the application, including the bottom navigation bar.
@@ -103,36 +104,44 @@ class MainLayout extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: const Color(0xFF101513),
-          border: Border.all(
-            color: const Color(0xFF00B894),
-            width: 2,
-          ),
         ),
-        child: Container(
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: RadialGradient(
-              colors: [Color(0xFF00B894), Color(0xFF008066)],
-              center: Alignment(0.0, 0.0),
-              focal: Alignment(0.0, 0.0),
-              radius: 0.8,
+        child: ClipOval(
+          child: Container(
+            decoration: const BoxDecoration(
+              gradient: RadialGradient(
+                colors: [Color(0xFF00B894), Color(0xFF008066)],
+                center: Alignment(0.0, 0.0),
+                focal: Alignment(0.0, 0.0),
+                radius: 0.8,
+              ),
             ),
-          ),
-          child: Center(
-            child: Text(
-              'chon',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 0.5,
-                shadows: [
-                  Shadow(
-                    blurRadius: 4.0,
-                    color: Colors.black.withOpacity(0.3),
-                    offset: const Offset(0, 1),
-                  ),
-                ],
+            child: Center(
+              child: LogoSpinAnimation(
+                child: Image.asset(
+                  'assets/images/chon.png',
+                  width: 56,
+                  height: 56,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    debugPrint('Error loading logo image: $error');
+                    return const Text(
+                      'CHON',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                        shadows: [
+                          Shadow(
+                            blurRadius: 4.0,
+                            color: Color(0x4D000000),
+                            offset: Offset(0, 1),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -147,5 +156,81 @@ class MainLayout extends StatelessWidget {
     // This can be expanded to include default navigation logic
     // For now, it's a placeholder for the default behavior
     debugPrint('Navigation to index: $index');
+  }
+}
+
+/// A widget that adds a periodic spinning animation to its child
+class LogoSpinAnimation extends StatefulWidget {
+  final Widget child;
+
+  const LogoSpinAnimation({
+    super.key,
+    required this.child,
+  });
+
+  @override
+  State<LogoSpinAnimation> createState() => _LogoSpinAnimationState();
+}
+
+class _LogoSpinAnimationState extends State<LogoSpinAnimation>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Create animation controller with a longer duration for a smoother spin
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    // Create a curved animation
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOutCubic,
+    );
+
+    // Add listener to restart the animation
+    _controller.addStatusListener((status) {
+      if (status == AnimationStatus.completed) {
+        // Wait a bit before starting the next spin
+        Future.delayed(const Duration(seconds: 10), () {
+          if (mounted) {
+            _controller.reset();
+            _controller.forward();
+          }
+        });
+      }
+    });
+
+    // Start the animation after a short delay
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        _controller.forward();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        return Transform.rotate(
+          angle: _animation.value * 2 * math.pi,
+          child: child,
+        );
+      },
+      child: widget.child,
+    );
   }
 }

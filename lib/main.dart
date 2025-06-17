@@ -35,8 +35,18 @@ class AppDesign {
 
 /// Entry point of the application
 void main() {
+  // Ensure Flutter is initialized
+  WidgetsFlutterBinding.ensureInitialized();
+
   // Configure system UI appearance
   _configureSystemUI();
+
+  // Add error handling
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    debugPrint('Flutter error: ${details.exception}');
+    debugPrint('Stack trace: ${details.stack}');
+  };
 
   // Initialize the app with AuthService as the root provider
   runApp(
@@ -76,6 +86,12 @@ class MainApp extends StatelessWidget {
       navigatorKey: navigationService.navigatorKey,
       initialRoute: '/',
       onGenerateRoute: _generateRoute,
+      builder: (context, child) {
+        if (child == null) {
+          return const SplashScreen();
+        }
+        return child;
+      },
     );
   }
 
@@ -121,6 +137,38 @@ class MainApp extends StatelessWidget {
           ),
         );
     }
+  }
+}
+
+/// A simple splash screen to show while the app is initializing
+class SplashScreen extends StatelessWidget {
+  const SplashScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppDesign.backgroundColor,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'CHON',
+              style: TextStyle(
+                color: AppDesign.primaryColor,
+                fontSize: 36,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 2,
+              ),
+            ),
+            const SizedBox(height: 24),
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(AppDesign.primaryColor),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
