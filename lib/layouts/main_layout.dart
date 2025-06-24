@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import '../main.dart';
 
 /// A layout widget that provides a consistent structure for the main screens
 /// of the application, including the bottom navigation bar.
@@ -37,8 +38,8 @@ class MainLayout extends StatelessWidget {
         ),
         child: ClipRRect(
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
+            topLeft: Radius.circular(24),
+            topRight: Radius.circular(24),
           ),
           child: Theme(
             data: Theme.of(context).copyWith(
@@ -46,9 +47,9 @@ class MainLayout extends StatelessWidget {
               highlightColor: Colors.transparent,
             ),
             child: BottomNavigationBar(
-              backgroundColor: const Color(0xFF101513),
-              selectedItemColor: const Color(0xFF00B894),
-              unselectedItemColor: const Color(0xFF8E8E8E),
+              backgroundColor: AppDesign.navBarColor,
+              selectedItemColor: AppDesign.primaryColor,
+              unselectedItemColor: Colors.white.withOpacity(0.5),
               type: BottomNavigationBarType.fixed,
               showSelectedLabels: true,
               showUnselectedLabels: true,
@@ -61,13 +62,15 @@ class MainLayout extends StatelessWidget {
               ),
               elevation: 0,
               items: [
-                _buildNavItem(Icons.home_outlined, Icons.home, 'Home', 0),
                 _buildNavItem(
-                    Icons.history_outlined, Icons.history, 'History', 1),
+                    Icons.home_outlined, Icons.home_rounded, 'Home', 0),
+                _buildNavItem(
+                    Icons.explore_outlined, Icons.explore, 'Explore', 1),
                 _buildLogoNavItem(),
-                _buildNavItem(Icons.notifications_outlined, Icons.notifications,
-                    'Notifications', 3),
-                _buildNavItem(Icons.person_outline, Icons.person, 'Profile', 4),
+                _buildNavItem(Icons.notifications_outlined,
+                    Icons.notifications_rounded, 'Alerts', 3),
+                _buildNavItem(Icons.person_outline_rounded,
+                    Icons.person_rounded, 'Profile', 4),
               ],
               currentIndex: currentIndex,
               onTap: onNavigationTap ?? _handleNavigation,
@@ -82,13 +85,13 @@ class MainLayout extends StatelessWidget {
       IconData icon, IconData activeIcon, String label, int index) {
     return BottomNavigationBarItem(
       icon: Padding(
-        padding: const EdgeInsets.only(bottom: 4),
+        padding: const EdgeInsets.only(bottom: 4, top: 8),
         child: Icon(
           index == currentIndex ? activeIcon : icon,
           size: index == currentIndex ? 28 : 26,
           color: index == currentIndex
-              ? const Color(0xFF00B894)
-              : const Color(0xFF8E8E8E),
+              ? AppDesign.primaryColor
+              : Colors.white.withOpacity(0.5),
         ),
       ),
       label: label,
@@ -98,53 +101,86 @@ class MainLayout extends StatelessWidget {
   BottomNavigationBarItem _buildLogoNavItem() {
     return BottomNavigationBarItem(
       icon: Container(
-        height: 60,
-        width: 60,
-        padding: const EdgeInsets.all(2),
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: const Color(0xFF101513),
-        ),
-        child: ClipOval(
-          child: Container(
-            decoration: const BoxDecoration(
-              gradient: RadialGradient(
-                colors: [Color(0xFF00B894), Color(0xFF008066)],
-                center: Alignment(0.0, 0.0),
-                focal: Alignment(0.0, 0.0),
-                radius: 0.8,
+        height: 64,
+        width: 64,
+        margin: const EdgeInsets.only(bottom: 4, top: 2),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Outer glow
+            Container(
+              height: 60,
+              width: 60,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppDesign.primaryColor.withOpacity(0.3),
+                    blurRadius: 12,
+                    spreadRadius: 2,
+                  ),
+                ],
               ),
             ),
-            child: Center(
-              child: LogoSpinAnimation(
-                child: Image.asset(
-                  'assets/images/chon.png',
-                  width: 56,
-                  height: 56,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    debugPrint('Error loading logo image: $error');
-                    return const Text(
-                      'CHON',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 0.5,
-                        shadows: [
-                          Shadow(
-                            blurRadius: 4.0,
-                            color: Color(0x4D000000),
-                            offset: Offset(0, 1),
+            // Button background
+            Container(
+              height: 56,
+              width: 56,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppDesign.primaryColor,
+                    AppDesign.accentColor,
+                  ],
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+            ),
+            // Logo
+            ClipOval(
+              child: SizedBox(
+                width: 48,
+                height: 48,
+                child: Center(
+                  child: LogoSpinAnimation(
+                    child: Image.asset(
+                      'assets/images/chon.png',
+                      width: 40,
+                      height: 40,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Text(
+                          'CHON',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                            shadows: [
+                              Shadow(
+                                blurRadius: 4.0,
+                                color: Color(0x4D000000),
+                                offset: Offset(0, 1),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    );
-                  },
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       ),
       label: '',

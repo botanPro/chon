@@ -1,21 +1,26 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:confetti/confetti.dart';
+import '../main.dart';
 
 class PrizeWinDialog extends StatefulWidget {
-  final String prize;
   final int score;
-  final String message;
+  final double accuracy;
+  final int maxCombo;
   final VoidCallback onPlayAgain;
-  final VoidCallback onHome;
+  final VoidCallback onGoHome;
+  final String? prize;
+  final String? message;
 
   const PrizeWinDialog({
     super.key,
-    required this.prize,
     required this.score,
-    required this.message,
+    required this.accuracy,
+    required this.maxCombo,
     required this.onPlayAgain,
-    required this.onHome,
+    required this.onGoHome,
+    this.prize,
+    this.message,
   });
 
   @override
@@ -110,7 +115,7 @@ class _PrizeWinDialogState extends State<PrizeWinDialog>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    widget.message,
+                    widget.message ?? 'Game Over',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           color: Colors.white.withOpacity(0.9),
                         ),
@@ -125,38 +130,56 @@ class _PrizeWinDialogState extends State<PrizeWinDialog>
                     ),
                     child: Column(
                       children: [
-                        Text(
-                          'You Won',
-                          style:
-                              Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: Colors.white.withOpacity(0.9),
-                                  ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          widget.prize,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
-                              ?.copyWith(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                              ),
-                          textAlign: TextAlign.center,
-                        ),
-                        if (widget.score > 0) ...[
-                          const SizedBox(height: 8),
+                        if (widget.prize != null) ...[
                           Text(
-                            'Score: ${widget.score}',
+                            'You Won',
                             style: Theme.of(context)
                                 .textTheme
-                                .titleLarge
+                                .titleMedium
                                 ?.copyWith(
                                   color: Colors.white.withOpacity(0.9),
-                                  fontWeight: FontWeight.bold,
                                 ),
                           ),
+                          const SizedBox(height: 8),
+                          Text(
+                            widget.prize ?? '',
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
+                                ?.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                            textAlign: TextAlign.center,
+                          ),
                         ],
+
+                        const SizedBox(height: 16),
+
+                        // Game stats
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _buildStatItem(
+                              context,
+                              'Score',
+                              widget.score.toString(),
+                              Icons.score_rounded,
+                            ),
+                            _buildStatItem(
+                              context,
+                              'Accuracy',
+                              '${widget.accuracy.toStringAsFixed(1)}%',
+                              Icons.gps_fixed_rounded,
+                            ),
+                            _buildStatItem(
+                              context,
+                              'Max Combo',
+                              widget.maxCombo.toString(),
+                              Icons.flash_on_rounded,
+                            ),
+                          ],
+                        ),
                       ],
                     ),
                   ),
@@ -174,7 +197,7 @@ class _PrizeWinDialogState extends State<PrizeWinDialog>
                         context,
                         'Home',
                         Icons.home,
-                        widget.onHome,
+                        widget.onGoHome,
                       ),
                     ],
                   ),
@@ -239,6 +262,35 @@ class _PrizeWinDialogState extends State<PrizeWinDialog>
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildStatItem(
+    BuildContext context,
+    String label,
+    String value,
+    IconData icon,
+  ) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: Colors.white),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Colors.white.withOpacity(0.9),
+              ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+      ],
     );
   }
 }

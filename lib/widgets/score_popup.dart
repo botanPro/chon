@@ -1,18 +1,45 @@
 import 'package:flutter/material.dart';
 
+/// A widget that shows an animated score popup at a specific position.
+/// Used in games to provide visual feedback for points earned.
 class ScorePopup extends StatefulWidget {
-  final int points;
-  final String message;
-  final bool isPositive;
+  final int score;
+  final Color color;
   final VoidCallback? onComplete;
 
   const ScorePopup({
     super.key,
-    required this.points,
-    required this.message,
-    this.isPositive = true,
+    required this.score,
+    required this.color,
     this.onComplete,
   });
+
+  /// Static method to show the score popup at a specific position
+  static void show({
+    required BuildContext context,
+    required int score,
+    required Offset position,
+    required Color color,
+  }) {
+    final overlay = Overlay.of(context);
+    final overlayEntry = OverlayEntry(
+      builder: (context) => Positioned(
+        left: position.dx - 40,
+        top: position.dy - 40,
+        child: ScorePopup(
+          score: score,
+          color: color,
+        ),
+      ),
+    );
+
+    overlay.insert(overlayEntry);
+
+    // Remove the overlay entry after animation completes
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      overlayEntry.remove();
+    });
+  }
 
   @override
   State<ScorePopup> createState() => _ScorePopupState();
@@ -28,62 +55,33 @@ class _ScorePopupState extends State<ScorePopup>
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 1200),
       vsync: this,
     );
 
-    _scaleAnimation = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0.0, end: 1.2),
-        weight: 20.0,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.2, end: 1.0),
-        weight: 20.0,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.0),
-        weight: 40.0,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 0.0),
-        weight: 20.0,
-      ),
-    ]).animate(
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.2).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Curves.easeInOut,
+        curve: const Interval(0.0, 0.4, curve: Curves.elasticOut),
       ),
     );
 
-    _opacityAnimation = TweenSequence<double>([
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 0.0, end: 1.0),
-        weight: 20.0,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 1.0),
-        weight: 60.0,
-      ),
-      TweenSequenceItem(
-        tween: Tween<double>(begin: 1.0, end: 0.0),
-        weight: 20.0,
-      ),
-    ]).animate(
+    _opacityAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Curves.easeInOut,
+        curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
       ),
     );
 
     _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.5),
-      end: const Offset(0, -1.0),
+      begin: const Offset(0, 0),
+      end: const Offset(0, -2.0),
     ).animate(
       CurvedAnimation(
         parent: _controller,
-        curve: Curves.easeOut,
+        curve: const Interval(0.0, 1.0, curve: Curves.easeOutQuad),
       ),
     );
 
@@ -103,70 +101,43 @@ class _ScorePopupState extends State<ScorePopup>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
-        return Transform.translate(
-          offset: Offset(0, _slideAnimation.value.dy * 50),
+        return SlideTransition(
+          position: _slideAnimation,
           child: Opacity(
             opacity: _opacityAnimation.value,
             child: Transform.scale(
               scale: _scaleAnimation.value,
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      widget.isPositive
-                          ? Colors.green.shade400
-                          : Colors.red.shade400,
-                      widget.isPositive
-                          ? Colors.green.shade600
-                          : Colors.red.shade600,
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(20),
+                  color: widget.color.withOpacity(0.9),
+                  borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: (widget.isPositive ? Colors.green : Colors.red)
-                          .withOpacity(0.3),
+                      color: widget.color.withOpacity(0.5),
                       blurRadius: 8,
-                      offset: const Offset(0, 2),
+                      spreadRadius: 0,
                     ),
                   ],
                 ),
-                child: Column(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          widget.isPositive ? Icons.add : Icons.remove,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${widget.points}',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 20,
-                          ),
-                        ),
-                      ],
+                    const Icon(
+                      Icons.add,
+                      color: Colors.white,
+                      size: 16,
                     ),
-                    if (widget.message.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        widget.message,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 12,
-                        ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${widget.score}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
+                    ),
                   ],
                 ),
               ),

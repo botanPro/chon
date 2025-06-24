@@ -177,9 +177,8 @@ class _WordGameScreenState extends State<WordGameScreen>
         left: position.dx + renderBox.size.width / 2 - 50,
         child: ScorePopup(
           key: key,
-          points: points,
-          message: message,
-          isPositive: isPositive,
+          score: points,
+          color: isPositive ? Colors.green : Colors.red,
           onComplete: () {
             entry.remove();
             _scorePopupKeys.remove(key);
@@ -199,6 +198,8 @@ class _WordGameScreenState extends State<WordGameScreen>
       builder: (context) => PrizeWinDialog(
         prize: 'iPhone 15 Pro',
         score: _score,
+        accuracy: 100.0,
+        maxCombo: _combo,
         message: 'You solved all words with ${_timeLeft} seconds left!',
         onPlayAgain: () {
           Navigator.pop(context);
@@ -207,7 +208,7 @@ class _WordGameScreenState extends State<WordGameScreen>
             _initializeGame();
           });
         },
-        onHome: () {
+        onGoHome: () {
           Navigator.pop(context);
           Navigator.pop(context);
         },
@@ -222,6 +223,8 @@ class _WordGameScreenState extends State<WordGameScreen>
       builder: (context) => PrizeWinDialog(
         prize: 'Better luck next time!',
         score: _score,
+        accuracy: (_wordsGuessed / _words.length) * 100,
+        maxCombo: _combo,
         message: 'Time\'s up! You solved $_wordsGuessed words.',
         onPlayAgain: () {
           Navigator.pop(context);
@@ -230,7 +233,7 @@ class _WordGameScreenState extends State<WordGameScreen>
             _initializeGame();
           });
         },
-        onHome: () {
+        onGoHome: () {
           Navigator.pop(context);
           Navigator.pop(context);
         },
