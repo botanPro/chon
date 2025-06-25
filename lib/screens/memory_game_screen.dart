@@ -7,7 +7,6 @@ import '../widgets/prize_win_dialog.dart';
 import '../widgets/combo_counter.dart';
 import '../widgets/score_popup.dart';
 import '../widgets/game_loading.dart';
-import '../main.dart';
 
 class MemoryGameScreen extends StatefulWidget {
   const MemoryGameScreen({super.key});
@@ -142,8 +141,9 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
         left: position.dx + renderBox.size.width / 2 - 50,
         child: ScorePopup(
           key: key,
-          score: points,
-          color: isPositive ? AppDesign.primaryColor : AppDesign.accentColor,
+          points: points,
+          message: message,
+          isPositive: isPositive,
           onComplete: () {
             entry.remove();
             _scorePopupKeys.remove(key);
@@ -162,8 +162,6 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
       builder: (context) => PrizeWinDialog(
         prize: 'Tesla Model 3',
         score: _score,
-        accuracy: 100.0,
-        maxCombo: _combo,
         message:
             'You completed the game in $_moves moves with ${120 - _timeLeft} seconds!',
         onPlayAgain: () {
@@ -173,7 +171,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
             _initializeGame();
           });
         },
-        onGoHome: () {
+        onHome: () {
           Navigator.pop(context);
           Navigator.pop(context);
         },
@@ -188,8 +186,6 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
       builder: (context) => PrizeWinDialog(
         prize: 'Better luck next time!',
         score: _score,
-        accuracy: (_matchedCards.length / _cards.length) * 100,
-        maxCombo: _combo,
         message: 'Time\'s up! You matched ${_matchedCards.length ~/ 2} pairs.',
         onPlayAgain: () {
           Navigator.pop(context);
@@ -198,7 +194,7 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
             _initializeGame();
           });
         },
-        onGoHome: () {
+        onHome: () {
           Navigator.pop(context);
           Navigator.pop(context);
         },

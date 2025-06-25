@@ -20,31 +20,14 @@ class AppDesign {
   /// Default animation duration for transitions (300ms)
   static const animationDuration = Duration(milliseconds: 300);
 
-  /// Primary brand color - teal
-  static const Color primaryColor = Color(0xFF96C3BC);
-
-  /// Secondary accent color
-  static const Color accentColor = Color(0xFF7B9F9A);
+  /// Primary brand color
+  static const Color primaryColor = Color(0xFF00B894);
 
   /// Background color for screens
-  static const Color backgroundColor = Color(0xFF0A0E0D);
-
-  /// Surface color for cards and containers
-  static const Color surfaceColor = Color(0xFF151918);
-
-  /// Surface color for elevated components
-  static const Color elevatedSurfaceColor = Color(0xFF1A2322);
+  static const Color backgroundColor = Color(0xFF090C0B);
 
   /// Navigation bar color
-  static const Color navBarColor = Color(0xFF101513);
-
-  /// Text colors
-  static const Color textPrimary = Colors.white;
-  static const Color textSecondary =
-      Color(0xCCFFFFFF); // White with 80% opacity
-
-  /// Border color
-  static const Color borderColor = Color(0x1AFFFFFF); // White with 10% opacity
+  static const Color navBarColor = Color(0xFF13131D);
 
   // Private constructor to prevent instantiation
   AppDesign._();
@@ -120,76 +103,9 @@ class MainApp extends StatelessWidget {
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppDesign.primaryColor,
         brightness: Brightness.dark,
-        primary: AppDesign.primaryColor,
-        secondary: AppDesign.accentColor,
-        surface: AppDesign.surfaceColor,
-        background: AppDesign.backgroundColor,
       ),
       useMaterial3: true,
-      textTheme:
-          GoogleFonts.interTextTheme(ThemeData.dark().textTheme).copyWith(
-        bodyLarge: TextStyle(color: AppDesign.textPrimary),
-        bodyMedium: TextStyle(color: AppDesign.textPrimary),
-        bodySmall: TextStyle(color: AppDesign.textSecondary),
-        titleLarge: TextStyle(
-            color: AppDesign.textPrimary, fontWeight: FontWeight.bold),
-        titleMedium: TextStyle(
-            color: AppDesign.textPrimary, fontWeight: FontWeight.bold),
-        titleSmall: TextStyle(
-            color: AppDesign.textPrimary, fontWeight: FontWeight.bold),
-      ),
-      cardTheme: CardTheme(
-        color: AppDesign.surfaceColor,
-        elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDesign.radius),
-        ),
-      ),
-      elevatedButtonTheme: ElevatedButtonThemeData(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppDesign.primaryColor,
-          foregroundColor: Colors.black,
-          elevation: 4,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDesign.radius),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-        ),
-      ),
-      textButtonTheme: TextButtonThemeData(
-        style: TextButton.styleFrom(
-          foregroundColor: AppDesign.primaryColor,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppDesign.radius),
-          ),
-        ),
-      ),
-      dialogTheme: DialogTheme(
-        backgroundColor: AppDesign.elevatedSurfaceColor,
-        elevation: 16,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppDesign.radius),
-          side: BorderSide(
-            color: AppDesign.primaryColor.withOpacity(0.2),
-            width: 1,
-          ),
-        ),
-      ),
-      bottomNavigationBarTheme: BottomNavigationBarThemeData(
-        backgroundColor: AppDesign.navBarColor,
-        selectedItemColor: AppDesign.primaryColor,
-        unselectedItemColor: Colors.white.withOpacity(0.5),
-      ),
-      appBarTheme: AppBarTheme(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: IconThemeData(color: AppDesign.textPrimary),
-        titleTextStyle: TextStyle(
-          color: AppDesign.textPrimary,
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+      textTheme: GoogleFonts.interTextTheme(ThemeData.dark().textTheme),
     );
   }
 
