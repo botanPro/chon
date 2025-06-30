@@ -24,6 +24,11 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Get screen dimensions
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 360 || screenSize.height < 600;
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
     return Scaffold(
       backgroundColor: const Color(0xFF010202),
       appBar: AppBar(
@@ -42,7 +47,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                 'Back',
                 style: GoogleFonts.inter(
                   color: Colors.white,
-                  fontSize: 16,
+                  fontSize: isSmallScreen ? 14 : 16,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -55,14 +60,17 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: EdgeInsets.symmetric(
+            horizontal: screenSize.width * 0.06,
+            vertical: 24.0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
                 'ARE YOU READY TO',
                 style: GoogleFonts.inter(
-                  fontSize: 25,
+                  fontSize: isSmallScreen ? 20 : 25,
                   fontWeight: FontWeight.w700,
                   foreground: Paint()
                     ..shader = LinearGradient(
@@ -78,7 +86,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
               Text(
                 'PLAY THE GAMES?',
                 style: GoogleFonts.inter(
-                  fontSize: 25,
+                  fontSize: isSmallScreen ? 20 : 25,
                   fontWeight: FontWeight.w700,
                   foreground: Paint()
                     ..shader = LinearGradient(
@@ -95,7 +103,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
               Text(
                 'Personal Information',
                 style: GoogleFonts.inter(
-                  fontSize: 28,
+                  fontSize: isSmallScreen ? 24 : 28,
                   fontWeight: FontWeight.w600,
                   color: Colors.white,
                 ),
@@ -104,23 +112,25 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
               Text(
                 'Please fill in your details to complete your profile',
                 style: GoogleFonts.inter(
-                  fontSize: 14,
+                  fontSize: isSmallScreen ? 12 : 14,
                   color: Colors.white.withOpacity(0.7),
                   height: 1.5,
                 ),
                 textAlign: TextAlign.left,
               ),
-              const SizedBox(height: 40),
+              SizedBox(height: isSmallScreen ? 24 : 40),
               _buildTextField(
                 controller: _firstNameController,
                 label: 'First Name',
                 hint: 'Enter your first name',
+                isSmallScreen: isSmallScreen,
               ),
               const SizedBox(height: 16),
               _buildTextField(
                 controller: _lastNameController,
                 label: 'Last Name',
                 hint: 'Enter your last name',
+                isSmallScreen: isSmallScreen,
               ),
               const SizedBox(height: 16),
               Column(
@@ -131,6 +141,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                     style: TextStyle(
                       color: Colors.white.withOpacity(0.5),
                       fontWeight: FontWeight.w500,
+                      fontSize: isSmallScreen ? 12 : 14,
                       fontFamily: 'Inter',
                     ),
                   ),
@@ -150,6 +161,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                             'Select your city',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.3),
+                              fontSize: isSmallScreen ? 12 : 14,
                               fontFamily: 'Inter',
                             ),
                           ),
@@ -171,8 +183,9 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                                   const EdgeInsets.symmetric(horizontal: 16),
                               child: Text(
                                 city,
-                                style: const TextStyle(
+                                style: TextStyle(
                                   color: Colors.white,
+                                  fontSize: isSmallScreen ? 12 : 14,
                                   fontFamily: 'Inter',
                                 ),
                               ),
@@ -219,15 +232,15 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                             'Next',
                             style: GoogleFonts.inter(
                               color: const Color(0xFF090C0B),
-                              fontSize: 12,
+                              fontSize: isSmallScreen ? 11 : 12,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
                           const SizedBox(width: 8),
-                          const Icon(
+                          Icon(
                             Icons.arrow_forward,
-                            color: Color(0xFF090C0B),
-                            size: 20,
+                            color: const Color(0xFF090C0B),
+                            size: isSmallScreen ? 18 : 20,
                           ),
                         ],
                       ),
@@ -246,6 +259,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
     required TextEditingController controller,
     required String label,
     required String hint,
+    required bool isSmallScreen,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -255,6 +269,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
           style: TextStyle(
             color: Colors.white.withOpacity(0.5),
             fontWeight: FontWeight.w500,
+            fontSize: isSmallScreen ? 12 : 14,
             fontFamily: 'Inter',
           ),
         ),
@@ -267,8 +282,9 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
           ),
           child: TextField(
             controller: controller,
-            style: const TextStyle(
+            style: TextStyle(
               color: Colors.white,
+              fontSize: isSmallScreen ? 12 : 14,
               fontFamily: 'Inter',
             ),
             decoration: InputDecoration(
@@ -277,6 +293,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
               hintText: hint,
               hintStyle: TextStyle(
                 color: Colors.white.withOpacity(0.3),
+                fontSize: isSmallScreen ? 12 : 14,
                 fontFamily: 'Inter',
               ),
               border: OutlineInputBorder(

@@ -19,13 +19,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   int _minutes = 30;
   int _seconds = 30;
   Timer? _timer;
-  
+
   // Animation controllers for each time unit - make them nullable
   AnimationController? _daysController;
   AnimationController? _hoursController;
   AnimationController? _minutesController;
   AnimationController? _secondsController;
-  
+
   // Previous values to detect changes
   int _prevDays = 30;
   int _prevHours = 30;
@@ -35,30 +35,30 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize animation controllers
     _initControllers();
-    
+
     // Start the timer after controllers are initialized
     _startTimer();
   }
-  
+
   void _initControllers() {
     _daysController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    
+
     _hoursController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    
+
     _minutesController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
     );
-    
+
     _secondsController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 500),
@@ -69,27 +69,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void dispose() {
     // Cancel timer first
     _timer?.cancel();
-    
+
     // Then dispose controllers
     _daysController?.dispose();
     _hoursController?.dispose();
     _minutesController?.dispose();
     _secondsController?.dispose();
-    
+
     super.dispose();
   }
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) return; // Check if widget is still mounted
-      
+
       setState(() {
         // Store previous values
         _prevDays = _days;
         _prevHours = _hours;
         _prevMinutes = _minutes;
         _prevSeconds = _seconds;
-        
+
         if (_seconds > 0) {
           _seconds--;
         } else {
@@ -110,23 +110,23 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             }
           }
         }
-        
+
         // Trigger animations for changed values
         if (_prevSeconds != _seconds && _secondsController != null) {
           _secondsController!.reset();
           _secondsController!.forward();
         }
-        
+
         if (_prevMinutes != _minutes && _minutesController != null) {
           _minutesController!.reset();
           _minutesController!.forward();
         }
-        
+
         if (_prevHours != _hours && _hoursController != null) {
           _hoursController!.reset();
           _hoursController!.forward();
         }
-        
+
         if (_prevDays != _days && _daysController != null) {
           _daysController!.reset();
           _daysController!.forward();
@@ -212,16 +212,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               ],
                             ),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
                               decoration: BoxDecoration(
-                                color: const Color(0x4025332F), // #25332F with 25% opacity
+                                color: const Color(
+                                    0x4025332F), // #25332F with 25% opacity
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Row(
                                 children: [
                                   const Icon(
                                     Icons.star,
-                                    color: Color(0xFF96C3BC), // #96C3BC color for star icon
+                                    color: Color(
+                                        0xFF96C3BC), // #96C3BC color for star icon
                                     size: 12,
                                   ),
                                   const SizedBox(width: 4),
@@ -240,9 +243,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ),
                       ],
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // Countdown section
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -272,21 +275,24 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             ],
                           ),
                           const SizedBox(height: 16),
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              // Calculate the width available for each time box
-                              final boxWidth = (constraints.maxWidth - 24) / 4; // 24 is for spacing between boxes
-                              return Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  _buildTimeBox(context, _days, 'Days', _daysController, boxWidth),
-                                  _buildTimeBox(context, _hours, 'Hours', _hoursController, boxWidth),
-                                  _buildTimeBox(context, _minutes, 'Minutes', _minutesController, boxWidth),
-                                  _buildTimeBox(context, _seconds, 'Seconds', _secondsController, boxWidth),
-                                ],
-                              );
-                            }
-                          ),
+                          LayoutBuilder(builder: (context, constraints) {
+                            // Calculate the width available for each time box
+                            final boxWidth = (constraints.maxWidth - 24) /
+                                4; // 24 is for spacing between boxes
+                            return Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                _buildTimeBox(context, _days, 'Days',
+                                    _daysController, boxWidth),
+                                _buildTimeBox(context, _hours, 'Hours',
+                                    _hoursController, boxWidth),
+                                _buildTimeBox(context, _minutes, 'Minutes',
+                                    _minutesController, boxWidth),
+                                _buildTimeBox(context, _seconds, 'Seconds',
+                                    _secondsController, boxWidth),
+                              ],
+                            );
+                          }),
                           const SizedBox(height: 16),
                           const Text(
                             'The Game will be started after 30 mos, 29 days, 29 hrs, 29 min.',
@@ -302,15 +308,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             width: double.infinity,
                             child: ElevatedButton.icon(
                               onPressed: () {},
-                              icon: const Icon(Icons.notifications_outlined, size: 16), // Reduced icon size
-                              label: const Text('Notify Me', style: TextStyle(fontSize: 14)), // Reduced font size
+                              icon: const Icon(Icons.notifications_outlined,
+                                  size: 16), // Reduced icon size
+                              label: const Text('Notify Me',
+                                  style: TextStyle(
+                                      fontSize: 14)), // Reduced font size
                               style: ElevatedButton.styleFrom(
                                 foregroundColor: Colors.white,
                                 backgroundColor: const Color(0xFF262B29),
-                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 12),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
-                                  side: const BorderSide(color: Color(0xFF2A2A3A)),
+                                  side: const BorderSide(
+                                      color: Color(0xFF2A2A3A)),
                                 ),
                               ),
                             ),
@@ -318,14 +329,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // Game cards
                     GridView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
                         childAspectRatio: 0.55,
                         crossAxisSpacing: 16,
@@ -343,11 +355,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               ClipRRect(
-                                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                                borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(16)),
                                 child: AspectRatio(
                                   aspectRatio: 1.5,
                                   child: Container(
-                                    color: index == 0 ? const Color(0xFF00B894) : const Color(0xFF6AB04C),
+                                    color: index == 0
+                                        ? const Color(0xFF00B894)
+                                        : const Color(0xFF6AB04C),
                                     child: Center(
                                       child: Text(
                                         game.title,
@@ -364,18 +379,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               ),
                               Expanded(
                                 child: Padding(
-                                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 6),
+                                  padding:
+                                      const EdgeInsets.fromLTRB(12, 12, 12, 6),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Row(
                                         children: [
                                           Container(
-                                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 6, vertical: 2),
                                             decoration: BoxDecoration(
                                               color: const Color(0xFF2A2A3A),
-                                              borderRadius: BorderRadius.circular(4),
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
                                             ),
                                             child: Row(
                                               children: [
@@ -433,7 +452,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                             Navigator.push(
                                               context,
                                               MaterialPageRoute(
-                                                builder: (context) => PaymentMethodScreen(
+                                                builder: (context) =>
+                                                    PaymentMethodScreen(
                                                   amount: game.prizeValue,
                                                   gameName: game.title,
                                                 ),
@@ -443,14 +463,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                           style: ElevatedButton.styleFrom(
                                             backgroundColor: Colors.white,
                                             foregroundColor: Colors.black,
-                                            padding: const EdgeInsets.symmetric(vertical: 8),
-                                            minimumSize: const Size.fromHeight(40),
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 8),
+                                            minimumSize:
+                                                const Size.fromHeight(40),
                                             shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.circular(8),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
                                             ),
                                           ),
                                           child: Row(
-                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               const Text(
@@ -476,9 +500,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         );
                       },
                     ),
-                    
+
                     const SizedBox(height: 24),
-                    
+
                     // News section
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -530,7 +554,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         ],
                       ),
                     ),
-                    
+
                     const SizedBox(height: 24),
                   ],
                 ),
@@ -542,9 +566,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildTimeBox(BuildContext context, int value, String label, AnimationController? controller, double boxWidth) {
+  Widget _buildTimeBox(BuildContext context, int value, String label,
+      AnimationController? controller, double boxWidth) {
     final fontSize = boxWidth * 0.5; // Responsive font size based on box width
-    
+
     if (controller == null) {
       // Fallback if controller is not initialized
       return Container(
@@ -593,7 +618,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
       );
     }
-    
+
     return Container(
       width: boxWidth,
       padding: const EdgeInsets.symmetric(vertical: 8),
@@ -616,10 +641,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               animation: controller,
               builder: (context, child) {
                 // Create a fade-in animation
-                final opacity = controller.value < 0.5 
+                final opacity = controller.value < 0.5
                     ? 1.0 - controller.value * 2 // Fade out in first half
                     : (controller.value - 0.5) * 2; // Fade in in second half
-                
+
                 return Opacity(
                   opacity: opacity,
                   child: child,

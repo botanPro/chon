@@ -170,6 +170,8 @@ class _AuthScreenState extends State<AuthScreen>
   @override
   Widget build(BuildContext context) {
     final textTheme = GoogleFonts.interTextTheme();
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 360 || screenSize.height < 600;
 
     return Scaffold(
       backgroundColor: const Color(0xFF13131D),
@@ -196,8 +198,8 @@ class _AuthScreenState extends State<AuthScreen>
               opacity: 0.3,
               child: GridView.builder(
                 physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 4,
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: isSmallScreen ? 3 : 4,
                   mainAxisSpacing: 8,
                   crossAxisSpacing: 8,
                 ),
@@ -213,145 +215,154 @@ class _AuthScreenState extends State<AuthScreen>
 
           // Content
           SafeArea(
-            child: Stack(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(24.0),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Spacer(),
-                      Container(
-                        height: 56,
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: _showSignUpDrawer,
-                            borderRadius: BorderRadius.circular(12),
-                            child: Center(
-                              child: Text(
-                                'Sign up',
-                                style: textTheme.labelLarge?.copyWith(
-                                  color: Colors.black,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: 'Inter',
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Stack(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: constraints.maxWidth * 0.06,
+                        vertical: 24.0,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Spacer(),
+                          Container(
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: _showSignUpDrawer,
+                                borderRadius: BorderRadius.circular(12),
+                                child: Center(
+                                  child: Text(
+                                    'Sign up',
+                                    style: textTheme.labelLarge?.copyWith(
+                                      color: Colors.black,
+                                      fontSize: isSmallScreen ? 11 : 12,
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: 'Inter',
+                                    ),
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        height: 56,
-                        child: TextButton(
-                          onPressed: _showSignInDrawer,
-                          style: TextButton.styleFrom(
-                            foregroundColor: const Color(0xFF6F6F6F),
-                          ),
-                          child: Text(
-                            'Sign in',
-                            style: textTheme.labelLarge?.copyWith(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Inter',
-                              color: const Color(0xFF6F6F6F),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            height: 56,
+                            child: TextButton(
+                              onPressed: _showSignInDrawer,
+                              style: TextButton.styleFrom(
+                                foregroundColor: const Color(0xFF6F6F6F),
+                              ),
+                              child: Text(
+                                'Sign in',
+                                style: textTheme.labelLarge?.copyWith(
+                                  fontSize: isSmallScreen ? 11 : 12,
+                                  fontWeight: FontWeight.w600,
+                                  fontFamily: 'Inter',
+                                  color: const Color(0xFF6F6F6F),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                ),
-                // Positioned Logo
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.48,
-                  left: 32,
-                  child: Container(
-                    width: 70,
-                    height: 70,
-                    padding: const EdgeInsets.all(8),
-                    child: Image.asset(
-                      'assets/images/chon.png',
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(
-                          Icons.image_not_supported,
-                          color: Colors.white.withOpacity(0.5),
-                          size: 32,
-                        );
-                      },
-                    ),
-                  ),
-                ),
-                // Positioned Slogan with Animation
-                Positioned(
-                  top: MediaQuery.of(context).size.height * 0.45 + 100,
-                  left: 24,
-                  right: 85,
-                  child: SlideTransition(
-                    position: _slideAnimation,
-                    child: ShaderMask(
-                      shaderCallback: (Rect bounds) {
-                        return const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Color(0xFF96c3bc), // Teal 500
-                            Color(0xFF7b9f9a), // Teal 400
-                            Color(0xFF627d79), // Teal 300
-                          ],
-                          stops: [0.0, 0.5, 1.0],
-                        ).createShader(bounds);
-                      },
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'COMPETE',
-                            style: textTheme.displaySmall?.copyWith(
-                              fontSize: 38,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              height: 1.0,
-                              letterSpacing: -1,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          Text(
-                            'WIN',
-                            style: textTheme.displaySmall?.copyWith(
-                              fontSize: 38,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              height: 1.0,
-                              letterSpacing: -1,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
-                          Text(
-                            'EARN',
-                            style: textTheme.displaySmall?.copyWith(
-                              fontSize: 38,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.white,
-                              height: 1.0,
-                              letterSpacing: -1,
-                              fontFamily: 'Inter',
-                            ),
-                          ),
+                          const SizedBox(height: 16),
                         ],
                       ),
                     ),
-                  ),
-                ),
-              ],
+                    // Positioned Logo - using relative positioning
+                    Positioned(
+                      top: constraints.maxHeight * 0.45,
+                      left: constraints.maxWidth * 0.08,
+                      child: Container(
+                        width: constraints.maxWidth * 0.18,
+                        height: constraints.maxWidth * 0.18,
+                        padding: const EdgeInsets.all(8),
+                        child: Image.asset(
+                          'assets/images/chon.png',
+                          errorBuilder: (context, error, stackTrace) {
+                            return Icon(
+                              Icons.image_not_supported,
+                              color: Colors.white.withOpacity(0.5),
+                              size: 32,
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                    // Positioned Slogan with Animation - using relative positioning
+                    Positioned(
+                      top: constraints.maxHeight * 0.45 +
+                          (constraints.maxWidth * 0.18) +
+                          10,
+                      left: constraints.maxWidth * 0.08,
+                      right: constraints.maxWidth * 0.25,
+                      child: SlideTransition(
+                        position: _slideAnimation,
+                        child: ShaderMask(
+                          shaderCallback: (Rect bounds) {
+                            return const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Color(0xFF96c3bc), // Teal 500
+                                Color(0xFF7b9f9a), // Teal 400
+                                Color(0xFF627d79), // Teal 300
+                              ],
+                              stops: [0.0, 0.5, 1.0],
+                            ).createShader(bounds);
+                          },
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'COMPETE',
+                                style: textTheme.displaySmall?.copyWith(
+                                  fontSize: isSmallScreen ? 28 : 38,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  height: 1.0,
+                                  letterSpacing: -1,
+                                  fontFamily: 'Inter',
+                                ),
+                              ),
+                              Text(
+                                'WIN',
+                                style: textTheme.displaySmall?.copyWith(
+                                  fontSize: isSmallScreen ? 28 : 38,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  height: 1.0,
+                                  letterSpacing: -1,
+                                  fontFamily: 'Inter',
+                                ),
+                              ),
+                              Text(
+                                'EARN',
+                                style: textTheme.displaySmall?.copyWith(
+                                  fontSize: isSmallScreen ? 28 : 38,
+                                  fontWeight: FontWeight.w800,
+                                  color: Colors.white,
+                                  height: 1.0,
+                                  letterSpacing: -1,
+                                  fontFamily: 'Inter',
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ],
@@ -412,6 +423,10 @@ class _SignUpDrawerState extends State<SignUpDrawer>
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 360 || screenSize.height < 600;
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
     return Container(
       height: MediaQuery.of(context).size.height * 0.9,
       decoration: const BoxDecoration(
@@ -435,9 +450,9 @@ class _SignUpDrawerState extends State<SignUpDrawer>
               ),
             ),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 24),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.06),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -465,7 +480,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                               color: Colors.white,
                               fontWeight: FontWeight.w700,
                               letterSpacing: -0.5,
-                              fontSize: 30,
+                              fontSize: isSmallScreen ? 22 : 30,
                             ),
                           ),
                           Row(
@@ -476,13 +491,13 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                                   color: Colors.white,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: -0.5,
-                                  fontSize: 30,
+                                  fontSize: isSmallScreen ? 22 : 30,
                                 ),
                               ),
-                              const Icon(
+                              Icon(
                                 Icons.sports_esports,
                                 color: Colors.white,
-                                size: 30,
+                                size: isSmallScreen ? 22 : 30,
                               ),
                               Text(
                                 ' GAME AREA',
@@ -490,7 +505,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                                   color: Colors.white,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: -0.5,
-                                  fontSize: 30,
+                                  fontSize: isSmallScreen ? 22 : 30,
                                 ),
                               ),
                             ],
@@ -505,7 +520,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
           ),
           const SizedBox(height: 24),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.06),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -514,7 +529,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                   style: GoogleFonts.inter(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
-                    fontSize: 20,
+                    fontSize: isSmallScreen ? 18 : 20,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -524,7 +539,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                       : 'Enter your personal information to create your account',
                   style: GoogleFonts.inter(
                     color: Colors.white.withOpacity(0.5),
-                    fontSize: 14,
+                    fontSize: isSmallScreen ? 12 : 14,
                   ),
                 ),
               ],
@@ -533,13 +548,17 @@ class _SignUpDrawerState extends State<SignUpDrawer>
           const SizedBox(height: 24),
           Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
+              padding: EdgeInsets.only(
+                left: screenSize.width * 0.06,
+                right: screenSize.width * 0.06,
+                bottom: bottomInset > 0 ? bottomInset : 0,
+              ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  _buildPhoneField(),
+                  _buildPhoneField(isSmallScreen),
                   const SizedBox(height: 16),
-                  _buildPasswordField(),
+                  _buildPasswordField(isSmallScreen),
                   const SizedBox(height: 32),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -550,7 +569,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                             : 'Already have an account? ',
                         style: GoogleFonts.inter(
                           color: Colors.white.withOpacity(0.7),
-                          fontSize: 14,
+                          fontSize: isSmallScreen ? 12 : 14,
                         ),
                       ),
                       GestureDetector(
@@ -581,7 +600,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                           style: GoogleFonts.inter(
                             color: const Color(0xFF96c3bc), // Teal 500
                             fontWeight: FontWeight.w600,
-                            fontSize: 14,
+                            fontSize: isSmallScreen ? 12 : 14,
                           ),
                         ),
                       ),
@@ -628,7 +647,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                                 style: GoogleFonts.inter(
                                   color: Colors.black,
                                   fontWeight: FontWeight.w600,
-                                  fontSize: 14,
+                                  fontSize: isSmallScreen ? 12 : 14,
                                 ),
                               ),
                               const Icon(
@@ -642,7 +661,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: max(32, bottomInset > 0 ? 16 : 32)),
                 ],
               ),
             ),
@@ -652,14 +671,14 @@ class _SignUpDrawerState extends State<SignUpDrawer>
     );
   }
 
-  Widget _buildPhoneField() {
+  Widget _buildPhoneField(bool isSmallScreen) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Phone Number',
           style: GoogleFonts.inter(
-            fontSize: 14,
+            fontSize: isSmallScreen ? 12 : 14,
             fontWeight: FontWeight.w500,
             color: Colors.white,
           ),
@@ -683,7 +702,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                   '+964 |',
                   style: GoogleFonts.inter(
                     color: Colors.white,
-                    fontSize: 16,
+                    fontSize: isSmallScreen ? 14 : 16,
                   ),
                 ),
               ),
@@ -693,14 +712,14 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                   keyboardType: TextInputType.phone,
                   style: GoogleFonts.inter(
                     color: Colors.white,
-                    fontSize: 16,
+                    fontSize: isSmallScreen ? 14 : 16,
                   ),
                   decoration: InputDecoration(
                     border: InputBorder.none,
                     hintText: '750 999 9999',
                     hintStyle: GoogleFonts.inter(
                       color: Colors.white.withOpacity(0.3),
-                      fontSize: 16,
+                      fontSize: isSmallScreen ? 14 : 16,
                     ),
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 8,
@@ -716,14 +735,14 @@ class _SignUpDrawerState extends State<SignUpDrawer>
     );
   }
 
-  Widget _buildPasswordField() {
+  Widget _buildPasswordField(bool isSmallScreen) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Password',
           style: GoogleFonts.inter(
-            fontSize: 14,
+            fontSize: isSmallScreen ? 12 : 14,
             fontWeight: FontWeight.w500,
             color: Colors.white,
           ),
@@ -744,7 +763,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
             obscureText: !_showPassword,
             style: GoogleFonts.inter(
               color: Colors.white,
-              fontSize: 16,
+              fontSize: isSmallScreen ? 14 : 16,
             ),
             decoration: InputDecoration(
               border: InputBorder.none,
@@ -755,7 +774,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
               hintText: '@Example25',
               hintStyle: GoogleFonts.inter(
                 color: Colors.white.withOpacity(0.3),
-                fontSize: 16,
+                fontSize: isSmallScreen ? 14 : 16,
               ),
               suffixIcon: IconButton(
                 icon: Icon(

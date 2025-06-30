@@ -45,10 +45,18 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Get screen dimensions
+    final screenSize = MediaQuery.of(context).size;
+    final isSmallScreen = screenSize.width < 360 || screenSize.height < 600;
+
     // Get keyboard height to adjust padding
     final keyboardVisible = MediaQuery.of(context).viewInsets.bottom > 0;
     final bottomPadding =
         keyboardVisible ? MediaQuery.of(context).viewInsets.bottom - 10 : 0.0;
+
+    // Calculate OTP field size based on screen width
+    final otpFieldSize = (screenSize.width - 24 * 2 - 5 * 8) / 6;
+    final otpFieldHeight = otpFieldSize * 1.2;
 
     return Scaffold(
       backgroundColor: const Color(0xFF010202),
@@ -70,7 +78,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                 'Back',
                 style: GoogleFonts.inter(
                   color: Colors.white,
-                  fontSize: 16,
+                  fontSize: isSmallScreen ? 14 : 16,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -88,17 +96,24 @@ class _VerificationScreenState extends State<VerificationScreen> {
             physics: const ClampingScrollPhysics(),
             child: SafeArea(
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: EdgeInsets.symmetric(
+                  horizontal: screenSize.width * 0.06,
+                  vertical: 24.0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Image.asset('assets/images/otp.png',
-                        height: 208, width: double.infinity, fit: BoxFit.cover),
-                    const SizedBox(height: 40),
+                    Image.asset(
+                      'assets/images/otp.png',
+                      height: isSmallScreen ? 160 : 208,
+                      width: double.infinity,
+                      fit: BoxFit.contain,
+                    ),
+                    SizedBox(height: isSmallScreen ? 24 : 40),
                     Text(
                       'Check your inbox',
                       style: GoogleFonts.inter(
-                        fontSize: 28,
+                        fontSize: isSmallScreen ? 24 : 28,
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
                       ),
@@ -108,20 +123,20 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     Text(
                       'We\'ve sent a unique code to your Phone Number,\nType it in here to verify.',
                       style: GoogleFonts.inter(
-                        fontSize: 14,
+                        fontSize: isSmallScreen ? 12 : 14,
                         color: Colors.white.withOpacity(0.7),
                         height: 1.5,
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 40),
+                    SizedBox(height: isSmallScreen ? 24 : 40),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: List.generate(
                         6,
                         (index) => SizedBox(
-                          width: 48.375,
-                          height: 59.125,
+                          width: otpFieldSize,
+                          height: otpFieldHeight,
                           child: TextField(
                             controller: _controllers[index],
                             focusNode: _focusNodes[index],
@@ -130,7 +145,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
                             maxLength: 1,
                             cursorColor: const Color(0xFF96C3BC),
                             style: GoogleFonts.inter(
-                              fontSize: 20,
+                              fontSize: isSmallScreen ? 18 : 20,
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
                             ),
@@ -140,25 +155,25 @@ class _VerificationScreenState extends State<VerificationScreen> {
                               fillColor: const Color(0xFF090C0B),
                               hintText: '0',
                               hintStyle: GoogleFonts.inter(
-                                fontSize: 20,
+                                fontSize: isSmallScreen ? 18 : 20,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.white.withOpacity(0.2),
                               ),
-                              contentPadding: const EdgeInsets.symmetric(
-                                vertical: 12,
-                                horizontal: 4,
+                              contentPadding: EdgeInsets.symmetric(
+                                vertical: isSmallScreen ? 8 : 12,
+                                horizontal: 2,
                               ),
                               border: OutlineInputBorder(
                                 borderSide: BorderSide.none,
-                                borderRadius: BorderRadius.circular(12.17),
+                                borderRadius: BorderRadius.circular(12),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide.none,
-                                borderRadius: BorderRadius.circular(12.17),
+                                borderRadius: BorderRadius.circular(12),
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderSide: BorderSide.none,
-                                borderRadius: BorderRadius.circular(12.17),
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
                             inputFormatters: [
@@ -170,27 +185,33 @@ class _VerificationScreenState extends State<VerificationScreen> {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    TextButton.icon(
-                      style: TextButton.styleFrom(
-                        backgroundColor: const Color(0xFF090C0B),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 24, vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                    Center(
+                      child: TextButton.icon(
+                        style: TextButton.styleFrom(
+                          backgroundColor: const Color(0xFF090C0B),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: isSmallScreen ? 16 : 24,
+                            vertical: isSmallScreen ? 8 : 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
-                      ),
-                      onPressed: () {
-                        // TODO: Implement resend code functionality
-                      },
-                      icon: const Icon(
-                        Icons.refresh,
-                        color: Color(0xFF96C3BC),
-                      ),
-                      label: Text(
-                        'Resend Code',
-                        style: GoogleFonts.inter(
-                          color: const Color(0xFF96C3BC),
-                          fontWeight: FontWeight.w500,
+                        onPressed: () {
+                          // TODO: Implement resend code functionality
+                        },
+                        icon: const Icon(
+                          Icons.refresh,
+                          color: Color(0xFF96C3BC),
+                          size: 18,
+                        ),
+                        label: Text(
+                          'Resend Code',
+                          style: GoogleFonts.inter(
+                            color: const Color(0xFF96C3BC),
+                            fontWeight: FontWeight.w500,
+                            fontSize: isSmallScreen ? 12 : 14,
+                          ),
                         ),
                       ),
                     ),
@@ -204,8 +225,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
 
           // Next button positioned at the bottom, above the keyboard
           Positioned(
-            left: 24,
-            right: 24,
+            left: screenSize.width * 0.06,
+            right: screenSize.width * 0.06,
             bottom: bottomPadding + 24,
             child: Container(
               height: 56,
@@ -244,15 +265,15 @@ class _VerificationScreenState extends State<VerificationScreen> {
                           'Next',
                           style: GoogleFonts.inter(
                             color: const Color(0xFF090C0B),
-                            fontSize: 12,
+                            fontSize: isSmallScreen ? 11 : 12,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                         const SizedBox(width: 8),
-                        const Icon(
+                        Icon(
                           Icons.arrow_forward,
-                          color: Color(0xFF090C0B),
-                          size: 20,
+                          color: const Color(0xFF090C0B),
+                          size: isSmallScreen ? 18 : 20,
                         ),
                       ],
                     ),

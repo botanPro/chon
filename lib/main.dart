@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'screens/home_screen.dart';
 import 'screens/auth/auth_screen.dart';
 import 'screens/profile_screen.dart';
 import 'services/auth_service.dart';
