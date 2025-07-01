@@ -3,7 +3,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
-import '../services/fake_trivia_websocket.dart';
+import '../services/trivia_socket_service.dart';
 import 'dart:convert';
 
 class TriviaGameScreen extends StatefulWidget {
@@ -230,7 +230,7 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
   List<Map<String, dynamic>> _leaderboard = [];
   List<String> _playerJoins = [];
 
-  late FakeTriviaWebSocket _webSocket;
+  late TriviaSocketService _socketService;
   List<Map<String, dynamic>> _questions = [];
   StreamSubscription<Map<String, dynamic>>? _wsSubscription;
 
@@ -241,9 +241,21 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
   @override
   void initState() {
     super.initState();
-    _webSocket = FakeTriviaWebSocket();
-    _wsSubscription = _webSocket.stream.listen(_handleWebSocketEvent);
-    _webSocket.joinCompetition(_competitionId, _playerId);
+    _socketService = TriviaSocketService();
+    _socketService.connect(
+        'http://127.0.0.1:3000'); 
+    _socketService.joinCompetition(_competitionId);
+    _socketService.onLeaderboardUpdate((data) {
+      setState(() {
+        // Assuming data is a list of maps with playerId and score
+        _leaderboard = List<Map<String, dynamic>>.from(data);
+      });
+    });
+    _socketService.onPlayerJoined((data) {
+      setState(() {
+        _playerJoins.add(data['socketId'] ?? '');
+      });
+    });
     _initializeAnimations();
     // Timer will start after receiving the first question
     _questionAnimationController.forward();
@@ -341,8 +353,7 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
 
   @override
   void dispose() {
-    _wsSubscription?.cancel();
-    _webSocket.dispose();
+    _socketService.disconnect();
     _timer.cancel();
     _questionAnimationController.dispose();
     _optionsAnimationController.dispose();
@@ -416,11 +427,11 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
 
   void _submitAnswer(int answerIndex) {
     final question = _questions[_currentQuestionIndex];
-    _webSocket.submitAnswer(
-      _competitionId,
-      _playerId,
-      question['id'] as String,
-      answerIndex,
+    _socketService.submitAnswer(
+      competitionId: _competitionId,
+      playerId: _playerId,
+      questionId: question['id'] as String,
+      answer: answerIndex.toString(),
     );
     // Track correct answers locally for game result
     if (answerIndex == question['correctAnswer']) {

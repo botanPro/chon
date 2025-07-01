@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../services/trivia_socket_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -446,7 +447,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                       SizedBox(
                                         width: double.infinity,
                                         child: ElevatedButton(
-                                          onPressed: () {
+                                          onPressed: () async {
+                                            // Connect to socket and join competition before navigating
+                                            final socketService =
+                                                TriviaSocketService();
+                                            socketService.connect(
+                                                'http://127.0.0.1:3000'); // TODO: Replace with your backend URL
+                                            socketService.joinCompetition(
+                                                'comp1'); // TODO: Use actual competitionId if available
+
                                             // Navigate to payment screen
                                             Navigator.push(
                                               context,
