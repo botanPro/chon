@@ -393,6 +393,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nicknameController = TextEditingController();
+  String _selectedLanguage = 'English'; // Default language
 
   @override
   void initState() {
@@ -565,6 +566,12 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                   widget.isSignIn
                       ? const SizedBox.shrink() // No password field for sign in
                       : _buildNicknameField(isSmallScreen),
+                  widget.isSignIn
+                      ? const SizedBox.shrink() // No language field for sign in
+                      : const SizedBox(height: 16),
+                  widget.isSignIn
+                      ? const SizedBox.shrink() // No language field for sign in
+                      : _buildLanguageField(isSmallScreen),
                   const SizedBox(height: 32),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -786,13 +793,81 @@ class _SignUpDrawerState extends State<SignUpDrawer>
     );
   }
 
+  Widget _buildLanguageField(bool isSmallScreen) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Language',
+          style: GoogleFonts.inter(
+            fontSize: isSmallScreen ? 12 : 14,
+            fontWeight: FontWeight.w500,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          height: 56,
+          decoration: BoxDecoration(
+            color: const Color(0xFF151918),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.1),
+              width: 1,
+            ),
+          ),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<String>(
+              value: _selectedLanguage,
+              isExpanded: true,
+              dropdownColor: const Color(0xFF151918),
+              icon: const Icon(
+                Icons.keyboard_arrow_down,
+                color: Colors.white,
+              ),
+              style: GoogleFonts.inter(
+                color: Colors.white,
+                fontSize: isSmallScreen ? 14 : 16,
+              ),
+              items: const [
+                DropdownMenuItem<String>(
+                  value: 'English',
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Text('English'),
+                  ),
+                ),
+                DropdownMenuItem<String>(
+                  value: 'Kurdish Sorani',
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 16),
+                    child: Text('Kurdish Sorani'),
+                  ),
+                ),
+              ],
+              onChanged: (String? newValue) {
+                if (newValue != null) {
+                  setState(() {
+                    _selectedLanguage = newValue;
+                  });
+                }
+              },
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   Future<void> _handleSignUp() async {
     final phone = _phoneController.text.trim();
     final nickname = _nicknameController.text.trim();
 
     if (phone.isEmpty || nickname.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter phone and nickname.')),
+        const SnackBar(
+            content:
+                Text('Please enter phone, nickname, and select a language.')),
       );
       return;
     }
@@ -812,6 +887,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
       final requestBody = {
         'whatsapp_number': formattedPhone,
         'nickname': nickname,
+        'language': _selectedLanguage,
       };
 
       print('Sign Up - Request Body: $requestBody');

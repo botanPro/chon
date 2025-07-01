@@ -17,6 +17,7 @@ class AuthService extends ChangeNotifier {
   String? _token; // JWT token for API authentication
   String? _nickname; // User's nickname
   int _level = 0; // User's level
+  String _language = 'English'; // User's preferred language
 
   // User financial data
   double _balance = 0.0;
@@ -31,6 +32,7 @@ class AuthService extends ChangeNotifier {
   String? get token => _token; // Getter for JWT token
   String? get nickname => _nickname; // Getter for nickname
   int get level => _level; // Getter for level
+  String get language => _language; // Getter for language
   double get balance => _balance;
   List<Transaction> get transactions => List.unmodifiable(_transactions);
   List<GameResult> get gameHistory => List.unmodifiable(_gameHistory);
@@ -43,6 +45,7 @@ class AuthService extends ChangeNotifier {
       _userId = null; // Clear user ID on logout
       _nickname = null; // Clear nickname on logout
       _level = 0; // Reset level on logout
+      _language = 'English'; // Reset language on logout
     }
     notifyListeners();
   }
@@ -68,6 +71,12 @@ class AuthService extends ChangeNotifier {
   /// Sets the user's level
   void setLevel(int level) {
     _level = level;
+    notifyListeners();
+  }
+
+  /// Sets the user's preferred language
+  void setLanguage(String language) {
+    _language = language;
     notifyListeners();
   }
 
