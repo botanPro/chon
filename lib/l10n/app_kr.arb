@@ -1,0 +1,302 @@
+{
+  "@@locale": "kr",
+  
+  "appTitle": "چۆن",
+  "@appTitle": {
+    "description": "The application title"
+  },
+
+  "compete": "پێشبڕکێ بکە",
+  "@compete": {
+    "description": "Compete text on auth screen"
+  },
+
+  "win": "بردنەوە",
+  "@win": {
+    "description": "Win text on auth screen"
+  },
+
+  "earn": "قازانج",
+  "@earn": {
+    "description": "Earn text on auth screen"
+  },
+
+  "signUp": "خۆتۆمارکردن",
+  "@signUp": {
+    "description": "Sign up button text"
+  },
+
+  "signIn": "چوونەژوورەوە",
+  "@signIn": {
+    "description": "Sign in button text"
+  },
+
+  "welcomeToOurGameArea": "بەخێربێیت بۆ ناوچەی یارییەکانمان 🎮",
+  "@welcomeToOurGameArea": {
+    "description": "Welcome message in auth drawer"
+  },
+
+  "signUpAccount": "هەژماری خۆتۆمارکردن",
+  "@signUpAccount": {
+    "description": "Sign up account header"
+  },
+
+  "signInAccount": "چوونەژوورەوەی هەژمار",
+  "@signInAccount": {
+    "description": "Sign in account header"
+  },
+
+  "signUpDescription": "زانیاری کەسییەکانت بنووسە بۆ دروستکردنی هەژمارەکەت",
+  "@signUpDescription": {
+    "description": "Sign up description text"
+  },
+
+  "signInDescription": "زانیاری پێناسەکانت بنووسە بۆ چوونەژوورەوە بۆ هەژمارەکەت",
+  "@signInDescription": {
+    "description": "Sign in description text"
+  },
+
+  "phoneNumber": "ژمارەی تەلەفۆن",
+  "@phoneNumber": {
+    "description": "Phone number field label"
+  },
+
+  "phoneNumberHint": "750 999 9999",
+  "@phoneNumberHint": {
+    "description": "Phone number field hint"
+  },
+
+  "nickname": "ناوی نازناو",
+  "@nickname": {
+    "description": "Nickname field label"
+  },
+
+  "nicknameHint": "ناوی نازناوەکەت",
+  "@nicknameHint": {
+    "description": "Nickname field hint"
+  },
+
+  "language": "زمان",
+  "@language": {
+    "description": "Language field label"
+  },
+
+  "english": "ئینگلیزی",
+  "@english": {
+    "description": "English language option"
+  },
+
+  "kurdishSorani": "کوردی سۆرانی",
+  "@kurdishSorani": {
+    "description": "Kurdish Sorani language option"
+  },
+
+  "dontHaveAccount": "هەژمارت نییە؟ ",
+  "@dontHaveAccount": {
+    "description": "Don't have account text"
+  },
+
+  "alreadyHaveAccount": "پێشتر هەژمارت هەیە؟ ",
+  "@alreadyHaveAccount": {
+    "description": "Already have account text"
+  },
+
+  "congratulations": "پیرۆزە! 🎉",
+  "@congratulations": {
+    "description": "Congratulations message in prize dialog"
+  },
+
+  "youWon": "تۆ بردتەوە",
+  "@youWon": {
+    "description": "You won text in prize dialog"
+  },
+
+  "score": "نمرە: {score}",
+  "@score": {
+    "description": "Score display",
+    "placeholders": {
+      "score": {
+        "type": "int",
+        "example": "100"
+      }
+    }
+  },
+
+  "days": "ڕۆژ",
+  "@days": {
+    "description": "Days label in countdown"
+  },
+
+  "hours": "کاتژمێر",
+  "@hours": {
+    "description": "Hours label in countdown"
+  },
+
+  "minutes": "خولەک",
+  "@minutes": {
+    "description": "Minutes label in countdown"
+  },
+
+  "seconds": "چرکە",
+  "@seconds": {
+    "description": "Seconds label in countdown"
+  },
+
+  "gameWillStart": "یارییەکە دەست پێ دەکات لە دوای ٣٠ مانگ، ٢٩ ڕۆژ، ٢٩ کاتژمێر، ٢٩ خولەک.",
+  "@gameWillStart": {
+    "description": "Game start countdown message"
+  },
+
+  "gameName": "ناوی یاری",
+  "@gameName": {
+    "description": "Game name label"
+  },
+
+  "sinceYesterday": "لە دوێنێوە ",
+  "@sinceYesterday": {
+    "description": "Since yesterday text"
+  },
+
+  "sales": "فرۆشتنەکانت ",
+  "@sales": {
+    "description": "Sales text"
+  },
+
+  "haveIncreased": "زیادیان کردووە!",
+  "@haveIncreased": {
+    "description": "Have increased text"
+  },
+
+  "level": "ئاست {level}",
+  "@level": {
+    "description": "Level display",
+    "placeholders": {
+      "level": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+
+  "watchPattern": "تەماشای نەخشەکە بکە...",
+  "@watchPattern": {
+    "description": "Watch pattern instruction"
+  },
+
+  "repeatPattern": "نەخشەکە دووبارە بکەرەوە!",
+  "@repeatPattern": {
+    "description": "Repeat pattern instruction"
+  },
+
+  "getReady": "ئامادە بە...",
+  "@getReady": {
+    "description": "Get ready message"
+  },
+
+  "formAWord": "وشەیەک دروست بکە",
+  "@formAWord": {
+    "description": "Form a word instruction"
+  },
+
+  "typeYourAnswer": "وەڵامەکەت بنووسە",
+  "@typeYourAnswer": {
+    "description": "Type answer hint"
+  },
+
+  "firstName": "ناوی یەکەم",
+  "@firstName": {
+    "description": "First name field label"
+  },
+
+  "firstNameHint": "ناوی یەکەمت بنووسە",
+  "@firstNameHint": {
+    "description": "First name field hint"
+  },
+
+  "lastName": "ناوی کۆتایی",
+  "@lastName": {
+    "description": "Last name field label"
+  },
+
+  "lastNameHint": "ناوی کۆتاییت بنووسە",
+  "@lastNameHint": {
+    "description": "Last name field hint"
+  },
+
+  "selectCity": "شارەکەت هەڵبژێرە",
+  "@selectCity": {
+    "description": "Select city hint"
+  },
+
+  "fillDetails": "تکایە زانیاریەکانت تەواو بکە بۆ تەواوکردنی پرۆفایلەکەت",
+  "@fillDetails": {
+    "description": "Fill details instruction"
+  },
+
+  "success": "سەرکەوتوو",
+  "@success": {
+    "description": "Success dialog title"
+  },
+
+  "error": "هەڵە",
+  "@error": {
+    "description": "Error dialog title"
+  },
+
+  "otpSent": "کۆدی پشتڕاستکردنەوە نێردرا بۆ ژمارەکەت.",
+  "@otpSent": {
+    "description": "OTP sent message"
+  },
+
+  "ok": "باشە",
+  "@ok": {
+    "description": "OK button text"
+  },
+
+  "signUpFailed": "خۆتۆمارکردن سەرکەوتوو نەبوو.",
+  "@signUpFailed": {
+    "description": "Sign up failed message"
+  },
+
+  "signInFailed": "چوونەژوورەوە سەرکەوتوو نەبوو.",
+  "@signInFailed": {
+    "description": "Sign in failed message"
+  },
+
+  "networkError": "هەڵەی تۆڕ یان ئەپلیکەیشن",
+  "@networkError": {
+    "description": "Network error title"
+  },
+
+  "enterPhoneNickname": "تکایە ژمارەی تەلەفۆن، ناوی نازناو، و زمان هەڵبژێرە.",
+  "@enterPhoneNickname": {
+    "description": "Enter phone and nickname validation message"
+  },
+
+  "enterPhoneNumber": "تکایە ژمارەی تەلەفۆنەکەت بنووسە.",
+  "@enterPhoneNumber": {
+    "description": "Enter phone number validation message"
+  },
+
+  "combo": "x{combo}",
+  "@combo": {
+    "description": "Combo multiplier display",
+    "placeholders": {
+      "combo": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+
+  "multiplier": "x{multiplier}",
+  "@multiplier": {
+    "description": "Score multiplier display",
+    "placeholders": {
+      "multiplier": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  }
+} 

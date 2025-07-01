@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'l10n/app_localizations.dart';
 import 'screens/auth/auth_screen.dart';
 import 'screens/auth/personal_info_screen.dart';
 import 'screens/profile_screen.dart';
+import 'screens/localization_demo_screen.dart';
 import 'services/auth_service.dart';
 import 'services/navigation_service.dart';
+import 'services/localization_service.dart';
 import 'layouts/main_layout.dart';
 
 /// Application-wide design tokens for consistent styling
@@ -34,12 +38,16 @@ class AppDesign {
 }
 
 /// Entry point of the application
-void main() {
+void main() async {
   // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
 
   // Configure system UI appearance
   _configureSystemUI();
+
+  // Initialize localization service
+  final localizationService = LocalizationService();
+  await localizationService.initialize();
 
   // Add error handling
   FlutterError.onError = (FlutterErrorDetails details) {
@@ -48,10 +56,13 @@ void main() {
     debugPrint('Stack trace: ${details.stack}');
   };
 
-  // Initialize the app with AuthService as the root provider
+  // Initialize the app with multiple providers
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => AuthService(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthService()),
+        ChangeNotifierProvider.value(value: localizationService),
+      ],
       child: const MainApp(),
     ),
   );
@@ -78,19 +89,34 @@ class MainApp extends StatelessWidget {
     // Get the navigation service instance for app-wide navigation
     final navigationService = NavigationService();
 
-    return MaterialApp(
-      title: 'Game App',
-      debugShowCheckedModeBanner: false,
-      theme: _buildAppTheme(),
-      // Use the navigation key from our service for programmatic navigation
-      navigatorKey: navigationService.navigatorKey,
-      initialRoute: '/',
-      onGenerateRoute: _generateRoute,
-      builder: (context, child) {
-        if (child == null) {
-          return const SplashScreen();
-        }
-        return child;
+    return Consumer<LocalizationService>(
+      builder: (context, localizationService, child) {
+        return MaterialApp(
+          title: 'CHON Game App',
+          debugShowCheckedModeBanner: false,
+          theme: _buildAppTheme(),
+
+          // Localization configuration
+          locale: localizationService.currentLocale,
+          localizationsDelegates: [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: LocalizationService.supportedLocales,
+
+          // Use the navigation key from our service for programmatic navigation
+          navigatorKey: navigationService.navigatorKey,
+          initialRoute: '/',
+          onGenerateRoute: _generateRoute,
+          builder: (context, child) {
+            if (child == null) {
+              return const SplashScreen();
+            }
+            return child;
+          },
+        );
       },
     );
   }
@@ -130,6 +156,9 @@ class MainApp extends StatelessWidget {
         return MaterialPageRoute(builder: (_) => const ProfileScreen());
       case '/personal-info':
         return MaterialPageRoute(builder: (_) => const PersonalInfoScreen());
+      case '/localization-demo':
+        return MaterialPageRoute(
+            builder: (_) => const LocalizationDemoScreen());
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(

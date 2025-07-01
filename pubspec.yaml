@@ -9,24 +9,27 @@ environment:
 dependencies:
     flutter:
         sdk: flutter
+    flutter_localizations:
+        sdk: flutter
     cupertino_icons: ^1.0.2
     confetti: ^0.7.0
     google_fonts: ^6.1.0
     provider: ^6.1.1
-    intl: ^0.19.0
+    intl: ^0.20.2
     flutter_svg: ^2.0.15
     web_socket_channel: ^3.0.3
     socket_io_client: ^3.1.2
     http: ^1.4.0
-    
-    
+    shared_preferences: ^2.2.2
 
 dev_dependencies:
     flutter_test:
         sdk: flutter
     flutter_lints: ^2.0.0
 
+# Enable internationalization code generation
 flutter:
+    generate: true
     uses-material-design: true
     assets:
         - assets/images/
