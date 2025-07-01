@@ -89,8 +89,8 @@ class MainApp extends StatelessWidget {
     // Get the navigation service instance for app-wide navigation
     final navigationService = NavigationService();
 
-    return Consumer<LocalizationService>(
-      builder: (context, localizationService, child) {
+    return Consumer2<LocalizationService, AuthService>(
+      builder: (context, localizationService, authService, child) {
         return MaterialApp(
           title: 'CHON Game App',
           debugShowCheckedModeBanner: false,
@@ -108,7 +108,9 @@ class MainApp extends StatelessWidget {
 
           // Use the navigation key from our service for programmatic navigation
           navigatorKey: navigationService.navigatorKey,
-          initialRoute: '/',
+          home: authService.isAuthenticated
+              ? const AppNavigator()
+              : const AuthScreen(),
           onGenerateRoute: _generateRoute,
           builder: (context, child) {
             if (child == null) {
@@ -138,16 +140,6 @@ class MainApp extends StatelessWidget {
   /// Generates routes based on route name
   Route<dynamic> _generateRoute(RouteSettings settings) {
     switch (settings.name) {
-      case '/':
-        return MaterialPageRoute(
-          builder: (_) => Consumer<AuthService>(
-            builder: (context, authService, _) {
-              return authService.isAuthenticated
-                  ? const AppNavigator()
-                  : const AuthScreen();
-            },
-          ),
-        );
       case '/home':
         return MaterialPageRoute(builder: (_) => const AppNavigator());
       case '/auth':
