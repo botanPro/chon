@@ -393,7 +393,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _nicknameController = TextEditingController();
-  String _selectedLanguage = 'English'; // Default language
+  String _selectedLanguage = 'en'; // Default language code for backend
 
   @override
   void initState() {
@@ -831,14 +831,14 @@ class _SignUpDrawerState extends State<SignUpDrawer>
               ),
               items: const [
                 DropdownMenuItem<String>(
-                  value: 'English',
+                  value: 'en',
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Text('English'),
                   ),
                 ),
                 DropdownMenuItem<String>(
-                  value: 'Kurdish Sorani',
+                  value: 'kr',
                   child: Padding(
                     padding: EdgeInsets.symmetric(horizontal: 16),
                     child: Text('Kurdish Sorani'),
@@ -847,6 +847,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
               ],
               onChanged: (String? newValue) {
                 if (newValue != null) {
+                  print('Language changed to: $newValue');
                   setState(() {
                     _selectedLanguage = newValue;
                   });
@@ -890,7 +891,8 @@ class _SignUpDrawerState extends State<SignUpDrawer>
         'language': _selectedLanguage,
       };
 
-      print('Sign Up - Request Body: $requestBody');
+      print('Sending language: $_selectedLanguage');
+      print('Request body: $requestBody');
 
       final response = await http.post(
         Uri.parse('http://127.0.0.1:3000/api/players/register'),

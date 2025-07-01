@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'navigation_service.dart';
 import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 /// Service that handles all authentication and user-related functionality.
 ///
@@ -368,21 +369,25 @@ class AuthService extends ChangeNotifier {
   /// Registers a new user with the given WhatsApp number and nickname.
   ///
   /// Returns true if registration was successful, false otherwise.
-  Future<bool> registerUser(
-      {required String whatsappNumber, required String nickname}) async {
+  static Future<bool> register({
+    required String whatsappNumber,
+    required String nickname,
+    required String language,
+  }) async {
+    print('Sending language: $language'); // Debug print
     final url = Uri.parse('http://localhost:3000/api/players/register');
     try {
       final response = await http.post(
         url,
         headers: {'Content-Type': 'application/json'},
-        body: '{"whatsapp_number": "$whatsappNumber", "nickname": "$nickname"}',
+        body: jsonEncode({
+          'whatsapp_number': whatsappNumber,
+          'nickname': nickname,
+          'language': language,
+        }),
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
         // Optionally parse response.body if needed
-        _isAuthenticated = true;
-        _userPhone = whatsappNumber;
-        _userId = nickname;
-        notifyListeners();
         return true;
       } else {
         return false;

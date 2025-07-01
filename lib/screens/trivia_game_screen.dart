@@ -226,83 +226,26 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
     const Color(0xFF1c2221).withOpacity(0.9), // Darker overlay
   ];
 
-  // Dummy winners data
-  final List<Map<String, dynamic>> _winners = [
-    {
-      'rank': 'Top 1',
-      'name': 'Bashdar',
-      'lastName': 'Hakim',
-      'phone': '+964 750 000 0000',
-      'isUser': false,
-    },
-    {
-      'rank': 'Top 1',
-      'name': 'Bashdar',
-      'lastName': 'Hakim',
-      'phone': '+964 750 000 0000',
-      'isUser': false,
-    },
-    {
-      'rank': 'Top 3',
-      'name': 'You',
-      'lastName': '',
-      'phone': '+964 750 000 0000',
-      'isUser': true,
-    },
-    {
-      'rank': 'Top 1',
-      'name': 'Bashdar',
-      'lastName': 'Hakim',
-      'phone': '+964 750 000 0000',
-      'isUser': false,
-    },
-    {
-      'rank': 'Top 1',
-      'name': 'Bashdar',
-      'lastName': 'Hakim',
-      'phone': '+964 750 000 0000',
-      'isUser': false,
-    },
-    {
-      'rank': 'Top 1',
-      'name': 'Bashdar',
-      'lastName': 'Hakim',
-      'phone': '+964 750 000 0000',
-      'isUser': false,
-    },
-    {
-      'rank': 'Top 1',
-      'name': 'Bashdar',
-      'lastName': 'Hakim',
-      'phone': '+964 750 000 0000',
-      'isUser': false,
-    },
-    {
-      'rank': 'Top 1',
-      'name': 'Bashdar',
-      'lastName': 'Hakim',
-      'phone': '+964 750 000 0000',
-      'isUser': false,
-    },
-  ];
+  // Leaderboard and player join events
+  List<Map<String, dynamic>> _leaderboard = [];
+  List<String> _playerJoins = [];
 
   late FakeTriviaWebSocket _webSocket;
   List<Map<String, dynamic>> _questions = [];
-  StreamSubscription<String>? _wsSubscription;
+  StreamSubscription<Map<String, dynamic>>? _wsSubscription;
+
+  // Demo competition and player IDs
+  final String _competitionId = 'comp1';
+  final String _playerId = 'player_demo';
 
   @override
   void initState() {
     super.initState();
     _webSocket = FakeTriviaWebSocket();
-    _wsSubscription = _webSocket.stream.listen((data) {
-      final question = jsonDecode(data) as Map<String, dynamic>;
-      setState(() {
-        _questions.add(question);
-      });
-    });
-    _webSocket.start();
+    _wsSubscription = _webSocket.stream.listen(_handleWebSocketEvent);
+    _webSocket.joinCompetition(_competitionId, _playerId);
     _initializeAnimations();
-    _startTimer();
+    // Timer will start after receiving the first question
     _questionAnimationController.forward();
     _optionsAnimationController.forward();
     _backgroundAnimationController.repeat();
@@ -358,6 +301,44 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
     );
   }
 
+  void _handleWebSocketEvent(Map<String, dynamic> event) {
+    final type = event['type'];
+    if (type == 'question') {
+      setState(() {
+        if (_questions.isEmpty ||
+            (_questions.isNotEmpty &&
+                _questions.last['id'] != event['question']['id'])) {
+          _questions.add(event['question'] as Map<String, dynamic>);
+          _currentQuestionIndex = _questions.length - 1;
+          _selectedAnswerIndex = -1;
+          _timeRemaining = 5;
+          _startTimer();
+          _questionAnimationController.reset();
+          _optionsAnimationController.reset();
+          _questionAnimationController.forward();
+          _optionsAnimationController.forward();
+        }
+      });
+    } else if (type == 'leaderboardUpdate') {
+      setState(() {
+        _leaderboard =
+            List<Map<String, dynamic>>.from(event['leaderboard'] ?? []);
+      });
+    } else if (type == 'playerJoined') {
+      setState(() {
+        _playerJoins.add(event['playerId'] ?? '');
+      });
+    } else if (type == 'gameOver') {
+      setState(() {
+        _showGameOver = true;
+        _leaderboard =
+            List<Map<String, dynamic>>.from(event['leaderboard'] ?? []);
+      });
+      _gameOverAnimationController.forward();
+      _timer.cancel();
+    }
+  }
+
   @override
   void dispose() {
     _wsSubscription?.cancel();
@@ -378,57 +359,24 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
         });
       } else {
         _timer.cancel();
-        _goToNextQuestion();
+        // If not answered, submit -1 as answer
+        if (_selectedAnswerIndex == -1 && _questions.isNotEmpty) {
+          _submitAnswer(-1);
+        }
       }
     });
   }
 
   void _goToNextQuestion() {
-    // Check if the selected answer was correct
-    if (_selectedAnswerIndex != -1 &&
-        _selectedAnswerIndex ==
-            _questions[_currentQuestionIndex]['correctAnswer']) {
-      _correctAnswers++;
-    }
-
-    if (_currentQuestionIndex < _questions.length - 1) {
-      // Reset animations
-      _questionAnimationController.reset();
-      _optionsAnimationController.reset();
-
-      setState(() {
-        _currentQuestionIndex++;
-        _selectedAnswerIndex = -1;
-        _timeRemaining = 5;
-      });
-
-      // Start animations for next question
-      _questionAnimationController.forward();
-      _optionsAnimationController.forward();
-      _startTimer();
-    } else {
-      // Game over
-      _timer.cancel();
-
-      // Add game result to history
-      _addGameResultToHistory();
-
-      setState(() {
-        _showGameOver = true;
-      });
-      _gameOverAnimationController.forward();
-    }
+    // No longer needed: handled by WebSocket events
   }
 
   void _addGameResultToHistory() {
     final authService = Provider.of<AuthService>(context, listen: false);
-
     // Calculate position based on score
     String position;
     double winAmount = 0.0;
-
     final scorePercentage = _correctAnswers / _questions.length;
-
     if (scorePercentage == 1.0) {
       position = 'Top 1';
       winAmount = 50.0;
@@ -445,7 +393,6 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
       position = 'Top 20';
       winAmount = 0.0;
     }
-
     // Create and add the game result
     final gameResult = GameResult(
       gameType: 'Trivia Challenge',
@@ -455,17 +402,29 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
       winAmount: winAmount,
       timestamp: DateTime.now(),
     );
-
     authService.addGameResult(gameResult);
   }
 
   void _selectAnswer(int index) {
-    if (_selectedAnswerIndex == -1) {
-      // Only allow selection if no answer is selected yet
+    if (_selectedAnswerIndex == -1 && _questions.isNotEmpty) {
       setState(() {
         _selectedAnswerIndex = index;
       });
-      // Don't advance to the next question - wait for timer to finish
+      _submitAnswer(index);
+    }
+  }
+
+  void _submitAnswer(int answerIndex) {
+    final question = _questions[_currentQuestionIndex];
+    _webSocket.submitAnswer(
+      _competitionId,
+      _playerId,
+      question['id'] as String,
+      answerIndex,
+    );
+    // Track correct answers locally for game result
+    if (answerIndex == question['correctAnswer']) {
+      _correctAnswers++;
     }
   }
 

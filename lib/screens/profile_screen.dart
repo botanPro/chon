@@ -10,9 +10,14 @@ import 'dart:convert';
 ///
 /// This screen uses a custom circular progress indicator to display the user's
 /// balance with a teal accent color scheme on a dark background.
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
 
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     // Access auth service to get user data (currently using dummy data)
@@ -274,7 +279,7 @@ class ProfileScreen extends StatelessWidget {
           icon: Icons.person_outline,
           title: 'Edit Profile',
           onTap: () {
-            // TODO: Navigate to Edit Profile screen
+            _showEditProfileDialog(context);
           },
         ),
         _buildMenuItem(
@@ -553,6 +558,109 @@ class ProfileScreen extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Future<void> _showEditProfileDialog(BuildContext context) async {
+    final auth = context.read<AuthService>();
+    final TextEditingController controller =
+        TextEditingController(text: auth.nickname ?? '');
+    bool isLoading = false;
+    String? errorMessage;
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Edit Nickname'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: controller,
+                    decoration: InputDecoration(
+                      labelText: 'Nickname',
+                      errorText: errorMessage,
+                    ),
+                  ),
+                  if (isLoading)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 16),
+                      child: CircularProgressIndicator(),
+                    ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed:
+                      isLoading ? null : () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: isLoading
+                      ? null
+                      : () async {
+                          final newNickname = controller.text.trim();
+                          if (newNickname.isEmpty) {
+                            setState(() =>
+                                errorMessage = 'Nickname cannot be empty');
+                            return;
+                          }
+                          setState(() {
+                            isLoading = true;
+                            errorMessage = null;
+                          });
+                          try {
+                            final token = auth.token;
+                            if (token == null) {
+                              setState(() {
+                                isLoading = false;
+                                errorMessage = 'Not authenticated.';
+                              });
+                              return;
+                            }
+                            print('Token used for profile update: $token');
+                            final response = await http.put(
+                              Uri.parse(
+                                  'http://127.0.0.1:3000/api/players/profile'),
+                              headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Bearer $token',
+                              },
+                              body: jsonEncode({'nickname': newNickname}),
+                            );
+                            if (response.statusCode == 200) {
+                              auth.setNickname(newNickname);
+                              if (mounted) Navigator.of(context).pop();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content:
+                                        Text('Nickname updated successfully'),
+                                    backgroundColor: Colors.green),
+                              );
+                            } else {
+                              setState(() {
+                                isLoading = false;
+                                errorMessage = 'Failed to update nickname.';
+                              });
+                            }
+                            print('Response status: ${response.statusCode}');
+                            print('Response body: ${response.body}');
+                          } catch (e) {
+                            setState(() {
+                              isLoading = false;
+                              errorMessage = 'Network error: $e';
+                            });
+                          }
+                        },
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 }
