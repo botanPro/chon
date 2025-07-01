@@ -1,0 +1,302 @@
+{
+  "@@locale": "en",
+  
+  "appTitle": "CHON",
+  "@appTitle": {
+    "description": "The application title"
+  },
+
+  "compete": "COMPETE",
+  "@compete": {
+    "description": "Compete text on auth screen"
+  },
+
+  "win": "WIN",
+  "@win": {
+    "description": "Win text on auth screen"
+  },
+
+  "earn": "EARN",
+  "@earn": {
+    "description": "Earn text on auth screen"
+  },
+
+  "signUp": "Sign up",
+  "@signUp": {
+    "description": "Sign up button text"
+  },
+
+  "signIn": "Sign in",
+  "@signIn": {
+    "description": "Sign in button text"
+  },
+
+  "welcomeToOurGameArea": "WELCOME TO OUR 🎮 GAME AREA",
+  "@welcomeToOurGameArea": {
+    "description": "Welcome message in auth drawer"
+  },
+
+  "signUpAccount": "Sign Up Account",
+  "@signUpAccount": {
+    "description": "Sign up account header"
+  },
+
+  "signInAccount": "Sign In Account",
+  "@signInAccount": {
+    "description": "Sign in account header"
+  },
+
+  "signUpDescription": "Enter your personal information to create your account",
+  "@signUpDescription": {
+    "description": "Sign up description text"
+  },
+
+  "signInDescription": "Enter your credentials to access your account",
+  "@signInDescription": {
+    "description": "Sign in description text"
+  },
+
+  "phoneNumber": "Phone Number",
+  "@phoneNumber": {
+    "description": "Phone number field label"
+  },
+
+  "phoneNumberHint": "750 999 9999",
+  "@phoneNumberHint": {
+    "description": "Phone number field hint"
+  },
+
+  "nickname": "Nickname",
+  "@nickname": {
+    "description": "Nickname field label"
+  },
+
+  "nicknameHint": "Your nickname",
+  "@nicknameHint": {
+    "description": "Nickname field hint"
+  },
+
+  "language": "Language",
+  "@language": {
+    "description": "Language field label"
+  },
+
+  "english": "English",
+  "@english": {
+    "description": "English language option"
+  },
+
+  "kurdishSorani": "Kurdish Sorani",
+  "@kurdishSorani": {
+    "description": "Kurdish Sorani language option"
+  },
+
+  "dontHaveAccount": "Don't have an account? ",
+  "@dontHaveAccount": {
+    "description": "Don't have account text"
+  },
+
+  "alreadyHaveAccount": "Already have an account? ",
+  "@alreadyHaveAccount": {
+    "description": "Already have account text"
+  },
+
+  "congratulations": "Congratulations! 🎉",
+  "@congratulations": {
+    "description": "Congratulations message in prize dialog"
+  },
+
+  "youWon": "You Won",
+  "@youWon": {
+    "description": "You won text in prize dialog"
+  },
+
+  "score": "Score: {score}",
+  "@score": {
+    "description": "Score display",
+    "placeholders": {
+      "score": {
+        "type": "int",
+        "example": "100"
+      }
+    }
+  },
+
+  "days": "Days",
+  "@days": {
+    "description": "Days label in countdown"
+  },
+
+  "hours": "Hours",
+  "@hours": {
+    "description": "Hours label in countdown"
+  },
+
+  "minutes": "Minutes",
+  "@minutes": {
+    "description": "Minutes label in countdown"
+  },
+
+  "seconds": "Seconds",
+  "@seconds": {
+    "description": "Seconds label in countdown"
+  },
+
+  "gameWillStart": "The Game will be started after 30 mos, 29 days, 29 hrs, 29 min.",
+  "@gameWillStart": {
+    "description": "Game start countdown message"
+  },
+
+  "gameName": "Game Name",
+  "@gameName": {
+    "description": "Game name label"
+  },
+
+  "sinceYesterday": "Since yesterday your ",
+  "@sinceYesterday": {
+    "description": "Since yesterday text"
+  },
+
+  "sales": "sales ",
+  "@sales": {
+    "description": "Sales text"
+  },
+
+  "haveIncreased": "have increased!",
+  "@haveIncreased": {
+    "description": "Have increased text"
+  },
+
+  "level": "Level {level}",
+  "@level": {
+    "description": "Level display",
+    "placeholders": {
+      "level": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+
+  "watchPattern": "Watch the pattern...",
+  "@watchPattern": {
+    "description": "Watch pattern instruction"
+  },
+
+  "repeatPattern": "Repeat the pattern!",
+  "@repeatPattern": {
+    "description": "Repeat pattern instruction"
+  },
+
+  "getReady": "Get ready...",
+  "@getReady": {
+    "description": "Get ready message"
+  },
+
+  "formAWord": "Form a word",
+  "@formAWord": {
+    "description": "Form a word instruction"
+  },
+
+  "typeYourAnswer": "Type your answer",
+  "@typeYourAnswer": {
+    "description": "Type answer hint"
+  },
+
+  "firstName": "First Name",
+  "@firstName": {
+    "description": "First name field label"
+  },
+
+  "firstNameHint": "Enter your first name",
+  "@firstNameHint": {
+    "description": "First name field hint"
+  },
+
+  "lastName": "Last Name",
+  "@lastName": {
+    "description": "Last name field label"
+  },
+
+  "lastNameHint": "Enter your last name",
+  "@lastNameHint": {
+    "description": "Last name field hint"
+  },
+
+  "selectCity": "Select your city",
+  "@selectCity": {
+    "description": "Select city hint"
+  },
+
+  "fillDetails": "Please fill in your details to complete your profile",
+  "@fillDetails": {
+    "description": "Fill details instruction"
+  },
+
+  "success": "Success",
+  "@success": {
+    "description": "Success dialog title"
+  },
+
+  "error": "Error",
+  "@error": {
+    "description": "Error dialog title"
+  },
+
+  "otpSent": "OTP sent to your number.",
+  "@otpSent": {
+    "description": "OTP sent message"
+  },
+
+  "ok": "OK",
+  "@ok": {
+    "description": "OK button text"
+  },
+
+  "signUpFailed": "Sign up failed.",
+  "@signUpFailed": {
+    "description": "Sign up failed message"
+  },
+
+  "signInFailed": "Sign in failed.",
+  "@signInFailed": {
+    "description": "Sign in failed message"
+  },
+
+  "networkError": "Network or App Error",
+  "@networkError": {
+    "description": "Network error title"
+  },
+
+  "enterPhoneNickname": "Please enter phone, nickname, and select a language.",
+  "@enterPhoneNickname": {
+    "description": "Enter phone and nickname validation message"
+  },
+
+  "enterPhoneNumber": "Please enter your phone number.",
+  "@enterPhoneNumber": {
+    "description": "Enter phone number validation message"
+  },
+
+  "combo": "x{combo}",
+  "@combo": {
+    "description": "Combo multiplier display",
+    "placeholders": {
+      "combo": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  },
+
+  "multiplier": "x{multiplier}",
+  "@multiplier": {
+    "description": "Score multiplier display",
+    "placeholders": {
+      "multiplier": {
+        "type": "int",
+        "example": "2"
+      }
+    }
+  }
+} 

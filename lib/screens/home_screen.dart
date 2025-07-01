@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/game_card.dart';
+import '../widgets/language_switcher.dart';
+import '../l10n/app_localizations.dart';
 import '../models/game.dart';
 import '../services/auth_service.dart';
 import '../screens/payment_method_screen.dart';
@@ -197,47 +199,53 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               ),
                             ),
                             const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  nickname,
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    nickname,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                    ),
                                   ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: const Color(
-                                        0x4025332F), // #25332F with 25% opacity
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(
-                                        Icons.star,
-                                        color: Color(
-                                            0xFF96C3BC), // #96C3BC color for star icon
-                                        size: 12,
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Level $level',
-                                        style: TextStyle(
-                                          color: Colors.white.withOpacity(0.75),
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: const Color(
+                                          0x4025332F), // #25332F with 25% opacity
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.star,
+                                          color: Color(
+                                              0xFF96C3BC), // #96C3BC color for star icon
+                                          size: 12,
                                         ),
-                                      ),
-                                    ],
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          AppLocalizations.of(context)!
+                                              .level(level),
+                                          style: TextStyle(
+                                            color:
+                                                Colors.white.withOpacity(0.75),
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
+                            const CompactLanguageSwitcher(),
                           ],
                         );
                       },
@@ -281,21 +289,37 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             return Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                _buildTimeBox(context, _days, 'Days',
-                                    _daysController, boxWidth),
-                                _buildTimeBox(context, _hours, 'Hours',
-                                    _hoursController, boxWidth),
-                                _buildTimeBox(context, _minutes, 'Minutes',
-                                    _minutesController, boxWidth),
-                                _buildTimeBox(context, _seconds, 'Seconds',
-                                    _secondsController, boxWidth),
+                                _buildTimeBox(
+                                    context,
+                                    _days,
+                                    AppLocalizations.of(context)!.days,
+                                    _daysController,
+                                    boxWidth),
+                                _buildTimeBox(
+                                    context,
+                                    _hours,
+                                    AppLocalizations.of(context)!.hours,
+                                    _hoursController,
+                                    boxWidth),
+                                _buildTimeBox(
+                                    context,
+                                    _minutes,
+                                    AppLocalizations.of(context)!.minutes,
+                                    _minutesController,
+                                    boxWidth),
+                                _buildTimeBox(
+                                    context,
+                                    _seconds,
+                                    AppLocalizations.of(context)!.seconds,
+                                    _secondsController,
+                                    boxWidth),
                               ],
                             );
                           }),
                           const SizedBox(height: 16),
-                          const Text(
-                            'The Game will be started after 30 mos, 29 days, 29 hrs, 29 min.',
-                            style: TextStyle(
+                          Text(
+                            AppLocalizations.of(context)!.gameWillStart,
+                            style: const TextStyle(
                               color: Color(0xFF737373),
                               fontSize: 12, // Reduced font size
                             ),

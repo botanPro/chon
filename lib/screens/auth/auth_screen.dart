@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../l10n/app_localizations.dart';
 import 'verification_screen.dart';
 import 'dart:math';
 import 'package:http/http.dart' as http;
@@ -243,7 +244,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                                 borderRadius: BorderRadius.circular(12),
                                 child: Center(
                                   child: Text(
-                                    'Sign up',
+                                    AppLocalizations.of(context)!.signUp,
                                     style: textTheme.labelLarge?.copyWith(
                                       color: Colors.black,
                                       fontSize: isSmallScreen ? 11 : 12,
@@ -264,7 +265,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                                 foregroundColor: const Color(0xFF6F6F6F),
                               ),
                               child: Text(
-                                'Sign in',
+                                AppLocalizations.of(context)!.signIn,
                                 style: textTheme.labelLarge?.copyWith(
                                   fontSize: isSmallScreen ? 11 : 12,
                                   fontWeight: FontWeight.w600,
@@ -324,7 +325,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'COMPETE',
+                                AppLocalizations.of(context)!.compete,
                                 style: textTheme.displaySmall?.copyWith(
                                   fontSize: isSmallScreen ? 28 : 38,
                                   fontWeight: FontWeight.w800,
@@ -335,7 +336,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                                 ),
                               ),
                               Text(
-                                'WIN',
+                                AppLocalizations.of(context)!.win,
                                 style: textTheme.displaySmall?.copyWith(
                                   fontSize: isSmallScreen ? 28 : 38,
                                   fontWeight: FontWeight.w800,
@@ -346,7 +347,7 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                                 ),
                               ),
                               Text(
-                                'EARN',
+                                AppLocalizations.of(context)!.earn,
                                 style: textTheme.displaySmall?.copyWith(
                                   fontSize: isSmallScreen ? 28 : 38,
                                   fontWeight: FontWeight.w800,
@@ -480,40 +481,13 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'WELCOME TO',
+                            AppLocalizations.of(context)!.welcomeToOurGameArea,
                             style: GoogleFonts.inter(
                               color: Colors.white,
                               fontWeight: FontWeight.w700,
                               letterSpacing: -0.5,
                               fontSize: isSmallScreen ? 22 : 30,
                             ),
-                          ),
-                          Row(
-                            children: [
-                              Text(
-                                'OUR ',
-                                style: GoogleFonts.inter(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.5,
-                                  fontSize: isSmallScreen ? 22 : 30,
-                                ),
-                              ),
-                              Icon(
-                                Icons.sports_esports,
-                                color: Colors.white,
-                                size: isSmallScreen ? 22 : 30,
-                              ),
-                              Text(
-                                ' GAME AREA',
-                                style: GoogleFonts.inter(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w700,
-                                  letterSpacing: -0.5,
-                                  fontSize: isSmallScreen ? 22 : 30,
-                                ),
-                              ),
-                            ],
                           ),
                         ],
                       ),
@@ -530,7 +504,9 @@ class _SignUpDrawerState extends State<SignUpDrawer>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.isSignIn ? 'Sign In Account' : 'Sign Up Account',
+                  widget.isSignIn
+                      ? AppLocalizations.of(context)!.signInAccount
+                      : AppLocalizations.of(context)!.signUpAccount,
                   style: GoogleFonts.inter(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -540,8 +516,8 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                 const SizedBox(height: 8),
                 Text(
                   widget.isSignIn
-                      ? 'Enter your credentials to access your account'
-                      : 'Enter your personal information to create your account',
+                      ? AppLocalizations.of(context)!.signInDescription
+                      : AppLocalizations.of(context)!.signUpDescription,
                   style: GoogleFonts.inter(
                     color: Colors.white.withOpacity(0.5),
                     fontSize: isSmallScreen ? 12 : 14,
@@ -578,8 +554,8 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                     children: [
                       Text(
                         widget.isSignIn
-                            ? 'Don\'t have an account? '
-                            : 'Already have an account? ',
+                            ? AppLocalizations.of(context)!.dontHaveAccount
+                            : AppLocalizations.of(context)!.alreadyHaveAccount,
                         style: GoogleFonts.inter(
                           color: Colors.white.withOpacity(0.7),
                           fontSize: isSmallScreen ? 12 : 14,
@@ -609,7 +585,9 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                           });
                         },
                         child: Text(
-                          widget.isSignIn ? 'Sign up' : 'Sign in',
+                          widget.isSignIn
+                              ? AppLocalizations.of(context)!.signUp
+                              : AppLocalizations.of(context)!.signIn,
                           style: GoogleFonts.inter(
                             color: const Color(0xFF96c3bc), // Teal 500
                             fontWeight: FontWeight.w600,
@@ -654,7 +632,10 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                                       ),
                                     )
                                   : Text(
-                                      widget.isSignIn ? 'Sign in' : 'Sign up',
+                                      widget.isSignIn
+                                          ? AppLocalizations.of(context)!.signIn
+                                          : AppLocalizations.of(context)!
+                                              .signUp,
                                       style: GoogleFonts.inter(
                                         color: Colors.black,
                                         fontWeight: FontWeight.w600,
@@ -687,7 +668,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Phone Number',
+          AppLocalizations.of(context)!.phoneNumber,
           style: GoogleFonts.inter(
             fontSize: isSmallScreen ? 12 : 14,
             fontWeight: FontWeight.w500,
@@ -727,7 +708,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                   ),
                   decoration: InputDecoration(
                     border: InputBorder.none,
-                    hintText: '750 999 9999',
+                    hintText: AppLocalizations.of(context)!.phoneNumberHint,
                     hintStyle: GoogleFonts.inter(
                       color: Colors.white.withOpacity(0.3),
                       fontSize: isSmallScreen ? 14 : 16,
@@ -751,7 +732,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Nickname',
+          AppLocalizations.of(context)!.nickname,
           style: GoogleFonts.inter(
             fontSize: isSmallScreen ? 12 : 14,
             fontWeight: FontWeight.w500,
@@ -781,7 +762,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                 horizontal: 16,
                 vertical: 16,
               ),
-              hintText: 'Your nickname',
+              hintText: AppLocalizations.of(context)!.nicknameHint,
               hintStyle: GoogleFonts.inter(
                 color: Colors.white.withOpacity(0.3),
                 fontSize: isSmallScreen ? 14 : 16,
@@ -798,7 +779,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Language',
+          AppLocalizations.of(context)!.language,
           style: GoogleFonts.inter(
             fontSize: isSmallScreen ? 12 : 14,
             fontWeight: FontWeight.w500,
@@ -829,19 +810,19 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                 color: Colors.white,
                 fontSize: isSmallScreen ? 14 : 16,
               ),
-              items: const [
+              items: [
                 DropdownMenuItem<String>(
                   value: 'en',
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Text('English'),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(AppLocalizations.of(context)!.english),
                   ),
                 ),
                 DropdownMenuItem<String>(
                   value: 'kr',
                   child: Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Text('Kurdish Sorani'),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(AppLocalizations.of(context)!.kurdishSorani),
                   ),
                 ),
               ],
@@ -866,9 +847,8 @@ class _SignUpDrawerState extends State<SignUpDrawer>
 
     if (phone.isEmpty || nickname.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content:
-                Text('Please enter phone, nickname, and select a language.')),
+        SnackBar(
+            content: Text(AppLocalizations.of(context)!.enterPhoneNickname)),
       );
       return;
     }
@@ -907,12 +887,12 @@ class _SignUpDrawerState extends State<SignUpDrawer>
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Success'),
-            content: const Text('OTP sent to your number.'),
+            title: Text(AppLocalizations.of(context)!.success),
+            content: Text(AppLocalizations.of(context)!.otpSent),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
+                child: Text(AppLocalizations.of(context)!.ok),
               ),
             ],
           ),
@@ -977,7 +957,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
 
     if (phone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter your phone number.')),
+        SnackBar(content: Text(AppLocalizations.of(context)!.enterPhoneNumber)),
       );
       return;
     }
@@ -1013,12 +993,12 @@ class _SignUpDrawerState extends State<SignUpDrawer>
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Success'),
-            content: const Text('OTP sent to your number.'),
+            title: Text(AppLocalizations.of(context)!.success),
+            content: Text(AppLocalizations.of(context)!.otpSent),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
+                child: Text(AppLocalizations.of(context)!.ok),
               ),
             ],
           ),
