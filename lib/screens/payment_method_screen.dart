@@ -4,11 +4,13 @@ import 'trivia_game_screen.dart';
 class PaymentMethodScreen extends StatefulWidget {
   final double amount;
   final String gameName;
+  final String competitionId;
 
   const PaymentMethodScreen({
     super.key,
     required this.amount,
     required this.gameName,
+    required this.competitionId,
   });
 
   @override
@@ -301,7 +303,9 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => const TriviaGameScreen(),
+                  builder: (context) => TriviaGameScreen(
+                    competitionId: widget.competitionId,
+                  ),
                 ),
               );
             },

@@ -7,7 +7,8 @@ import '../services/trivia_socket_service.dart';
 import 'dart:convert';
 
 class TriviaGameScreen extends StatefulWidget {
-  const TriviaGameScreen({super.key});
+  final String competitionId;
+  const TriviaGameScreen({super.key, required this.competitionId});
 
   @override
   State<TriviaGameScreen> createState() => _TriviaGameScreenState();
@@ -235,16 +236,17 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
   StreamSubscription<Map<String, dynamic>>? _wsSubscription;
 
   // Demo competition and player IDs
-  final String _competitionId = 'comp1';
   final String _playerId = 'player_demo';
 
   @override
   void initState() {
     super.initState();
     _socketService = TriviaSocketService();
-    _socketService.connect(
-        'http://127.0.0.1:3000'); 
-    _socketService.joinCompetition(_competitionId);
+    _socketService.connect('http://127.0.0.1:3000');
+    _socketService.socket.on('connect', (_) {
+      _socketService.joinCompetition(widget.competitionId);
+      _socketService.getCompetitionData(widget.competitionId);
+    });
     _socketService.onLeaderboardUpdate((data) {
       setState(() {
         // Assuming data is a list of maps with playerId and score
@@ -255,6 +257,28 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
       setState(() {
         _playerJoins.add(data['socketId'] ?? '');
       });
+    });
+    // Request questions for this competition
+    _socketService.onCompetitionData((data) {
+      print('Received competition data: $data');
+      if (data['questions'] != null && data['questions'] is List) {
+        setState(() {
+          _questions = List<Map<String, dynamic>>.from(data['questions']);
+          _currentQuestionIndex = 0;
+          _selectedAnswerIndex = -1;
+          _timeRemaining = 5;
+          _showGameOver = false;
+          _correctAnswers = 0;
+        });
+        _questionAnimationController.reset();
+        _optionsAnimationController.reset();
+        _questionAnimationController.forward();
+        _optionsAnimationController.forward();
+        _startTimer();
+      } else {
+        // Optionally handle error: no questions received
+        print('No questions found in competition data');
+      }
     });
     _initializeAnimations();
     // Timer will start after receiving the first question
@@ -354,7 +378,7 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
   @override
   void dispose() {
     _socketService.disconnect();
-    _timer.cancel();
+    if (_timer.isActive) _timer.cancel();
     _questionAnimationController.dispose();
     _optionsAnimationController.dispose();
     _gameOverAnimationController.dispose();
@@ -428,13 +452,16 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
   void _submitAnswer(int answerIndex) {
     final question = _questions[_currentQuestionIndex];
     _socketService.submitAnswer(
-      competitionId: _competitionId,
+      competitionId: widget.competitionId,
       playerId: _playerId,
-      questionId: question['id'] as String,
+      questionId: question['id'] as String? ?? '',
       answer: answerIndex.toString(),
     );
     // Track correct answers locally for game result
-    if (answerIndex == question['correctAnswer']) {
+    final options = question['options'] as List<dynamic>? ?? [];
+    int correctIndex = options.indexWhere(
+        (opt) => (opt as Map<String, dynamic>)['is_correct'] == true);
+    if (answerIndex == correctIndex) {
       _correctAnswers++;
     }
   }
@@ -702,7 +729,7 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
                           ClipRRect(
                             borderRadius: BorderRadius.circular(20),
                             child: Image.network(
-                              player['avatar'] as String,
+                              (player['avatar'] as String?) ?? '',
                               width: 40,
                               height: 40,
                               fit: BoxFit.cover,
@@ -711,7 +738,7 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
                           const SizedBox(width: 16),
                           Expanded(
                             child: Text(
-                              player['name'] as String,
+                              (player['name'] as String?) ?? 'Unknown',
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 16,
@@ -1016,7 +1043,8 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            question['difficulty'],
+                            (question['question_type'] as String?) ??
+                                'multi_choice',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 12,
@@ -1029,7 +1057,7 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  question['question'],
+                  (question['question_text'] as String?) ?? '',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 22,
@@ -1058,7 +1086,7 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
   }
 
   Widget _buildOptionsSection(Map<String, dynamic> question) {
-    final options = question['options'] as List<dynamic>;
+    final options = question['options'] as List<dynamic>? ?? [];
 
     return Expanded(
       child: Padding(
@@ -1068,6 +1096,8 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
           itemCount: options.length,
           itemBuilder: (context, index) {
             final isSelected = _selectedAnswerIndex == index;
+            final optionMap = options[index] as Map<String, dynamic>? ?? {};
+            final optionText = optionMap['option'] as String? ?? '';
 
             // Staggered animation for options
             return AnimatedBuilder(
@@ -1091,7 +1121,7 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
                           _selectedAnswerIndex == -1 || isSelected ? 1.0 : 0.5,
                       child: _buildOptionItem(
                         index: index,
-                        text: options[index] as String,
+                        text: optionText,
                         isSelected: isSelected,
                       ),
                     ),

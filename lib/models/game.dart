@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 /// This model contains all the information needed to display a game in the UI,
 /// including its title, description, icon, and prize information.
 class Game {
+  /// The competition ID for this game (if applicable)
+  final String competitionId;
+
   /// The title or name of the game
   final String title;
 
@@ -31,6 +34,7 @@ class Game {
   /// [prizeValue] is the monetary value of the prize.
   /// [rating] is optional and defaults to 0.0.
   const Game({
+    required this.competitionId,
     required this.title,
     required this.description,
     required this.icon,
@@ -41,6 +45,7 @@ class Game {
 
   /// Creates a copy of this Game with the given fields replaced with new values.
   Game copyWith({
+    String? competitionId,
     String? title,
     String? description,
     IconData? icon,
@@ -49,6 +54,7 @@ class Game {
     double? rating,
   }) {
     return Game(
+      competitionId: competitionId ?? this.competitionId,
       title: title ?? this.title,
       description: description ?? this.description,
       icon: icon ?? this.icon,
@@ -60,6 +66,6 @@ class Game {
 
   @override
   String toString() {
-    return 'Game{title: $title, prize: $prize, prizeValue: \$$prizeValue, rating: $rating}';
+    return 'Game{competitionId: $competitionId, title: $title, prize: $prize, prizeValue: \$$prizeValue, rating: $rating}';
   }
 }

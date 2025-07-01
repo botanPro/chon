@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../services/trivia_socket_service.dart';
+import '../screens/trivia_game_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -37,15 +38,33 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   int _prevMinutes = 30;
   int _prevSeconds = 30;
 
+  List<dynamic>? _competitions;
+
   @override
   void initState() {
     super.initState();
-
-    // Initialize animation controllers
+    print('HomeScreen initState');
     _initControllers();
-
-    // Start the timer after controllers are initialized
     _startTimer();
+    _competitions = [];
+
+    print('Connecting to http://localhost:3000');
+    final socketService = TriviaSocketService();
+    socketService.connect('http://localhost:3000');
+    socketService.onCompetitionData((data) {
+      print('Received competition data: $data');
+      final competitions = data['competitions'];
+      if (competitions == null) {
+        print('No \"competitions\" key in data!');
+        return;
+      }
+      setState(() {
+        _competitions = competitions;
+      });
+    });
+
+    print('Emitting getCompetitionData for all');
+    socketService.getCompetitionData('all');
   }
 
   void _initControllers() {
@@ -142,24 +161,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final games = [
-      Game(
-        title: 'IMPOSSIBLE CLIMB',
-        description: 'Game Description most be here',
-        icon: Icons.gamepad,
-        prize: 'Cash Prize',
-        prizeValue: 500,
-        rating: 4.5,
-      ),
-      Game(
-        title: 'KIDZIMA ADVENTURES',
-        description: 'Game Description most be here',
-        icon: Icons.gamepad,
-        prize: 'Cash Prize',
-        prizeValue: 500,
-        rating: 3.5,
-      ),
-    ];
+    final games = (_competitions ?? [])
+        .map((comp) => Game(
+              competitionId: comp['id'] ?? '',
+              title: comp['name'] ?? 'Unknown',
+              description: '',
+              icon: Icons.gamepad,
+              prize: '',
+              prizeValue: comp['entry_fee'] is num
+                  ? comp['entry_fee'].toDouble()
+                  : double.tryParse(comp['entry_fee'].toString()) ?? 0.0,
+              rating: 0.0,
+            ))
+        .toList();
 
     return Container(
       decoration: const BoxDecoration(
@@ -357,181 +371,149 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     const SizedBox(height: 24),
 
                     // Game cards
-                    GridView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.55,
-                        crossAxisSpacing: 16,
-                        mainAxisSpacing: 16,
-                      ),
-                      itemCount: games.length,
-                      itemBuilder: (context, index) {
-                        final game = games[index];
-                        return Container(
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF101513),
-                            borderRadius: BorderRadius.circular(16),
+                    if (games.isEmpty)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 32),
+                        alignment: Alignment.center,
+                        child: Text(
+                          'No data found',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ClipRRect(
-                                borderRadius: const BorderRadius.vertical(
-                                    top: Radius.circular(16)),
-                                child: AspectRatio(
-                                  aspectRatio: 1.5,
-                                  child: Container(
-                                    color: index == 0
-                                        ? const Color(0xFF00B894)
-                                        : const Color(0xFF6AB04C),
-                                    child: Center(
-                                      child: Text(
-                                        game.title,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    else
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.55,
+                          crossAxisSpacing: 16,
+                          mainAxisSpacing: 16,
+                        ),
+                        itemCount: games.length,
+                        itemBuilder: (context, index) {
+                          final game = games[index];
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF101513),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(
+                                      top: Radius.circular(16)),
+                                  child: AspectRatio(
+                                    aspectRatio: 1.5,
+                                    child: Container(
+                                      color: index == 0
+                                          ? const Color(0xFF00B894)
+                                          : const Color(0xFF6AB04C),
+                                      child: Center(
+                                        child: Text(
+                                          game.title,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                          textAlign: TextAlign.center,
+                                          maxLines: 2,
                                         ),
-                                        textAlign: TextAlign.center,
-                                        maxLines: 2,
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
-                              Expanded(
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.fromLTRB(12, 12, 12, 6),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 6, vertical: 2),
-                                            decoration: BoxDecoration(
-                                              color: const Color(0xFF2A2A3A),
-                                              borderRadius:
-                                                  BorderRadius.circular(4),
+                                Expanded(
+                                  child: Padding(
+                                    padding: const EdgeInsets.fromLTRB(
+                                        12, 12, 12, 6),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          'Entry Fee: \$${game.prizeValue.toInt()}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          game.title,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        const Spacer(),
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: ElevatedButton(
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      TriviaGameScreen(
+                                                    competitionId:
+                                                        game.competitionId,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: Colors.white,
+                                              foregroundColor: Colors.black,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 8),
+                                              minimumSize:
+                                                  const Size.fromHeight(40),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
                                             ),
                                             child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              mainAxisSize: MainAxisSize.min,
                                               children: [
-                                                const Icon(
-                                                  Icons.star,
-                                                  color: Colors.white,
-                                                  size: 12,
+                                                const Text(
+                                                  'Play Now',
+                                                  style:
+                                                      TextStyle(fontSize: 12),
                                                 ),
                                                 const SizedBox(width: 4),
-                                                Text(
-                                                  game.rating.toString(),
-                                                  style: const TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 12,
-                                                  ),
+                                                Icon(
+                                                  Icons.arrow_forward,
+                                                  size: 12,
+                                                  color: Colors.grey.shade800,
                                                 ),
                                               ],
                                             ),
                                           ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        '\$ ${game.prizeValue.toInt()}',
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
                                         ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      const Text(
-                                        'Game Name',
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 2),
-                                      Text(
-                                        game.description,
-                                        style: const TextStyle(
-                                          color: Color(0xFF8E8E8E),
-                                          fontSize: 11,
-                                        ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const Spacer(),
-                                      SizedBox(
-                                        width: double.infinity,
-                                        child: ElevatedButton(
-                                          onPressed: () async {
-                                            // Connect to socket and join competition before navigating
-                                            final socketService =
-                                                TriviaSocketService();
-                                            socketService.connect(
-                                                'http://127.0.0.1:3000'); // TODO: Replace with your backend URL
-                                            socketService.joinCompetition(
-                                                'comp1'); // TODO: Use actual competitionId if available
-
-                                            // Navigate to payment screen
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder: (context) =>
-                                                    PaymentMethodScreen(
-                                                  amount: game.prizeValue,
-                                                  gameName: game.title,
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.white,
-                                            foregroundColor: Colors.black,
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 8),
-                                            minimumSize:
-                                                const Size.fromHeight(40),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Text(
-                                                'Play Now',
-                                                style: TextStyle(fontSize: 12),
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Icon(
-                                                Icons.arrow_forward,
-                                                size: 12,
-                                                color: Colors.grey.shade800,
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
 
                     const SizedBox(height: 24),
 

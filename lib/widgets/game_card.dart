@@ -135,6 +135,7 @@ class GameCard extends StatelessWidget {
                           builder: (context) => PaymentMethodScreen(
                             amount: game.prizeValue,
                             gameName: game.title,
+                            competitionId: game.competitionId,
                           ),
                         ),
                       );
