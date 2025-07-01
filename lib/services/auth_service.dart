@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'navigation_service.dart';
+import 'package:http/http.dart' as http;
 
 /// Service that handles all authentication and user-related functionality.
 ///
@@ -13,6 +14,9 @@ class AuthService extends ChangeNotifier {
   String? _userPhone;
   String? _verificationId;
   bool _isNewUser = false;
+  String? _token; // JWT token for API authentication
+  String? _nickname; // User's nickname
+  int _level = 0; // User's level
 
   // User financial data
   double _balance = 0.0;
@@ -24,9 +28,48 @@ class AuthService extends ChangeNotifier {
   String? get userId => _userId;
   String? get userPhone => _userPhone;
   bool get isNewUser => _isNewUser;
+  String? get token => _token; // Getter for JWT token
+  String? get nickname => _nickname; // Getter for nickname
+  int get level => _level; // Getter for level
   double get balance => _balance;
   List<Transaction> get transactions => List.unmodifiable(_transactions);
   List<GameResult> get gameHistory => List.unmodifiable(_gameHistory);
+
+  /// Sets the authentication state
+  void setAuthenticated(bool isAuthenticated) {
+    _isAuthenticated = isAuthenticated;
+    if (!isAuthenticated) {
+      _token = null; // Clear token on logout
+      _userId = null; // Clear user ID on logout
+      _nickname = null; // Clear nickname on logout
+      _level = 0; // Reset level on logout
+    }
+    notifyListeners();
+  }
+
+  /// Sets the JWT token for API authentication
+  void setToken(String token) {
+    _token = token;
+    notifyListeners();
+  }
+
+  /// Sets the user ID
+  void setUserId(String userId) {
+    _userId = userId;
+    notifyListeners();
+  }
+
+  /// Sets the user's nickname
+  void setNickname(String nickname) {
+    _nickname = nickname;
+    notifyListeners();
+  }
+
+  /// Sets the user's level
+  void setLevel(int level) {
+    _level = level;
+    notifyListeners();
+  }
 
   /// Formats a phone number to the standard international format.
   ///
@@ -311,6 +354,33 @@ class AuthService extends ChangeNotifier {
     navigationService.navigateToReplacement('/auth');
 
     notifyListeners();
+  }
+
+  /// Registers a new user with the given WhatsApp number and nickname.
+  ///
+  /// Returns true if registration was successful, false otherwise.
+  Future<bool> registerUser(
+      {required String whatsappNumber, required String nickname}) async {
+    final url = Uri.parse('http://localhost:3000/api/players/register');
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: '{"whatsapp_number": "$whatsappNumber", "nickname": "$nickname"}',
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        // Optionally parse response.body if needed
+        _isAuthenticated = true;
+        _userPhone = whatsappNumber;
+        _userId = nickname;
+        notifyListeners();
+        return true;
+      } else {
+        return false;
+      }
+    } catch (e) {
+      return false;
+    }
   }
 }
 

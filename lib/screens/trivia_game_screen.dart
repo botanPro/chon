@@ -3,6 +3,8 @@ import 'dart:async';
 import 'dart:math';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
+import '../services/fake_trivia_websocket.dart';
+import 'dart:convert';
 
 class TriviaGameScreen extends StatefulWidget {
   const TriviaGameScreen({super.key});
@@ -284,45 +286,21 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
     },
   ];
 
-  final List<Map<String, dynamic>> _questions = [
-    {
-      'question': 'just a random question most be here ?',
-      'options': [
-        'Just a random text here',
-        'Just a random text here',
-        'Just a random text here',
-        'Just a random text here',
-      ],
-      'difficulty': 'Difficult Level',
-      'correctAnswer': 0,
-    },
-    {
-      'question': 'Which planet is known as the Red Planet?',
-      'options': [
-        'Venus',
-        'Mars',
-        'Jupiter',
-        'Saturn',
-      ],
-      'difficulty': 'Medium Level',
-      'correctAnswer': 1,
-    },
-    {
-      'question': 'What is the capital of France?',
-      'options': [
-        'London',
-        'Berlin',
-        'Paris',
-        'Madrid',
-      ],
-      'difficulty': 'Easy Level',
-      'correctAnswer': 2,
-    },
-  ];
+  late FakeTriviaWebSocket _webSocket;
+  List<Map<String, dynamic>> _questions = [];
+  StreamSubscription<String>? _wsSubscription;
 
   @override
   void initState() {
     super.initState();
+    _webSocket = FakeTriviaWebSocket();
+    _wsSubscription = _webSocket.stream.listen((data) {
+      final question = jsonDecode(data) as Map<String, dynamic>;
+      setState(() {
+        _questions.add(question);
+      });
+    });
+    _webSocket.start();
     _initializeAnimations();
     _startTimer();
     _questionAnimationController.forward();
@@ -382,6 +360,8 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
 
   @override
   void dispose() {
+    _wsSubscription?.cancel();
+    _webSocket.dispose();
     _timer.cancel();
     _questionAnimationController.dispose();
     _optionsAnimationController.dispose();
@@ -559,6 +539,9 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
   }
 
   Widget _buildGameScreen() {
+    if (_questions.isEmpty || _currentQuestionIndex >= _questions.length) {
+      return Center(child: CircularProgressIndicator());
+    }
     final question = _questions[_currentQuestionIndex];
 
     return Stack(

@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'verification_screen.dart';
 import 'dart:math';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 // Animated gradient background painter
 class AnimatedGradientPainter extends CustomPainter {
@@ -99,8 +101,7 @@ class AuthScreen extends StatefulWidget {
   State<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen>
-    with SingleTickerProviderStateMixin {
+class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
   late AnimationController _backgroundAnimationController;
@@ -386,10 +387,12 @@ class SignUpDrawer extends StatefulWidget {
 class _SignUpDrawerState extends State<SignUpDrawer>
     with TickerProviderStateMixin {
   bool _showPassword = false;
+  bool _isLoading = false;
   late AnimationController _slideController;
   late Animation<Offset> _slideAnimation;
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _nicknameController = TextEditingController();
 
   @override
   void initState() {
@@ -418,6 +421,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
     _slideController.dispose();
     _phoneController.dispose();
     _passwordController.dispose();
+    _nicknameController.dispose();
     super.dispose();
   }
 
@@ -558,7 +562,9 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                 children: [
                   _buildPhoneField(isSmallScreen),
                   const SizedBox(height: 16),
-                  _buildPasswordField(isSmallScreen),
+                  widget.isSignIn
+                      ? const SizedBox.shrink() // No password field for sign in
+                      : _buildNicknameField(isSmallScreen),
                   const SizedBox(height: 32),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -618,22 +624,9 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                       child: InkWell(
                         onTap: () {
                           if (widget.isSignIn) {
-                            // Handle sign in - for now, just navigate to home
-                            // In a real app, you'd validate credentials first
-                            Navigator.of(context).pushNamedAndRemoveUntil(
-                              '/home',
-                              (route) => false,
-                            );
+                            _handleSignIn();
                           } else {
-                            // Handle sign up - navigate to verification
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => VerificationScreen(
-                                  phoneNumber: '+964 ${_phoneController.text}',
-                                ),
-                              ),
-                            );
+                            _handleSignUp();
                           }
                         },
                         borderRadius: BorderRadius.circular(12),
@@ -642,14 +635,25 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                widget.isSignIn ? 'Sign in' : 'Sign up',
-                                style: GoogleFonts.inter(
-                                  color: Colors.black,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: isSmallScreen ? 12 : 14,
-                                ),
-                              ),
+                              _isLoading
+                                  ? const SizedBox(
+                                      width: 18,
+                                      height: 18,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2.2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                                Colors.black),
+                                      ),
+                                    )
+                                  : Text(
+                                      widget.isSignIn ? 'Sign in' : 'Sign up',
+                                      style: GoogleFonts.inter(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: isSmallScreen ? 12 : 14,
+                                      ),
+                                    ),
                               const Icon(
                                 Icons.arrow_forward,
                                 color: Colors.black,
@@ -735,12 +739,12 @@ class _SignUpDrawerState extends State<SignUpDrawer>
     );
   }
 
-  Widget _buildPasswordField(bool isSmallScreen) {
+  Widget _buildNicknameField(bool isSmallScreen) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Password',
+          'Nickname',
           style: GoogleFonts.inter(
             fontSize: isSmallScreen ? 12 : 14,
             fontWeight: FontWeight.w500,
@@ -759,8 +763,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
             ),
           ),
           child: TextField(
-            controller: _passwordController,
-            obscureText: !_showPassword,
+            controller: _nicknameController,
             style: GoogleFonts.inter(
               color: Colors.white,
               fontSize: isSmallScreen ? 14 : 16,
@@ -771,29 +774,231 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                 horizontal: 16,
                 vertical: 16,
               ),
-              hintText: '@Example25',
+              hintText: 'Your nickname',
               hintStyle: GoogleFonts.inter(
                 color: Colors.white.withOpacity(0.3),
                 fontSize: isSmallScreen ? 14 : 16,
-              ),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _showPassword
-                      ? Icons.visibility_outlined
-                      : Icons.visibility_off_outlined,
-                  color: Colors.white.withOpacity(0.5),
-                  size: 22,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _showPassword = !_showPassword;
-                  });
-                },
               ),
             ),
           ),
         ),
       ],
     );
+  }
+
+  Future<void> _handleSignUp() async {
+    final phone = _phoneController.text.trim();
+    final nickname = _nicknameController.text.trim();
+
+    if (phone.isEmpty || nickname.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter phone and nickname.')),
+      );
+      return;
+    }
+
+    if (_isLoading) return;
+    setState(() => _isLoading = true);
+
+    try {
+      // Format phone number to ensure consistency
+      String formattedPhone = phone;
+      if (phone.startsWith('0')) {
+        formattedPhone = '+964${phone.substring(1)}';
+      } else if (!phone.startsWith('+')) {
+        formattedPhone = '+964$phone';
+      }
+
+      final requestBody = {
+        'whatsapp_number': formattedPhone,
+        'nickname': nickname,
+      };
+
+      print('Sign Up - Request Body: $requestBody');
+
+      final response = await http.post(
+        Uri.parse('http://127.0.0.1:3000/api/players/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(requestBody),
+      );
+
+      print('Sign Up - Status: ${response.statusCode}');
+      print('Sign Up - Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Success'),
+            content: const Text('OTP sent to your number.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) =>
+                VerificationScreen(phoneNumber: formattedPhone),
+          ),
+        );
+      } else {
+        String errorMsg = 'Sign up failed.';
+        try {
+          final Map<String, dynamic> body = jsonDecode(response.body);
+          if (body.containsKey('message')) {
+            errorMsg = body['message'];
+          }
+        } catch (e) {
+          errorMsg =
+              'Sign up failed. Status: ${response.statusCode}\nBody: ${response.body}';
+        }
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: Text(errorMsg),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      print('Sign Up - Error: $e');
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Network or App Error'),
+          content: Text(e.toString()),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _handleSignIn() async {
+    final phone = _phoneController.text.trim();
+
+    if (phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter your phone number.')),
+      );
+      return;
+    }
+
+    if (_isLoading) return;
+    setState(() => _isLoading = true);
+
+    try {
+      // Format phone number to ensure consistency
+      String formattedPhone = phone;
+      if (phone.startsWith('0')) {
+        formattedPhone = '+964${phone.substring(1)}';
+      } else if (!phone.startsWith('+')) {
+        formattedPhone = '+964$phone';
+      }
+
+      final requestBody = {
+        'whatsapp_number': formattedPhone,
+      };
+
+      print('Sign In - Request Body: $requestBody');
+
+      final response = await http.post(
+        Uri.parse('http://127.0.0.1:3000/api/players/login'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(requestBody),
+      );
+
+      print('Sign In - Status: ${response.statusCode}');
+      print('Sign In - Body: ${response.body}');
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Success'),
+            content: const Text('OTP sent to your number.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => VerificationScreen(
+              phoneNumber: formattedPhone,
+              isSignIn: true, // Pass flag to indicate this is sign in flow
+            ),
+          ),
+        );
+      } else {
+        String errorMsg = 'Sign in failed.';
+        try {
+          final Map<String, dynamic> body = jsonDecode(response.body);
+          if (body.containsKey('message')) {
+            errorMsg = body['message'];
+          }
+        } catch (e) {
+          errorMsg =
+              'Sign in failed. Status: ${response.statusCode}\nBody: ${response.body}';
+        }
+        await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: Text(errorMsg),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      print('Sign In - Error: $e');
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Network or App Error'),
+          content: Text(e.toString()),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      setState(() => _isLoading = false);
+    }
   }
 }

@@ -2,13 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'personal_info_screen.dart';
+import '../home_screen.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:provider/provider.dart';
+import '../../services/auth_service.dart';
 
 class VerificationScreen extends StatefulWidget {
   final String phoneNumber;
+  final bool isSignIn;
 
   const VerificationScreen({
     super.key,
     required this.phoneNumber,
+    this.isSignIn = false,
   });
 
   @override
@@ -25,6 +32,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
     6,
     (index) => FocusNode(),
   );
+
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -244,16 +253,137 @@ class _VerificationScreenState extends State<VerificationScreen> {
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
-                  onTap: () {
-                    // Check if OTP is correct (for now, any 6 digits)
+                  onTap: () async {
                     String enteredOTP = _controllers.map((c) => c.text).join();
                     if (enteredOTP.length == 6) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const PersonalInfoScreen(),
-                        ),
-                      );
+                      setState(() => _isLoading = true);
+                      try {
+                        final requestBody = {
+                          'whatsapp_number': widget.phoneNumber,
+                          'otp_code': enteredOTP,
+                        };
+
+                        print('OTP Verification - Request Body: $requestBody');
+
+                        final response = await http.post(
+                          Uri.parse('http://127.0.0.1:3000/api/players/verify'),
+                          headers: {'Content-Type': 'application/json'},
+                          body: jsonEncode(requestBody),
+                        );
+                        final Map<String, dynamic> body =
+                            jsonDecode(response.body);
+
+                        print(
+                            'OTP Verification - Status: ${response.statusCode}');
+                        print('OTP Verification - Response Body: $body');
+
+                        if ((response.statusCode == 200 ||
+                                response.statusCode == 201) &&
+                            body['success'] == true) {
+                          // Update authentication state
+                          final authService =
+                              Provider.of<AuthService>(context, listen: false);
+                          authService.setAuthenticated(true);
+
+                          // Store the JWT token and player data from the response
+                          print('OTP Verification Response Body: $body');
+
+                          // The backend returns data.token and data.player
+                          if (body['data'] != null) {
+                            final data = body['data'];
+                            print('Data from response: $data');
+
+                            // Store the JWT token from data.token
+                            if (data['token'] != null) {
+                              print(
+                                  'Storing token from data.token: ${data['token']}');
+                              authService.setToken(data['token']);
+                            } else {
+                              print('No token found in data.token');
+                            }
+
+                            // Store player data from data.player
+                            if (data['player'] != null) {
+                              final player = data['player'];
+                              print('Player data: $player');
+
+                              if (player['id'] != null) {
+                                authService.setUserId(player['id'].toString());
+                              }
+                              if (player['nickname'] != null) {
+                                authService.setNickname(player['nickname']);
+                              }
+                              if (player['level'] != null) {
+                                authService.setLevel(player['level']);
+                              }
+                            } else {
+                              print('No player data found in data.player');
+                            }
+                          } else {
+                            print('No data found in response');
+                          }
+
+                          print('Stored token: ${authService.token}');
+                          print('Stored user ID: ${authService.userId}');
+                          print('Stored nickname: ${authService.nickname}');
+                          print(
+                              'Token length: ${authService.token?.length ?? 0}');
+                          print('Token is null: ${authService.token == null}');
+                          print(
+                              'Token is empty: ${authService.token?.isEmpty ?? true}');
+
+                          await showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Success'),
+                              content: Text(
+                                  body['message'] ?? 'Verification successful'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: const Text('OK'),
+                                ),
+                              ],
+                            ),
+                          );
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            '/',
+                            (route) => false,
+                          );
+                        } else {
+                          await showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('OTP Verification Failed'),
+                              content: Text(
+                                  body['message'] ?? 'Verification failed.'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(),
+                                  child: const Text('OK'),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        await showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Network or App Error'),
+                            content: Text(e.toString()),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          ),
+                        );
+                      } finally {
+                        setState(() => _isLoading = false);
+                      }
                     }
                   },
                   borderRadius: BorderRadius.circular(12),
@@ -261,14 +391,24 @@ class _VerificationScreenState extends State<VerificationScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          'Next',
-                          style: GoogleFonts.inter(
-                            color: const Color(0xFF090C0B),
-                            fontSize: isSmallScreen ? 11 : 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                        _isLoading
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2.2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Color(0xFF090C0B)),
+                                ),
+                              )
+                            : Text(
+                                'Next',
+                                style: GoogleFonts.inter(
+                                  color: const Color(0xFF090C0B),
+                                  fontSize: isSmallScreen ? 11 : 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
                         const SizedBox(width: 8),
                         Icon(
                           Icons.arrow_forward,

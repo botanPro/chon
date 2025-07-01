@@ -34,7 +34,9 @@ class GameCard extends StatelessWidget {
             child: AspectRatio(
               aspectRatio: 1.5,
               child: Container(
-                color: game.title == 'IMPOSSIBLE CLIMB' ? const Color(0xFF00B894) : const Color(0xFF6AB04C),
+                color: game.title == 'IMPOSSIBLE CLIMB'
+                    ? const Color(0xFF00B894)
+                    : const Color(0xFF6AB04C),
                 child: Center(
                   child: Text(
                     game.title,
@@ -47,7 +49,7 @@ class GameCard extends StatelessWidget {
               ),
             ),
           ),
-          
+
           // Game details
           Padding(
             padding: const EdgeInsets.all(12),
@@ -58,7 +60,8 @@ class GameCard extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
                         color: const Color(0xFF2A2A3A),
                         borderRadius: BorderRadius.circular(4),
@@ -83,9 +86,9 @@ class GameCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                
+
                 const SizedBox(height: 8),
-                
+
                 // Price
                 Text(
                   '\$ ${game.prizeValue.toInt()}',
@@ -95,9 +98,9 @@ class GameCard extends StatelessWidget {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                
+
                 const SizedBox(height: 4),
-                
+
                 // Game name
                 const Text(
                   'Game Name',
@@ -106,9 +109,9 @@ class GameCard extends StatelessWidget {
                     fontSize: 16,
                   ),
                 ),
-                
+
                 const SizedBox(height: 4),
-                
+
                 // Description
                 Text(
                   game.description,
@@ -117,9 +120,9 @@ class GameCard extends StatelessWidget {
                     fontSize: 12,
                   ),
                 ),
-                
+
                 const SizedBox(height: 12),
-                
+
                 // Play button
                 SizedBox(
                   width: double.infinity,

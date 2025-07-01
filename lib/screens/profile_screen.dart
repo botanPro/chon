@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'dart:ui';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 /// ProfileScreen displays the user's profile information including their
 /// balance, level, and account management options.
@@ -20,7 +22,7 @@ class ProfileScreen extends StatelessWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
-      appBar: _buildAppBar(),
+      appBar: _buildAppBar(context),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -39,7 +41,7 @@ class ProfileScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildLevelIndicator(),
+                _buildLevelIndicator(context),
                 _buildBalanceCircle(),
                 _buildAccountSection(),
                 _buildMoreSection(),
@@ -53,7 +55,7 @@ class ProfileScreen extends StatelessWidget {
   }
 
   /// Builds the app bar with user name and avatar
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
@@ -61,22 +63,13 @@ class ProfileScreen extends StatelessWidget {
       title: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // First name with bold weight
-          const Text(
-            'Bashdar ',
-            style: TextStyle(
+          // User nickname from AuthService
+          Text(
+            context.watch<AuthService>().nickname ?? 'User',
+            style: const TextStyle(
               color: Colors.white,
               fontSize: 20,
               fontWeight: FontWeight.w600,
-            ),
-          ),
-          // Last name with regular weight
-          const Text(
-            'Hakim',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 20,
-              fontWeight: FontWeight.w400,
             ),
           ),
           const Spacer(),
@@ -117,21 +110,22 @@ class ProfileScreen extends StatelessWidget {
   }
 
   /// Builds the level indicator with star icon
-  Widget _buildLevelIndicator() {
-    return const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16),
+  Widget _buildLevelIndicator(BuildContext context) {
+    final level = context.watch<AuthService>().level;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
+          const Icon(
             Icons.star,
             color: Color(0xFF94C1BA),
             size: 16,
           ),
-          SizedBox(width: 4),
+          const SizedBox(width: 4),
           Text(
-            'Level 5',
-            style: TextStyle(
+            'Level $level',
+            style: const TextStyle(
               color: Color(0xFF94C1BA),
               fontSize: 14,
               fontWeight: FontWeight.w500,
@@ -341,8 +335,31 @@ class ProfileScreen extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
       child: ElevatedButton.icon(
         onPressed: () async {
-          // TODO: Implement confirmation dialog before logout
-          await context.read<AuthService>().signOut();
+          // Show confirmation dialog
+          final shouldLogout = await showDialog<bool>(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: const Text('Logout'),
+              content: const Text('Are you sure you want to logout?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(true),
+                  child: const Text('Logout'),
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.red,
+                  ),
+                ),
+              ],
+            ),
+          );
+
+          if (shouldLogout == true) {
+            await _performLogout(context);
+          }
         },
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xFF4D2626),
@@ -363,6 +380,142 @@ class ProfileScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  /// Performs the actual logout API call
+  Future<void> _performLogout(BuildContext context) async {
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00B894)),
+          ),
+        ),
+      );
+
+      // Get auth service to access token
+      final authService = context.read<AuthService>();
+
+      // Check if token exists
+      if (authService.token == null) {
+        // Hide loading indicator
+        Navigator.of(context).pop();
+
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text('No authentication token found. Please log in again.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+
+        // Force logout and navigate to auth screen
+        authService.setAuthenticated(false);
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/',
+          (route) => false,
+        );
+        return;
+      }
+
+      print('Logout - Using token: ${authService.token}');
+
+      final headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${authService.token}',
+      };
+
+      print('Logout - Full headers: $headers');
+      print('Logout - Authorization header: ${headers['Authorization']}');
+
+      final response = await http.post(
+        Uri.parse('http://127.0.0.1:3000/api/players/logout'),
+        headers: headers,
+      );
+
+      print('Logout API Response Status: ${response.statusCode}');
+      print('Logout API Response Body: ${response.body}');
+
+      // Hide loading indicator
+      Navigator.of(context).pop();
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+
+        if (data['success'] == true) {
+          // Update authentication state
+          authService.setAuthenticated(false);
+
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(data['message'] ?? 'Logged out successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+
+          // Navigate to auth screen
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            '/',
+            (route) => false,
+          );
+        } else {
+          // Show error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(data['message'] ?? 'Logout failed'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      } else if (response.statusCode == 401) {
+        // Token is invalid or expired
+        print('Logout - Token is invalid or expired');
+
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Session expired. Please log in again.'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+
+        // Force logout and navigate to auth screen
+        authService.setAuthenticated(false);
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/',
+          (route) => false,
+        );
+      } else {
+        // Show error message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Logout failed: ${response.statusCode} - ${response.body}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      // Hide loading indicator if still showing
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+
+      print('Logout - Network error: $e');
+
+      // Show error message
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Network error: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
   }
 
   /// Reusable menu item widget used for both Account and More sections

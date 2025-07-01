@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'screens/auth/auth_screen.dart';
+import 'screens/auth/personal_info_screen.dart';
 import 'screens/profile_screen.dart';
 import 'services/auth_service.dart';
 import 'services/navigation_service.dart';
@@ -127,6 +128,8 @@ class MainApp extends StatelessWidget {
         return MaterialPageRoute(builder: (_) => const AuthScreen());
       case '/profile':
         return MaterialPageRoute(builder: (_) => const ProfileScreen());
+      case '/personal-info':
+        return MaterialPageRoute(builder: (_) => const PersonalInfoScreen());
       default:
         return MaterialPageRoute(
           builder: (_) => Scaffold(
