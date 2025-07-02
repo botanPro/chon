@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'navigation_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../utils/apiConnection.dart';
 
 /// Service that handles all authentication and user-related functionality.
 ///
@@ -375,7 +376,7 @@ class AuthService extends ChangeNotifier {
     required String language,
   }) async {
     print('Sending language: $language'); // Debug print
-    final url = Uri.parse('http://localhost:3000/api/players/register');
+    final url = Uri.parse('$apiUrl/api/players/register');
     try {
       final response = await http.post(
         url,

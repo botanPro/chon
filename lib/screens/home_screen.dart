@@ -11,6 +11,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../services/trivia_socket_service.dart';
 import '../screens/trivia_game_screen.dart';
+import '../utils/apiConnection.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -48,9 +49,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _startTimer();
     _competitions = [];
 
-    print('Connecting to http://localhost:3000');
+    print('Connecting to $socketUrl');
     final socketService = TriviaSocketService();
-    socketService.connect('http://localhost:3000');
+    socketService.connect(socketUrl);
     socketService.onCompetitionData((data) {
       print('Received competition data: $data');
       final competitions = data['competitions'];

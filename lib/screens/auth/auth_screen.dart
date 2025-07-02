@@ -6,6 +6,7 @@ import 'verification_screen.dart';
 import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../../utils/apiConnection.dart';
 
 // Animated gradient background painter
 class AnimatedGradientPainter extends CustomPainter {
@@ -875,7 +876,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
       print('Request body: $requestBody');
 
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:3000/api/players/register'),
+        Uri.parse('$apiUrl/api/players/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(requestBody),
       );
@@ -981,7 +982,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
       print('Sign In - Request Body: $requestBody');
 
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:3000/api/players/login'),
+        Uri.parse('$apiUrl/api/players/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(requestBody),
       );

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../utils/apiConnection.dart';
 
 /// ProfileScreen displays the user's profile information including their
 /// balance, level, and account management options.
@@ -438,7 +439,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       print('Logout - Authorization header: ${headers['Authorization']}');
 
       final response = await http.post(
-        Uri.parse('http://127.0.0.1:3000/api/players/logout'),
+        Uri.parse('$apiUrl/api/players/logout'),
         headers: headers,
       );
 
@@ -623,7 +624,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             print('Token used for profile update: $token');
                             final response = await http.put(
                               Uri.parse(
-                                  'http://127.0.0.1:3000/api/players/profile'),
+                                  '$apiUrl/api/players/profile'),
                               headers: {
                                 'Content-Type': 'application/json',
                                 'Authorization': 'Bearer $token',

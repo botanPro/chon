@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import '../services/trivia_socket_service.dart';
 import 'dart:convert';
+import '../utils/apiConnection.dart';
 
 class TriviaGameScreen extends StatefulWidget {
   final String competitionId;
@@ -259,7 +260,7 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
   void _initializeSocketConnection() {
     // Create a fresh socket service instance
     _socketService = TriviaSocketService();
-    _socketService.connect('http://127.0.0.1:3000');
+    _socketService.connect(socketUrl);
 
     _socketService.socket.on('connect', (_) {
       print(

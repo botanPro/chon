@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
+import '../../utils/apiConnection.dart';
 
 class VerificationScreen extends StatefulWidget {
   final String phoneNumber;
@@ -266,11 +267,11 @@ class _VerificationScreenState extends State<VerificationScreen> {
                         print('OTP Verification - Request Body: $requestBody');
 
                         final response = await http.post(
-                          Uri.parse('http://127.0.0.1:3000/api/players/verify'),
+                          Uri.parse('$apiUrl/api/players/verify'),
                           headers: {'Content-Type': 'application/json'},
                           body: jsonEncode(requestBody),
                         );
-                        final Map<String, dynamic> body =
+                        final Map<String, dynamic> body = 
                             jsonDecode(response.body);
 
                         print(

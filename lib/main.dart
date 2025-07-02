@@ -12,6 +12,7 @@ import 'services/auth_service.dart';
 import 'services/navigation_service.dart';
 import 'services/localization_service.dart';
 import 'layouts/main_layout.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Application-wide design tokens for consistent styling
 class AppDesign {
@@ -38,7 +39,8 @@ class AppDesign {
 }
 
 /// Entry point of the application
-void main() async {
+Future<void> main() async {
+  await dotenv.load(fileName: ".env");
   // Ensure Flutter is initialized
   WidgetsFlutterBinding.ensureInitialized();
 
