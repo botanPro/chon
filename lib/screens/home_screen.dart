@@ -461,6 +461,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                           width: double.infinity,
                                           child: ElevatedButton(
                                             onPressed: () {
+                                              final authService =
+                                                  Provider.of<AuthService>(
+                                                      context,
+                                                      listen: false);
+                                              final playerId =
+                                                  authService.userId ??
+                                                      'player_demo';
+                                              final playerName =
+                                                  authService.nickname ??
+                                                      'User';
                                               Navigator.push(
                                                 context,
                                                 MaterialPageRoute(
@@ -468,6 +478,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                       TriviaGameScreen(
                                                     competitionId:
                                                         game.competitionId,
+                                                    playerId: playerId,
+                                                    playerName: playerName,
                                                   ),
                                                 ),
                                               );

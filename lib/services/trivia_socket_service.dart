@@ -30,8 +30,13 @@ class TriviaSocketService {
     });
   }
 
-  void joinCompetition(String competitionId) {
-    socket.emit('joinCompetition', competitionId);
+  void joinCompetition(String competitionId,
+      {required String playerId, required String playerName}) {
+    socket.emit('joinCompetition', {
+      'competitionId': competitionId,
+      'playerId': playerId,
+      'playerName': playerName,
+    });
   }
 
   void submitAnswer({
@@ -62,7 +67,7 @@ class TriviaSocketService {
 
   void onCompetitionData(Function(dynamic) callback) {
     print('Registering competitionData listener');
-    socket.off('competitionData'); // Remove previous listeners
+    socket.off('competitionData');
     socket.on('competitionData', callback);
   }
 

@@ -8,7 +8,13 @@ import 'dart:convert';
 
 class TriviaGameScreen extends StatefulWidget {
   final String competitionId;
-  const TriviaGameScreen({super.key, required this.competitionId});
+  final String playerId;
+  final String playerName;
+  const TriviaGameScreen(
+      {super.key,
+      required this.competitionId,
+      required this.playerId,
+      required this.playerName});
 
   @override
   State<TriviaGameScreen> createState() => _TriviaGameScreenState();
@@ -202,7 +208,8 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
     with TickerProviderStateMixin {
   int _currentQuestionIndex = 0;
   int _selectedAnswerIndex = -1;
-  int _timeRemaining = 5;
+  int _timeRemaining = 3;
+  static const int _questionDuration = 3;
   int _correctAnswers = 0;
   late Timer _timer;
   bool _showGameOver = false;
@@ -241,23 +248,51 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
   @override
   void initState() {
     super.initState();
+    _initializeSocketConnection();
+    _initializeAnimations();
+    // Timer will start after receiving the first question
+    _questionAnimationController.forward();
+    _optionsAnimationController.forward();
+    _backgroundAnimationController.repeat();
+  }
+
+  void _initializeSocketConnection() {
+    // Create a fresh socket service instance
     _socketService = TriviaSocketService();
     _socketService.connect('http://127.0.0.1:3000');
+
     _socketService.socket.on('connect', (_) {
-      _socketService.joinCompetition(widget.competitionId);
-      _socketService.getCompetitionData(widget.competitionId);
+      print(
+          'Connected to socket, joining competition: ${widget.competitionId.toString()}');
+      _socketService.joinCompetition(
+        widget.competitionId.toString(),
+        playerId: widget.playerId.toString(),
+        playerName: widget.playerName,
+      );
+      _socketService.getCompetitionData(widget.competitionId.toString());
     });
+
     _socketService.onLeaderboardUpdate((data) {
+      print('Received leaderboard update: $data');
       setState(() {
-        // Assuming data is a list of maps with playerId and score
         _leaderboard = List<Map<String, dynamic>>.from(data);
       });
     });
+
     _socketService.onPlayerJoined((data) {
       setState(() {
         _playerJoins.add(data['socketId'] ?? '');
       });
     });
+
+    // Listen for winners event
+    _socketService.socket.on('winners', (data) {
+      print('Received winners: $data');
+      setState(() {
+        _leaderboard = List<Map<String, dynamic>>.from(data);
+      });
+    });
+
     // Request questions for this competition
     _socketService.onCompetitionData((data) {
       print('Received competition data: $data');
@@ -266,7 +301,7 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
           _questions = List<Map<String, dynamic>>.from(data['questions']);
           _currentQuestionIndex = 0;
           _selectedAnswerIndex = -1;
-          _timeRemaining = 5;
+          _timeRemaining = 3;
           _showGameOver = false;
           _correctAnswers = 0;
         });
@@ -280,11 +315,6 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
         print('No questions found in competition data');
       }
     });
-    _initializeAnimations();
-    // Timer will start after receiving the first question
-    _questionAnimationController.forward();
-    _optionsAnimationController.forward();
-    _backgroundAnimationController.repeat();
   }
 
   void _initializeAnimations() {
@@ -347,7 +377,7 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
           _questions.add(event['question'] as Map<String, dynamic>);
           _currentQuestionIndex = _questions.length - 1;
           _selectedAnswerIndex = -1;
-          _timeRemaining = 5;
+          _timeRemaining = 3;
           _startTimer();
           _questionAnimationController.reset();
           _optionsAnimationController.reset();
@@ -398,6 +428,30 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
         if (_selectedAnswerIndex == -1 && _questions.isNotEmpty) {
           _submitAnswer(-1);
         }
+        // Move to next question after timer ends
+        Future.delayed(const Duration(milliseconds: 500), () {
+          if (_currentQuestionIndex < _questions.length - 1) {
+            setState(() {
+              _currentQuestionIndex++;
+              _selectedAnswerIndex = -1;
+              _timeRemaining = _questionDuration;
+            });
+            _questionAnimationController.reset();
+            _optionsAnimationController.reset();
+            _questionAnimationController.forward();
+            _optionsAnimationController.forward();
+            _startTimer();
+          } else {
+            setState(() {
+              _showGameOver = true;
+            });
+            _gameOverAnimationController.forward();
+            _addGameResultToHistory();
+            // Emit finishGame to get winners
+            _socketService.socket
+                .emit('finishGame', widget.competitionId.toString());
+          }
+        });
       }
     });
   }
@@ -446,15 +500,18 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
         _selectedAnswerIndex = index;
       });
       _submitAnswer(index);
+      // Do NOT move to next question here; wait for timer to end
     }
   }
 
   void _submitAnswer(int answerIndex) {
     final question = _questions[_currentQuestionIndex];
     _socketService.submitAnswer(
-      competitionId: widget.competitionId,
-      playerId: _playerId,
-      questionId: question['id'] as String? ?? '',
+      competitionId: widget.competitionId.toString(),
+      playerId: widget.playerId.toString(),
+      questionId: (question['id'] is String
+          ? question['id']
+          : question['id'].toString()),
       answer: answerIndex.toString(),
     );
     // Track correct answers locally for game result
@@ -464,6 +521,7 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
     if (answerIndex == correctIndex) {
       _correctAnswers++;
     }
+    // Do NOT move to next question here; wait for timer to end
   }
 
   @override
@@ -577,34 +635,7 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
   }
 
   Widget _buildWinnersScreen() {
-    // Mock winners data
-    final winners = [
-      {
-        'name': 'Alex Johnson',
-        'score': 950,
-        'avatar': 'https://i.pravatar.cc/150?img=1'
-      },
-      {
-        'name': 'Maria Garcia',
-        'score': 920,
-        'avatar': 'https://i.pravatar.cc/150?img=5'
-      },
-      {
-        'name': 'John Smith',
-        'score': 890,
-        'avatar': 'https://i.pravatar.cc/150?img=3'
-      },
-      {
-        'name': 'Sarah Williams',
-        'score': 850,
-        'avatar': 'https://i.pravatar.cc/150?img=4'
-      },
-      {
-        'name': 'David Lee',
-        'score': 820,
-        'avatar': 'https://i.pravatar.cc/150?img=7'
-      },
-    ];
+    final winners = _leaderboard.take(10).toList();
 
     return Stack(
       fit: StackFit.expand,
@@ -726,34 +757,36 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
                             ),
                           ),
                           const SizedBox(width: 16),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(20),
-                            child: Image.network(
-                              (player['avatar'] as String?) ?? '',
-                              width: 40,
-                              height: 40,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
                           Expanded(
                             child: Text(
-                              (player['name'] as String?) ?? 'Unknown',
-                              style: const TextStyle(
-                                color: Colors.white,
+                              (player['nickname'] as String?) ?? 'Unknown',
+                              style: TextStyle(
+                                color: player['playerId'] == widget.playerId
+                                    ? Color(0xFF96c3bc)
+                                    : Colors.white,
                                 fontSize: 16,
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
                           ),
-                          Text(
-                            '${player['score']} pts',
-                            style: const TextStyle(
-                              color: Color(0xFF96c3bc),
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                          if (player['correctAnswers'] != null)
+                            Text(
+                              '${player['correctAnswers']}/${_questions.length} correct',
+                              style: const TextStyle(
+                                color: Color(0xFF96c3bc),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            )
+                          else if (player['score'] != null)
+                            Text(
+                              '${player['score']} pts',
+                              style: const TextStyle(
+                                color: Color(0xFF96c3bc),
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
                         ],
                       ),
                     );
@@ -766,6 +799,21 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 30),
                 child: ElevatedButton(
                   onPressed: () {
+                    // Completely reset all game state and socket connection
+                    if (_timer.isActive) {
+                      _timer.cancel();
+                    }
+                    _socketService.disconnect();
+                    setState(() {
+                      _questions = [];
+                      _leaderboard = [];
+                      _currentQuestionIndex = 0;
+                      _selectedAnswerIndex = -1;
+                      _timeRemaining = 3;
+                      _correctAnswers = 0;
+                      _showGameOver = false;
+                      _playerJoins = [];
+                    });
                     Navigator.of(context).pop();
                   },
                   style: ElevatedButton.styleFrom(
@@ -1067,7 +1115,7 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
                 ),
                 const SizedBox(height: 10),
                 LinearProgressIndicator(
-                  value: _timeRemaining / 5, // 5 seconds total
+                  value: _timeRemaining / 3, // 3 seconds total
                   backgroundColor: Colors.white.withOpacity(0.1),
                   valueColor: AlwaysStoppedAnimation<Color>(
                     _timeRemaining <= 2

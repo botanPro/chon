@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'trivia_game_screen.dart';
+import '../services/auth_service.dart';
+import 'package:provider/provider.dart';
 
 class PaymentMethodScreen extends StatefulWidget {
   final double amount;
@@ -300,11 +302,17 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
               Navigator.pop(context); // Close payment screen
 
               // Navigate to the trivia game screen
+              final authService =
+                  Provider.of<AuthService>(context, listen: false);
+              final playerId = authService.userId ?? 'player_demo';
+              final playerName = authService.nickname ?? 'User';
               Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => TriviaGameScreen(
                     competitionId: widget.competitionId,
+                    playerId: playerId,
+                    playerName: playerName,
                   ),
                 ),
               );
