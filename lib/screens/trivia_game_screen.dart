@@ -216,6 +216,12 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
   bool _showGameOver = false;
   final int _onlinePlayers = 20000; // Dummy data
 
+  // Pre-game countdown
+  int _preGameCountdown = 0;
+  Timer? _preGameTimer;
+  bool _showPreGameCountdown = false;
+  DateTime? _startTime;
+
   // Animation controllers
   late AnimationController _optionsAnimationController;
   late AnimationController _questionAnimationController;
@@ -300,6 +306,29 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
       if (!mounted) return;
       debugPrint('Received competition data: \\${data.toString()}');
       if (data['questions'] != null && data['questions'] is List) {
+        // Parse startTime and serverTime
+        final startTimeStr = data['startTime'];
+        final serverTimeStr = data['serverTime'];
+        if (startTimeStr != null && serverTimeStr != null) {
+          final startTime = DateTime.parse(startTimeStr);
+          final serverTime = DateTime.parse(serverTimeStr);
+          final diff = startTime.difference(serverTime).inSeconds;
+          if (diff > 0) {
+            setState(() {
+              _preGameCountdown = diff;
+              _showPreGameCountdown = true;
+              _startTime = startTime;
+              _questions = List<Map<String, dynamic>>.from(data['questions']);
+              _currentQuestionIndex = 0;
+              _selectedAnswerIndex = -1;
+              _timeRemaining = 3;
+              _showGameOver = false;
+              _correctAnswers = 0;
+            });
+            _startPreGameCountdown();
+            return; // Don't start the game yet!
+          }
+        }
         setState(() {
           _questions = List<Map<String, dynamic>>.from(data['questions']);
           _currentQuestionIndex = 0;
@@ -414,6 +443,8 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
     _socketService.disconnect();
     // Cancel timer if active
     if (_timer.isActive) _timer.cancel();
+    // Dispose pre-game timer
+    _preGameTimer?.cancel();
     // Dispose animation controllers
     _questionAnimationController.dispose();
     _optionsAnimationController.dispose();
@@ -532,6 +563,36 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
     // Do NOT move to next question here; wait for timer to end
   }
 
+  void _startPreGameCountdown() {
+    _preGameTimer?.cancel();
+    _preGameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+      if (_preGameCountdown > 1) {
+        setState(() {
+          _preGameCountdown--;
+        });
+      } else {
+        timer.cancel();
+        setState(() {
+          _showPreGameCountdown = false;
+        });
+        // Now start the game as usual
+        setState(() {
+          _currentQuestionIndex = 0;
+          _selectedAnswerIndex = -1;
+          _timeRemaining = 3;
+          _showGameOver = false;
+          _correctAnswers = 0;
+        });
+        _questionAnimationController.reset();
+        _optionsAnimationController.reset();
+        _questionAnimationController.forward();
+        _optionsAnimationController.forward();
+        _startTimer();
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -596,7 +657,12 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
         backgroundColor: const Color(0xFF0A0E0D),
         extendBodyBehindAppBar: true,
         extendBody: true,
-        body: _showGameOver ? _buildWinnersScreen() : _buildGameScreen(),
+        body: Stack(
+          children: [
+            _showGameOver ? _buildWinnersScreen() : _buildGameScreen(),
+            if (_showPreGameCountdown) _buildPreGameCountdownOverlay(),
+          ],
+        ),
       ),
     );
   }
@@ -1372,6 +1438,36 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
                   ),
                 ),
               ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPreGameCountdownOverlay() {
+    return Container(
+      color: Colors.black.withOpacity(0.8),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Game starts in',
+              style: TextStyle(
+                color: Color(0xFF96c3bc),
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              '${_preGameCountdown}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 80,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ],
         ),

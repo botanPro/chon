@@ -40,6 +40,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   int _prevSeconds = 30;
 
   List<dynamic>? _competitions;
+  Map<int, bool> _gameTimerFinished = {};
 
   @override
   void initState() {
@@ -177,6 +178,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ? comp['entry_fee'].toDouble()
                   : double.tryParse(comp['entry_fee'].toString()) ?? 0.0,
               rating: 0.0,
+              startTime: comp['startTime'] ?? comp['start_time'],
             ))
         .toList();
 
@@ -404,6 +406,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                         itemCount: games.length,
                         itemBuilder: (context, index) {
                           final game = games[index];
+                          bool isTimerFinished =
+                              _gameTimerFinished[index] ?? false;
                           return Container(
                             decoration: BoxDecoration(
                               color: const Color(0xFF101513),
@@ -461,67 +465,76 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
+                                        if (game.startTime != null &&
+                                            game.startTime!.isNotEmpty)
+                                          GameCountdownTimer(
+                                              startTime: game.startTime!,
+                                              onFinished: (finished) {
+                                                WidgetsBinding.instance
+                                                    .addPostFrameCallback((_) {
+                                                  if (mounted) {
+                                                    setState(() {
+                                                      _gameTimerFinished[
+                                                          index] = finished;
+                                                    });
+                                                  }
+                                                });
+                                              }),
                                         const Spacer(),
-                                        SizedBox(
-                                          width: double.infinity,
-                                          child: ElevatedButton(
-                                            onPressed: () {
-                                              final authService =
-                                                  Provider.of<AuthService>(
-                                                      context,
-                                                      listen: false);
-                                              final playerId =
-                                                  authService.userId ??
-                                                      'player_demo';
-                                              final playerName =
-                                                  authService.nickname ??
-                                                      'User';
-                                              Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder: (context) =>
-                                                      TriviaGameScreen(
-                                                    competitionId:
-                                                        game.competitionId,
-                                                    playerId: playerId,
-                                                    playerName: playerName,
-                                                  ),
+                                        if (!isTimerFinished)
+                                          SizedBox(
+                                            width: double.infinity,
+                                            child: ElevatedButton(
+                                              onPressed: () {
+                                                final authService =
+                                                    Provider.of<AuthService>(
+                                                        context,
+                                                        listen: false);
+                                                final playerId =
+                                                    authService.userId ??
+                                                        'player_demo';
+                                                final playerName =
+                                                    authService.nickname ??
+                                                        'User';
+                                                _showCountdownAndStartGame(
+                                                    context,
+                                                    game,
+                                                    playerId,
+                                                    playerName);
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: Colors.white,
+                                                foregroundColor: Colors.black,
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        vertical: 8),
+                                                minimumSize:
+                                                    const Size.fromHeight(40),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
                                                 ),
-                                              );
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: Colors.white,
-                                              foregroundColor: Colors.black,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                      vertical: 8),
-                                              minimumSize:
-                                                  const Size.fromHeight(40),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Text(
+                                                    'Play Now',
+                                                    style:
+                                                        TextStyle(fontSize: 12),
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Icon(
+                                                    Icons.arrow_forward,
+                                                    size: 12,
+                                                    color: Colors.grey.shade800,
+                                                  ),
+                                                ],
                                               ),
                                             ),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                const Text(
-                                                  'Play Now',
-                                                  style:
-                                                      TextStyle(fontSize: 12),
-                                                ),
-                                                const SizedBox(width: 4),
-                                                Icon(
-                                                  Icons.arrow_forward,
-                                                  size: 12,
-                                                  color: Colors.grey.shade800,
-                                                ),
-                                              ],
-                                            ),
                                           ),
-                                        ),
                                       ],
                                     ),
                                   ),
@@ -707,6 +720,282 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             overflow: TextOverflow.ellipsis,
           ),
         ],
+      ),
+    );
+  }
+
+  void _showCountdownAndStartGame(
+      BuildContext context, Game game, String playerId, String playerName) {
+    if (game.startTime == null) {
+      // Fallback: start immediately if no startTime
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TriviaGameScreen(
+            competitionId: game.competitionId,
+            playerId: playerId,
+            playerName: playerName,
+          ),
+        ),
+      );
+      return;
+    }
+    final startTime = DateTime.parse(game.startTime!).toUtc();
+    final now = DateTime.now().toUtc();
+    int seconds = startTime.difference(now).inSeconds;
+    if (seconds < 0) seconds = 0;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return CountdownDialog(
+          seconds: seconds,
+          onCountdownComplete: () {
+            Navigator.of(context).pop(); // Close the dialog
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TriviaGameScreen(
+                  competitionId: game.competitionId,
+                  playerId: playerId,
+                  playerName: playerName,
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  String _formatStartTime(String isoString) {
+    try {
+      final dt = DateTime.parse(isoString).toLocal();
+      return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+    } catch (_) {
+      return isoString;
+    }
+  }
+}
+
+class CountdownDialog extends StatefulWidget {
+  final int seconds;
+  final VoidCallback onCountdownComplete;
+
+  const CountdownDialog(
+      {Key? key, required this.seconds, required this.onCountdownComplete})
+      : super(key: key);
+
+  @override
+  State<CountdownDialog> createState() => _CountdownDialogState();
+}
+
+class _CountdownDialogState extends State<CountdownDialog> {
+  late int _seconds;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _seconds = widget.seconds;
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_seconds > 0) {
+        setState(() {
+          _seconds--;
+        });
+      } else {
+        timer.cancel();
+        widget.onCountdownComplete();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final duration = Duration(seconds: _seconds);
+    final hours = duration.inHours;
+    final minutes = duration.inMinutes % 60;
+    final seconds = duration.inSeconds % 60;
+
+    return Dialog(
+      backgroundColor: Colors.black.withOpacity(0.8),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Game starts in',
+              style: TextStyle(
+                color: Color(0xFF96c3bc),
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              '${hours.toString().padLeft(2, '0')}:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 60,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class GameCountdownTimer extends StatefulWidget {
+  final String startTime;
+  final ValueChanged<bool>? onFinished;
+  const GameCountdownTimer({Key? key, required this.startTime, this.onFinished})
+      : super(key: key);
+  @override
+  _GameCountdownTimerState createState() => _GameCountdownTimerState();
+}
+
+class _GameCountdownTimerState extends State<GameCountdownTimer> {
+  late Duration _remaining;
+  late Timer _timer;
+  bool _started = false;
+  @override
+  void initState() {
+    super.initState();
+    _updateRemaining();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _updateRemaining();
+    });
+  }
+
+  void _updateRemaining() {
+    final start = DateTime.tryParse(widget.startTime)?.toLocal();
+    if (start == null) {
+      if (!_started) widget.onFinished?.call(true);
+      setState(() {
+        _started = true;
+      });
+      return;
+    }
+    final now = DateTime.now();
+    final diff = start.difference(now);
+    if (diff.isNegative) {
+      if (!_started) widget.onFinished?.call(true);
+      setState(() {
+        _started = true;
+      });
+    } else {
+      if (_started) widget.onFinished?.call(false);
+      setState(() {
+        _remaining = diff;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_started) {
+      return const Text('Game Finished',
+          style: TextStyle(
+              color: Color(0xFF96C3BC),
+              fontSize: 11,
+              fontWeight: FontWeight.w400));
+    }
+    final days = _remaining.inDays;
+    final hours = _remaining.inHours % 24;
+    final minutes = _remaining.inMinutes % 60;
+    final seconds = _remaining.inSeconds % 60;
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _buildTimeBox(twoDigits(days)),
+            const Text(':',
+                style: TextStyle(
+                    color: Color(0xFF96C3BC),
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold)),
+            _buildTimeBox(twoDigits(hours)),
+            const Text(':',
+                style: TextStyle(
+                    color: Color(0xFF96C3BC),
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold)),
+            _buildTimeBox(twoDigits(minutes)),
+            const Text(':',
+                style: TextStyle(
+                    color: Color(0xFF96C3BC),
+                    fontSize: 13,
+                    fontWeight: FontWeight.bold)),
+            _buildTimeBox(twoDigits(seconds)),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            _CountdownLabel('Days'),
+            SizedBox(width: 10),
+            _CountdownLabel('Hours'),
+            SizedBox(width: 10),
+            _CountdownLabel('Minutes'),
+            SizedBox(width: 10),
+            _CountdownLabel('Seconds'),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTimeBox(String value) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      decoration: BoxDecoration(
+        color: const Color(0xFF242F2C),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: Text(
+        value,
+        style: const TextStyle(
+          color: Color(0xFF96C3BC),
+          fontSize: 13,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+}
+
+class _CountdownLabel extends StatelessWidget {
+  final String label;
+  const _CountdownLabel(this.label);
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      label,
+      style: const TextStyle(
+        color: Color(0xFF96C3BC),
+        fontSize: 9,
+        fontWeight: FontWeight.w400,
       ),
     );
   }

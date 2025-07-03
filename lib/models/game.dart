@@ -26,6 +26,9 @@ class Game {
   /// The user rating of the game (0.0 to 5.0)
   final double rating;
 
+  /// The UTC start time of the competition (nullable)
+  final String? startTime;
+
   /// Creates a new Game instance.
   ///
   /// [title] and [description] provide text information about the game.
@@ -41,6 +44,7 @@ class Game {
     required this.prize,
     required this.prizeValue,
     this.rating = 0.0,
+    this.startTime,
   });
 
   /// Creates a copy of this Game with the given fields replaced with new values.
@@ -52,6 +56,7 @@ class Game {
     String? prize,
     double? prizeValue,
     double? rating,
+    String? startTime,
   }) {
     return Game(
       competitionId: competitionId ?? this.competitionId,
@@ -61,11 +66,12 @@ class Game {
       prize: prize ?? this.prize,
       prizeValue: prizeValue ?? this.prizeValue,
       rating: rating ?? this.rating,
+      startTime: startTime ?? this.startTime,
     );
   }
 
   @override
   String toString() {
-    return 'Game{competitionId: $competitionId, title: $title, prize: $prize, prizeValue: \$$prizeValue, rating: $rating}';
+    return 'Game{competitionId: $competitionId, title: $title, prize: $prize, prizeValue: \$$prizeValue, rating: $rating, startTime: $startTime}';
   }
 }
