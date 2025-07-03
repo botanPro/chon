@@ -1,15 +1,20 @@
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:flutter/material.dart';
 
+/// Service for managing trivia game socket connection and events.
 class TriviaSocketService {
   static final TriviaSocketService _instance = TriviaSocketService._internal();
   factory TriviaSocketService() => _instance;
 
   late IO.Socket socket;
+  bool _isConnected = false;
+  final Map<String, dynamic Function(dynamic)> _listeners = {};
 
   TriviaSocketService._internal();
 
+  /// Connects to the socket server if not already connected.
   void connect(String url) {
+    if (_isConnected) return;
     print('Connecting to $url');
     socket = IO.io(
       url,
@@ -21,6 +26,11 @@ class TriviaSocketService {
     socket.connect();
     socket.onConnect((_) {
       print('Socket connected!');
+      _isConnected = true;
+    });
+    socket.onDisconnect((_) {
+      print('Socket disconnected!');
+      _isConnected = false;
     });
     socket.onConnectError((err) {
       print('Socket connection error: $err');
@@ -30,6 +40,7 @@ class TriviaSocketService {
     });
   }
 
+  /// Joins a competition room.
   void joinCompetition(String competitionId,
       {required String playerId, required String playerName}) {
     socket.emit('joinCompetition', {
@@ -39,6 +50,7 @@ class TriviaSocketService {
     });
   }
 
+  /// Submits an answer for a question.
   void submitAnswer({
     required String competitionId,
     required String playerId,
@@ -53,24 +65,24 @@ class TriviaSocketService {
     });
   }
 
+  /// Registers a leaderboard update listener.
   void onLeaderboardUpdate(Function(dynamic) callback) {
-    socket.on('leaderboardUpdate', callback);
+    _addListener('leaderboardUpdate', callback);
   }
 
+  /// Registers a player joined listener.
   void onPlayerJoined(Function(dynamic) callback) {
-    socket.on('playerJoined', callback);
+    _addListener('playerJoined', callback);
   }
 
-  void disconnect() {
-    socket.disconnect();
-  }
-
+  /// Registers a competition data listener.
   void onCompetitionData(Function(dynamic) callback) {
     print('Registering competitionData listener');
-    socket.off('competitionData');
-    socket.on('competitionData', callback);
+    _removeListener('competitionData');
+    _addListener('competitionData', callback);
   }
 
+  /// Requests competition data from the server.
   void getCompetitionData(String competitionId) {
     if (socket.connected) {
       print('Emitting getCompetitionData for $competitionId');
@@ -78,5 +90,37 @@ class TriviaSocketService {
     } else {
       print('Socket not connected, cannot emit getCompetitionData');
     }
+  }
+
+  /// Disconnects the socket and removes all listeners.
+  void disconnect() {
+    if (_isConnected) {
+      _removeAllListeners();
+      socket.disconnect();
+      _isConnected = false;
+    }
+  }
+
+  /// Adds a socket event listener and tracks it for cleanup.
+  void _addListener(String event, dynamic Function(dynamic) callback) {
+    _removeListener(event);
+    socket.on(event, callback);
+    _listeners[event] = callback;
+  }
+
+  /// Removes a specific socket event listener.
+  void _removeListener(String event) {
+    if (_listeners.containsKey(event)) {
+      socket.off(event, _listeners[event]);
+      _listeners.remove(event);
+    }
+  }
+
+  /// Removes all registered socket event listeners.
+  void _removeAllListeners() {
+    _listeners.forEach((event, callback) {
+      socket.off(event, callback);
+    });
+    _listeners.clear();
   }
 }

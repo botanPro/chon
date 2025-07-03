@@ -49,14 +49,15 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _startTimer();
     _competitions = [];
 
-    print('Connecting to $socketUrl');
+    // Only connect and listen once
     final socketService = TriviaSocketService();
     socketService.connect(socketUrl);
     socketService.onCompetitionData((data) {
-      print('Received competition data: $data');
+      if (!mounted) return;
+      print('Received competition data: \\${data.toString()}');
       final competitions = data['competitions'];
       if (competitions == null) {
-        print('No \"competitions\" key in data!');
+        print('No "competitions" key in data!');
         return;
       }
       setState(() {
@@ -100,6 +101,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _hoursController?.dispose();
     _minutesController?.dispose();
     _secondsController?.dispose();
+
+    // Clean up socket listeners
+    TriviaSocketService().disconnect();
 
     super.dispose();
   }

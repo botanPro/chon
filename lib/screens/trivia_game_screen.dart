@@ -143,10 +143,10 @@ class ConfettiPainter extends CustomPainter {
     final confetti = <Confetti>[];
 
     final colors = [
-      const Color(0xFFFFD700), // Gold
-      const Color(0xFFC0C0C0), // Silver
-      const Color(0xFFCD7F32), // Bronze
-      const Color(0xFF94C1BA), // Teal
+      const Color(0xFFFFD700),
+      const Color(0xFFC0C0C0),
+      const Color(0xFFCD7F32),
+      const Color(0xFF94C1BA),
       Colors.white,
       Colors.red,
       Colors.blue,
@@ -243,9 +243,6 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
   List<Map<String, dynamic>> _questions = [];
   StreamSubscription<Map<String, dynamic>>? _wsSubscription;
 
-  // Demo competition and player IDs
-  final String _playerId = 'player_demo';
-
   @override
   void initState() {
     super.initState();
@@ -257,14 +254,15 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
     _backgroundAnimationController.repeat();
   }
 
+  /// Initializes the socket connection and registers event listeners.
   void _initializeSocketConnection() {
     // Create a fresh socket service instance
     _socketService = TriviaSocketService();
     _socketService.connect(socketUrl);
 
     _socketService.socket.on('connect', (_) {
-      print(
-          'Connected to socket, joining competition: ${widget.competitionId.toString()}');
+      debugPrint(
+          'Connected to socket, joining competition: \\${widget.competitionId.toString()}');
       _socketService.joinCompetition(
         widget.competitionId.toString(),
         playerId: widget.playerId.toString(),
@@ -274,13 +272,15 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
     });
 
     _socketService.onLeaderboardUpdate((data) {
-      print('Received leaderboard update: $data');
+      if (!mounted) return;
+      debugPrint('Received leaderboard update: \\${data.toString()}');
       setState(() {
         _leaderboard = List<Map<String, dynamic>>.from(data);
       });
     });
 
     _socketService.onPlayerJoined((data) {
+      if (!mounted) return;
       setState(() {
         _playerJoins.add(data['socketId'] ?? '');
       });
@@ -288,7 +288,8 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
 
     // Listen for winners event
     _socketService.socket.on('winners', (data) {
-      print('Received winners: $data');
+      if (!mounted) return;
+      debugPrint('Received winners: \\${data.toString()}');
       setState(() {
         _leaderboard = List<Map<String, dynamic>>.from(data);
       });
@@ -296,7 +297,8 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
 
     // Request questions for this competition
     _socketService.onCompetitionData((data) {
-      print('Received competition data: $data');
+      if (!mounted) return;
+      debugPrint('Received competition data: \\${data.toString()}');
       if (data['questions'] != null && data['questions'] is List) {
         setState(() {
           _questions = List<Map<String, dynamic>>.from(data['questions']);
@@ -313,7 +315,7 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
         _startTimer();
       } else {
         // Optionally handle error: no questions received
-        print('No questions found in competition data');
+        debugPrint('No questions found in competition data');
       }
     });
   }
@@ -408,8 +410,11 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
 
   @override
   void dispose() {
+    // Clean up socket listeners and disconnect
     _socketService.disconnect();
+    // Cancel timer if active
     if (_timer.isActive) _timer.cancel();
+    // Dispose animation controllers
     _questionAnimationController.dispose();
     _optionsAnimationController.dispose();
     _gameOverAnimationController.dispose();
@@ -419,6 +424,7 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
 
   void _startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
       if (_timeRemaining > 0) {
         setState(() {
           _timeRemaining--;
@@ -431,6 +437,7 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
         }
         // Move to next question after timer ends
         Future.delayed(const Duration(milliseconds: 500), () {
+          if (!mounted) return;
           if (_currentQuestionIndex < _questions.length - 1) {
             setState(() {
               _currentQuestionIndex++;
