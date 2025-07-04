@@ -12,15 +12,16 @@ class TriviaSocketService {
 
   TriviaSocketService._internal();
 
-  /// Connects to the socket server if not already connected.
-  void connect(String url) {
+  /// Connects to the socket server with JWT authentication.
+  void connect(String url, String jwtToken) {
     if (_isConnected) return;
-    print('Connecting to $url');
+    print('Connecting to $url with JWT token');
     socket = IO.io(
       url,
       IO.OptionBuilder()
           .setTransports(['websocket'])
           .disableAutoConnect()
+          .setAuth({'token': jwtToken})
           .build(),
     );
     socket.connect();

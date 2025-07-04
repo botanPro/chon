@@ -313,6 +313,7 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                     competitionId: widget.competitionId,
                     playerId: playerId,
                     playerName: playerName,
+                    competitionDetails: const {}, // TODO: Replace with real details if available
                   ),
                 ),
               );

@@ -11,11 +11,14 @@ class TriviaGameScreen extends StatefulWidget {
   final String competitionId;
   final String playerId;
   final String playerName;
-  const TriviaGameScreen(
-      {super.key,
-      required this.competitionId,
-      required this.playerId,
-      required this.playerName});
+  final Map<String, dynamic> competitionDetails;
+  const TriviaGameScreen({
+    Key? key,
+    required this.competitionId,
+    required this.playerId,
+    required this.playerName,
+    required this.competitionDetails,
+  }) : super(key: key);
 
   @override
   State<TriviaGameScreen> createState() => _TriviaGameScreenState();
@@ -264,7 +267,10 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
   void _initializeSocketConnection() {
     // Create a fresh socket service instance
     _socketService = TriviaSocketService();
-    _socketService.connect(socketUrl);
+    // Find the token from AuthService
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final token = authService.token ?? '';
+    _socketService.connect(socketUrl, token);
 
     _socketService.socket.on('connect', (_) {
       debugPrint(
@@ -661,6 +667,53 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
           children: [
             _showGameOver ? _buildWinnersScreen() : _buildGameScreen(),
             if (_showPreGameCountdown) _buildPreGameCountdownOverlay(),
+            // Show competition info at the top
+            Positioned(
+              top: 40,
+              left: 0,
+              right: 0,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    if (widget.competitionDetails['name'] != null)
+                      Text(
+                        widget.competitionDetails['name'],
+                        style: const TextStyle(
+                          color: Color(0xFF96c3bc),
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    if (widget.competitionDetails['description'] != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Text(
+                          widget.competitionDetails['description'],
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 14,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    if (widget.competitionDetails['entry_fee'] != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2.0),
+                        child: Text(
+                          'Entry Fee: \$${widget.competitionDetails['entry_fee']}',
+                          style: const TextStyle(
+                            color: Color(0xFF96c3bc),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
           ],
         ),
       ),

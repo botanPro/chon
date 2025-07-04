@@ -50,24 +50,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _startTimer();
     _competitions = [];
 
-    // Only connect and listen once
-    final socketService = TriviaSocketService();
-    socketService.connect(socketUrl);
-    socketService.onCompetitionData((data) {
-      if (!mounted) return;
-      print('Received competition data: \\${data.toString()}');
-      final competitions = data['competitions'];
-      if (competitions == null) {
-        print('No "competitions" key in data!');
-        return;
-      }
-      setState(() {
-        _competitions = competitions;
-      });
-    });
-
-    print('Emitting getCompetitionData for all');
-    socketService.getCompetitionData('all');
+    // Fetch competitions using REST API
+    _fetchCompetitions();
   }
 
   void _initControllers() {
@@ -163,6 +147,49 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         }
       });
     });
+  }
+
+  Future<void> _fetchCompetitions() async {
+    try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final token = authService.token ?? '';
+      final response = await http.get(
+        Uri.parse('$apiUrl/api/competitions'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final competitions = data['data'] ?? [];
+        setState(() {
+          _competitions = competitions;
+        });
+      } else {
+        print('Failed to load competitions: \\${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching competitions: $e');
+    }
+  }
+
+  Future<Map<String, dynamic>?> fetchCompetitionDetails(
+      String competitionId, String token) async {
+    final response = await http.get(
+      Uri.parse('$apiUrl/api/competitions/$competitionId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['data'];
+    } else {
+      print('Failed to load competition details: \\${response.statusCode}');
+      return null;
+    }
   }
 
   @override
@@ -485,7 +512,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                           SizedBox(
                                             width: double.infinity,
                                             child: ElevatedButton(
-                                              onPressed: () {
+                                              onPressed: () async {
                                                 final authService =
                                                     Provider.of<AuthService>(
                                                         context,
@@ -496,11 +523,27 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                                 final playerName =
                                                     authService.nickname ??
                                                         'User';
-                                                _showCountdownAndStartGame(
-                                                    context,
-                                                    game,
-                                                    playerId,
-                                                    playerName);
+                                                final token =
+                                                    authService.token ?? '';
+                                                final details =
+                                                    await fetchCompetitionDetails(
+                                                        game.competitionId,
+                                                        token);
+                                                if (details != null) {
+                                                  _showCountdownAndStartGame(
+                                                      context,
+                                                      game,
+                                                      playerId,
+                                                      playerName,
+                                                      details);
+                                                } else {
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    const SnackBar(
+                                                        content: Text(
+                                                            'Failed to load competition details.')),
+                                                  );
+                                                }
                                               },
                                               style: ElevatedButton.styleFrom(
                                                 backgroundColor: Colors.white,
@@ -725,7 +768,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   void _showCountdownAndStartGame(
-      BuildContext context, Game game, String playerId, String playerName) {
+      BuildContext context,
+      Game game,
+      String playerId,
+      String playerName,
+      Map<String, dynamic> competitionDetails) {
     if (game.startTime == null) {
       // Fallback: start immediately if no startTime
       Navigator.push(
@@ -735,6 +782,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             competitionId: game.competitionId,
             playerId: playerId,
             playerName: playerName,
+            competitionDetails: competitionDetails,
           ),
         ),
       );
@@ -760,6 +808,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   competitionId: game.competitionId,
                   playerId: playerId,
                   playerName: playerName,
+                  competitionDetails: competitionDetails,
                 ),
               ),
             );
