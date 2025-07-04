@@ -427,6 +427,102 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'x{multiplier}'**
   String multiplier(int multiplier);
+
+  /// Notification button text
+  ///
+  /// In en, this message translates to:
+  /// **'Notify Me'**
+  String get notifyMe;
+
+  /// Language switcher section title
+  ///
+  /// In en, this message translates to:
+  /// **'Language Switcher'**
+  String get languageSwitcher;
+
+  /// Auth screen examples section title
+  ///
+  /// In en, this message translates to:
+  /// **'Auth Screen Examples'**
+  String get authScreenExamples;
+
+  /// Form fields examples section title
+  ///
+  /// In en, this message translates to:
+  /// **'Form Fields Examples'**
+  String get formFieldsExamples;
+
+  /// Game UI examples section title
+  ///
+  /// In en, this message translates to:
+  /// **'Game UI Examples'**
+  String get gameUIExamples;
+
+  /// Status messages examples section title
+  ///
+  /// In en, this message translates to:
+  /// **'Status Messages Examples'**
+  String get statusMessagesExamples;
+
+  /// Action buttons section title
+  ///
+  /// In en, this message translates to:
+  /// **'Action Buttons'**
+  String get actionButtons;
+
+  /// Slogan label
+  ///
+  /// In en, this message translates to:
+  /// **'Slogan'**
+  String get slogan;
+
+  /// Buttons label
+  ///
+  /// In en, this message translates to:
+  /// **'Buttons'**
+  String get buttons;
+
+  /// Welcome message label
+  ///
+  /// In en, this message translates to:
+  /// **'Welcome Message'**
+  String get welcomeMessage;
+
+  /// Time units label
+  ///
+  /// In en, this message translates to:
+  /// **'Time Units'**
+  String get timeUnits;
+
+  /// Level display label
+  ///
+  /// In en, this message translates to:
+  /// **'Level Display'**
+  String get levelDisplay;
+
+  /// Score display label
+  ///
+  /// In en, this message translates to:
+  /// **'Score Display'**
+  String get scoreDisplay;
+
+  /// Success messages label
+  ///
+  /// In en, this message translates to:
+  /// **'Success Messages'**
+  String get successMessages;
+
+  /// Error messages label
+  ///
+  /// In en, this message translates to:
+  /// **'Error Messages'**
+  String get errorMessages;
+
+  /// Game instructions label
+  ///
+  /// In en, this message translates to:
+  /// **'Game Instructions'**
+  String get gameInstructions;
 }
 
 class _AppLocalizationsDelegate

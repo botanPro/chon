@@ -30,7 +30,7 @@ class LocalizationDemoScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Language Switcher',
+                        AppLocalizations.of(context)!.languageSwitcher,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -54,7 +54,7 @@ class LocalizationDemoScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Auth Screen Examples',
+                        AppLocalizations.of(context)!.authScreenExamples,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -63,17 +63,17 @@ class LocalizationDemoScreen extends StatelessWidget {
                       const SizedBox(height: 16),
                       _buildTranslationExample(
                         context,
-                        'Slogan',
+                        AppLocalizations.of(context)!.slogan,
                         '${AppLocalizations.of(context)!.compete} • ${AppLocalizations.of(context)!.win} • ${AppLocalizations.of(context)!.earn}',
                       ),
                       _buildTranslationExample(
                         context,
-                        'Buttons',
+                        AppLocalizations.of(context)!.buttons,
                         '${AppLocalizations.of(context)!.signUp} / ${AppLocalizations.of(context)!.signIn}',
                       ),
                       _buildTranslationExample(
                         context,
-                        'Welcome Message',
+                        AppLocalizations.of(context)!.welcomeMessage,
                         AppLocalizations.of(context)!.welcomeToOurGameArea,
                       ),
                     ],
@@ -92,7 +92,7 @@ class LocalizationDemoScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Form Fields Examples',
+                        AppLocalizations.of(context)!.formFieldsExamples,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -130,7 +130,7 @@ class LocalizationDemoScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Game UI Examples',
+                        AppLocalizations.of(context)!.gameUIExamples,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -139,17 +139,17 @@ class LocalizationDemoScreen extends StatelessWidget {
                       const SizedBox(height: 16),
                       _buildTranslationExample(
                         context,
-                        'Time Units',
+                        AppLocalizations.of(context)!.timeUnits,
                         '${AppLocalizations.of(context)!.days} • ${AppLocalizations.of(context)!.hours} • ${AppLocalizations.of(context)!.minutes} • ${AppLocalizations.of(context)!.seconds}',
                       ),
                       _buildTranslationExample(
                         context,
-                        'Level Display',
+                        AppLocalizations.of(context)!.levelDisplay,
                         AppLocalizations.of(context)!.level(5),
                       ),
                       _buildTranslationExample(
                         context,
-                        'Score Display',
+                        AppLocalizations.of(context)!.scoreDisplay,
                         AppLocalizations.of(context)!.score(1250),
                       ),
                     ],
@@ -168,7 +168,7 @@ class LocalizationDemoScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Status Messages Examples',
+                        AppLocalizations.of(context)!.statusMessagesExamples,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
@@ -177,17 +177,17 @@ class LocalizationDemoScreen extends StatelessWidget {
                       const SizedBox(height: 16),
                       _buildTranslationExample(
                         context,
-                        'Success Messages',
+                        AppLocalizations.of(context)!.successMessages,
                         '${AppLocalizations.of(context)!.success} • ${AppLocalizations.of(context)!.otpSent}',
                       ),
                       _buildTranslationExample(
                         context,
-                        'Error Messages',
+                        AppLocalizations.of(context)!.errorMessages,
                         '${AppLocalizations.of(context)!.error} • ${AppLocalizations.of(context)!.signUpFailed}',
                       ),
                       _buildTranslationExample(
                         context,
-                        'Game Instructions',
+                        AppLocalizations.of(context)!.gameInstructions,
                         '${AppLocalizations.of(context)!.watchPattern} • ${AppLocalizations.of(context)!.repeatPattern}',
                       ),
                     ],
@@ -206,7 +206,7 @@ class LocalizationDemoScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Action Buttons',
+                        AppLocalizations.of(context)!.actionButtons,
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,

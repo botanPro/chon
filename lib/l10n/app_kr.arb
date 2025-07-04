@@ -298,5 +298,85 @@
         "example": "2"
       }
     }
+  },
+
+  "notifyMe": "ئاگادارم بکەرەوە",
+  "@notifyMe": {
+    "description": "Notification button text"
+  },
+
+  "languageSwitcher": "گۆڕینی زمان",
+  "@languageSwitcher": {
+    "description": "Language switcher section title"
+  },
+
+  "authScreenExamples": "نموونەی شاشەی پشتڕاستکردنەوە",
+  "@authScreenExamples": {
+    "description": "Auth screen examples section title"
+  },
+
+  "formFieldsExamples": "نموونەی بۆشاییەکانی فۆرم",
+  "@formFieldsExamples": {
+    "description": "Form fields examples section title"
+  },
+
+  "gameUIExamples": "نموونەی ڕووکاری یاری",
+  "@gameUIExamples": {
+    "description": "Game UI examples section title"
+  },
+
+  "statusMessagesExamples": "نموونەی پەیامەکانی دۆخ",
+  "@statusMessagesExamples": {
+    "description": "Status messages examples section title"
+  },
+
+  "actionButtons": "دووگمەکانی کردار",
+  "@actionButtons": {
+    "description": "Action buttons section title"
+  },
+
+  "slogan": "شیعار",
+  "@slogan": {
+    "description": "Slogan label"
+  },
+
+  "buttons": "دووگمەکان",
+  "@buttons": {
+    "description": "Buttons label"
+  },
+
+  "welcomeMessage": "پەیامی بەخێرهاتن",
+  "@welcomeMessage": {
+    "description": "Welcome message label"
+  },
+
+  "timeUnits": "یەکەکانی کات",
+  "@timeUnits": {
+    "description": "Time units label"
+  },
+
+  "levelDisplay": "پیشاندانی ئاست",
+  "@levelDisplay": {
+    "description": "Level display label"
+  },
+
+  "scoreDisplay": "پیشاندانی نمرە",
+  "@scoreDisplay": {
+    "description": "Score display label"
+  },
+
+  "successMessages": "پەیامەکانی سەرکەوتن",
+  "@successMessages": {
+    "description": "Success messages label"
+  },
+
+  "errorMessages": "پەیامەکانی هەڵە",
+  "@errorMessages": {
+    "description": "Error messages label"
+  },
+
+  "gameInstructions": "ڕێنماییەکانی یاری",
+  "@gameInstructions": {
+    "description": "Game instructions label"
   }
 } 

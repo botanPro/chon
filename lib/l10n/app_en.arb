@@ -298,5 +298,85 @@
         "example": "2"
       }
     }
+  },
+
+  "notifyMe": "Notify Me",
+  "@notifyMe": {
+    "description": "Notification button text"
+  },
+
+  "languageSwitcher": "Language Switcher",
+  "@languageSwitcher": {
+    "description": "Language switcher section title"
+  },
+
+  "authScreenExamples": "Auth Screen Examples",
+  "@authScreenExamples": {
+    "description": "Auth screen examples section title"
+  },
+
+  "formFieldsExamples": "Form Fields Examples",
+  "@formFieldsExamples": {
+    "description": "Form fields examples section title"
+  },
+
+  "gameUIExamples": "Game UI Examples",
+  "@gameUIExamples": {
+    "description": "Game UI examples section title"
+  },
+
+  "statusMessagesExamples": "Status Messages Examples",
+  "@statusMessagesExamples": {
+    "description": "Status messages examples section title"
+  },
+
+  "actionButtons": "Action Buttons",
+  "@actionButtons": {
+    "description": "Action buttons section title"
+  },
+
+  "slogan": "Slogan",
+  "@slogan": {
+    "description": "Slogan label"
+  },
+
+  "buttons": "Buttons",
+  "@buttons": {
+    "description": "Buttons label"
+  },
+
+  "welcomeMessage": "Welcome Message",
+  "@welcomeMessage": {
+    "description": "Welcome message label"
+  },
+
+  "timeUnits": "Time Units",
+  "@timeUnits": {
+    "description": "Time units label"
+  },
+
+  "levelDisplay": "Level Display",
+  "@levelDisplay": {
+    "description": "Level display label"
+  },
+
+  "scoreDisplay": "Score Display",
+  "@scoreDisplay": {
+    "description": "Score display label"
+  },
+
+  "successMessages": "Success Messages",
+  "@successMessages": {
+    "description": "Success messages label"
+  },
+
+  "errorMessages": "Error Messages",
+  "@errorMessages": {
+    "description": "Error messages label"
+  },
+
+  "gameInstructions": "Game Instructions",
+  "@gameInstructions": {
+    "description": "Game instructions label"
   }
 } 
