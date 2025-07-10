@@ -459,7 +459,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                               onPressed: () {},
                               icon: const Icon(Icons.notifications_outlined,
                                   size: 16), // Reduced icon size
-                              label: const Text('Notify Me',
+                              label: Text(
+                                  AppLocalizations.of(context)!.notifyMe,
                                   style: TextStyle(
                                       fontSize: 14)), // Reduced font size
                               style: ElevatedButton.styleFrom(

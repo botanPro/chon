@@ -185,4 +185,52 @@ class AppLocalizationsKr extends AppLocalizations {
   String multiplier(int multiplier) {
     return 'x$multiplier';
   }
+
+  @override
+  String get notifyMe => 'ئاگادارم بکەرەوە';
+
+  @override
+  String get languageSwitcher => 'گۆڕینی زمان';
+
+  @override
+  String get authScreenExamples => 'نموونەی شاشەی پشتڕاستکردنەوە';
+
+  @override
+  String get formFieldsExamples => 'نموونەی بۆشاییەکانی فۆرم';
+
+  @override
+  String get gameUIExamples => 'نموونەی ڕووکاری یاری';
+
+  @override
+  String get statusMessagesExamples => 'نموونەی پەیامەکانی دۆخ';
+
+  @override
+  String get actionButtons => 'دووگمەکانی کردار';
+
+  @override
+  String get slogan => 'شیعار';
+
+  @override
+  String get buttons => 'دووگمەکان';
+
+  @override
+  String get welcomeMessage => 'پەیامی بەخێرهاتن';
+
+  @override
+  String get timeUnits => 'یەکەکانی کات';
+
+  @override
+  String get levelDisplay => 'پیشاندانی ئاست';
+
+  @override
+  String get scoreDisplay => 'پیشاندانی نمرە';
+
+  @override
+  String get successMessages => 'پەیامەکانی سەرکەوتن';
+
+  @override
+  String get errorMessages => 'پەیامەکانی هەڵە';
+
+  @override
+  String get gameInstructions => 'ڕێنماییەکانی یاری';
 }

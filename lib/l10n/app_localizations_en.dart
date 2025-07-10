@@ -185,4 +185,52 @@ class AppLocalizationsEn extends AppLocalizations {
   String multiplier(int multiplier) {
     return 'x$multiplier';
   }
+
+  @override
+  String get notifyMe => 'Notify Me';
+
+  @override
+  String get languageSwitcher => 'Language Switcher';
+
+  @override
+  String get authScreenExamples => 'Auth Screen Examples';
+
+  @override
+  String get formFieldsExamples => 'Form Fields Examples';
+
+  @override
+  String get gameUIExamples => 'Game UI Examples';
+
+  @override
+  String get statusMessagesExamples => 'Status Messages Examples';
+
+  @override
+  String get actionButtons => 'Action Buttons';
+
+  @override
+  String get slogan => 'Slogan';
+
+  @override
+  String get buttons => 'Buttons';
+
+  @override
+  String get welcomeMessage => 'Welcome Message';
+
+  @override
+  String get timeUnits => 'Time Units';
+
+  @override
+  String get levelDisplay => 'Level Display';
+
+  @override
+  String get scoreDisplay => 'Score Display';
+
+  @override
+  String get successMessages => 'Success Messages';
+
+  @override
+  String get errorMessages => 'Error Messages';
+
+  @override
+  String get gameInstructions => 'Game Instructions';
 }

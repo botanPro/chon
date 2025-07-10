@@ -919,12 +919,12 @@ class _SignUpDrawerState extends State<SignUpDrawer>
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Error'),
+            title: Text(AppLocalizations.of(context)!.error),
             content: Text(errorMsg),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
+                child: Text(AppLocalizations.of(context)!.ok),
               ),
             ],
           ),
@@ -935,12 +935,12 @@ class _SignUpDrawerState extends State<SignUpDrawer>
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Network or App Error'),
+          title: Text(AppLocalizations.of(context)!.networkError),
           content: Text(e.toString()),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
+              child: Text(AppLocalizations.of(context)!.ok),
             ),
           ],
         ),
@@ -1027,12 +1027,12 @@ class _SignUpDrawerState extends State<SignUpDrawer>
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Error'),
+            title: Text(AppLocalizations.of(context)!.error),
             content: Text(errorMsg),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('OK'),
+                child: Text(AppLocalizations.of(context)!.ok),
               ),
             ],
           ),
@@ -1043,12 +1043,12 @@ class _SignUpDrawerState extends State<SignUpDrawer>
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('Network or App Error'),
+          title: Text(AppLocalizations.of(context)!.networkError),
           content: Text(e.toString()),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
+              child: Text(AppLocalizations.of(context)!.ok),
             ),
           ],
         ),
