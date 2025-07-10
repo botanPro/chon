@@ -153,6 +153,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     try {
       final authService = Provider.of<AuthService>(context, listen: false);
       final token = authService.token ?? '';
+
       final response = await http.get(
         Uri.parse('$apiUrl/api/competitions'),
         headers: {
@@ -160,35 +161,106 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           'Content-Type': 'application/json',
         },
       );
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final competitions = data['data'] ?? [];
-        setState(() {
-          _competitions = competitions;
-        });
+
+      final data = json.decode(response.body);
+      print('Competitions API response: $data');
+      List competitions = [];
+      if (data['data'] is List) {
+        competitions = data['data'];
       } else {
-        print('Failed to load competitions: \\${response.statusCode}');
+        print('Unexpected competitions structure: \\${data['data']}');
       }
+      setState(() {
+        _competitions = competitions;
+      });
+      print('Loaded \\${competitions.length} competitions');
     } catch (e) {
       print('Error fetching competitions: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to load competitions: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
   Future<Map<String, dynamic>?> fetchCompetitionDetails(
       String competitionId, String token) async {
-    final response = await http.get(
-      Uri.parse('$apiUrl/api/competitions/$competitionId'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-    );
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data['data'];
-    } else {
-      print('Failed to load competition details: \\${response.statusCode}');
+    try {
+      final response = await http.get(
+        Uri.parse('$apiUrl/api/competitions/$competitionId'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] && data['data'] != null) {
+          return data['data'];
+        } else {
+          print('Failed to load competition details: ${data['message']}');
+          return null;
+        }
+      } else {
+        print('Failed to load competition details: ${response.statusCode}');
+        print('Response body: ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Error fetching competition details: $e');
       return null;
+    }
+  }
+
+  Future<bool> joinCompetition(String competitionId, String token) async {
+    try {
+      print('Joining competition: $competitionId');
+
+      final response = await http.post(
+        Uri.parse('$apiUrl/api/competitions/$competitionId/join'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      print(
+          'Join competition response: \\${response.statusCode} \\${response.body}');
+      final data = json.decode(response.body);
+
+      if (response.statusCode == 200 && data['success']) {
+        print('Successfully joined competition');
+        return true;
+      } else if (response.statusCode == 400 &&
+          data['message']
+                  ?.toString()
+                  .toLowerCase()
+                  .contains('already registered') ==
+              true) {
+        print('Player already registered for this competition');
+        return true; // Consider this a success since player can proceed
+      } else {
+        print('Failed to join competition: \\${data['message']}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to join competition: \\${data['message']}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return false;
+      }
+    } catch (e) {
+      print('Error joining competition: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to join competition: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return false;
     }
   }
 
@@ -196,16 +268,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final games = (_competitions ?? [])
         .map((comp) => Game(
-              competitionId: comp['id'] ?? '',
+              competitionId: comp['id']?.toString() ?? '',
               title: comp['name'] ?? 'Unknown',
-              description: '',
+              description: comp['description'] ?? '',
               icon: Icons.gamepad,
               prize: '',
               prizeValue: comp['entry_fee'] is num
                   ? comp['entry_fee'].toDouble()
-                  : double.tryParse(comp['entry_fee'].toString()) ?? 0.0,
+                  : double.tryParse(comp['entry_fee']?.toString() ?? '') ?? 0.0,
               rating: 0.0,
-              startTime: comp['startTime'] ?? comp['start_time'],
+              startTime: comp['start_time'],
+              // Add additional competition data
+              status: comp['status'] ?? 'unknown',
+              currentPlayers: comp['current_players'] ?? 0,
+              maxPlayers: comp['max_players'] ?? 0,
+              isRegistered: comp['is_registered'] ?? false,
             ))
         .toList();
 
@@ -492,6 +569,64 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
+                                        const SizedBox(height: 4),
+                                        // Competition status and player count
+                                        Row(
+                                          children: [
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 6,
+                                                      vertical: 2),
+                                              decoration: BoxDecoration(
+                                                color: _getStatusColor(
+                                                    game.status),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Text(
+                                                game.status.toUpperCase(),
+                                                style: const TextStyle(
+                                                  color: Colors.white,
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              '${game.currentPlayers}/${game.maxPlayers}',
+                                              style: const TextStyle(
+                                                color: Colors.white70,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        if (game.isRegistered) ...[
+                                          const SizedBox(height: 4),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 6, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  Colors.green.withOpacity(0.2),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              border: Border.all(
+                                                  color: Colors.green,
+                                                  width: 1),
+                                            ),
+                                            child: const Text(
+                                              '✓ REGISTERED',
+                                              style: TextStyle(
+                                                color: Colors.green,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                         if (game.startTime != null &&
                                             game.startTime!.isNotEmpty)
                                           GameCountdownTimer(
@@ -772,49 +907,86 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       Game game,
       String playerId,
       String playerName,
-      Map<String, dynamic> competitionDetails) {
-    if (game.startTime == null) {
-      // Fallback: start immediately if no startTime
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => TriviaGameScreen(
-            competitionId: game.competitionId,
-            playerId: playerId,
-            playerName: playerName,
-            competitionDetails: competitionDetails,
-          ),
-        ),
-      );
+      Map<String, dynamic> competitionDetails) async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final token = authService.token ?? '';
+
+    // First, join the competition
+    final joined = await joinCompetition(game.competitionId, token);
+    if (!joined) {
+      print('Failed to join competition, cannot proceed to game');
       return;
     }
-    final startTime = DateTime.parse(game.startTime!).toUtc();
-    final now = DateTime.now().toUtc();
-    int seconds = startTime.difference(now).inSeconds;
-    if (seconds < 0) seconds = 0;
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return CountdownDialog(
-          seconds: seconds,
-          onCountdownComplete: () {
-            Navigator.of(context).pop(); // Close the dialog
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => TriviaGameScreen(
-                  competitionId: game.competitionId,
-                  playerId: playerId,
-                  playerName: playerName,
-                  competitionDetails: competitionDetails,
-                ),
-              ),
-            );
-          },
-        );
-      },
+    // Check if competition has started by checking the start time
+    final startTime = game.startTime;
+    print('[DEBUG] Home screen - checking competition start time: $startTime');
+
+    if (startTime != null) {
+      try {
+        final startDateTime = DateTime.parse(startTime);
+        final now = DateTime.now();
+        final timeUntilStart = startDateTime.difference(now).inSeconds;
+
+        print('[DEBUG] Home screen - start datetime: $startDateTime');
+        print('[DEBUG] Home screen - current time: $now');
+        print(
+            '[DEBUG] Home screen - time until start: $timeUntilStart seconds');
+
+        if (timeUntilStart > 0) {
+          // Competition hasn't started yet - show countdown dialog
+          print(
+              '[DEBUG] Home screen - competition has not started yet. Showing countdown dialog for $timeUntilStart seconds');
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => CountdownDialog(
+              seconds: timeUntilStart,
+              onCountdownComplete: () {
+                print(
+                    '[DEBUG] Home screen - countdown completed, navigating to game');
+                Navigator.of(context).pop(); // Close countdown dialog
+                // Now navigate to the game since competition has started
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => TriviaGameScreen(
+                      competitionId: game.competitionId,
+                      playerId: playerId,
+                      playerName: playerName,
+                      competitionDetails: competitionDetails,
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+          return;
+        } else {
+          print(
+              '[DEBUG] Home screen - competition has already started or is starting now');
+        }
+      } catch (e) {
+        print('Error parsing competition start time: $e');
+        // If there's an error parsing the time, proceed to game as fallback
+      }
+    } else {
+      print(
+          '[DEBUG] Home screen - no start time specified for competition - proceeding immediately');
+    }
+
+    // Competition has started or no start time specified - proceed to game
+    print('[DEBUG] Home screen - navigating directly to game');
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TriviaGameScreen(
+          competitionId: game.competitionId,
+          playerId: playerId,
+          playerName: playerName,
+          competitionDetails: competitionDetails,
+        ),
+      ),
     );
   }
 
@@ -824,6 +996,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       return '${dt.year}-${dt.month.toString().padLeft(2, '0')}-${dt.day.toString().padLeft(2, '0')} ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
     } catch (_) {
       return isoString;
+    }
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+        return Colors.orange;
+      case 'active':
+        return Colors.blue;
+      case 'completed':
+        return Colors.grey;
+      case 'cancelled':
+        return Colors.red;
+      default:
+        return Colors.grey;
     }
   }
 }

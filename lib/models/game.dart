@@ -29,6 +29,18 @@ class Game {
   /// The UTC start time of the competition (nullable)
   final String? startTime;
 
+  /// The status of the competition (e.g., 'open', 'upcoming', 'active', 'finished')
+  final String status;
+
+  /// The current number of players in the competition
+  final int currentPlayers;
+
+  /// The maximum number of players allowed in the competition
+  final int maxPlayers;
+
+  /// Whether the current user is registered for this competition
+  final bool isRegistered;
+
   /// Creates a new Game instance.
   ///
   /// [title] and [description] provide text information about the game.
@@ -45,6 +57,10 @@ class Game {
     required this.prizeValue,
     this.rating = 0.0,
     this.startTime,
+    this.status = 'unknown',
+    this.currentPlayers = 0,
+    this.maxPlayers = 0,
+    this.isRegistered = false,
   });
 
   /// Creates a copy of this Game with the given fields replaced with new values.
@@ -57,6 +73,10 @@ class Game {
     double? prizeValue,
     double? rating,
     String? startTime,
+    String? status,
+    int? currentPlayers,
+    int? maxPlayers,
+    bool? isRegistered,
   }) {
     return Game(
       competitionId: competitionId ?? this.competitionId,
@@ -67,11 +87,15 @@ class Game {
       prizeValue: prizeValue ?? this.prizeValue,
       rating: rating ?? this.rating,
       startTime: startTime ?? this.startTime,
+      status: status ?? this.status,
+      currentPlayers: currentPlayers ?? this.currentPlayers,
+      maxPlayers: maxPlayers ?? this.maxPlayers,
+      isRegistered: isRegistered ?? this.isRegistered,
     );
   }
 
   @override
   String toString() {
-    return 'Game{competitionId: $competitionId, title: $title, prize: $prize, prizeValue: \$$prizeValue, rating: $rating, startTime: $startTime}';
+    return 'Game{competitionId: $competitionId, title: $title, prize: $prize, prizeValue: \$$prizeValue, rating: $rating, startTime: $startTime, status: $status, currentPlayers: $currentPlayers, maxPlayers: $maxPlayers, isRegistered: $isRegistered}';
   }
 }

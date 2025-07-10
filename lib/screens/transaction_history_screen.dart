@@ -4,99 +4,42 @@ import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
 import 'package:intl/intl.dart';
 
-class TransactionHistoryScreen extends StatelessWidget {
+class TransactionHistoryScreen extends StatefulWidget {
   const TransactionHistoryScreen({super.key});
+
+  @override
+  State<TransactionHistoryScreen> createState() =>
+      _TransactionHistoryScreenState();
+}
+
+class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
+  bool _loading = true;
+  bool _apiSuccess = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchLeaderboard();
+  }
+
+  Future<void> _fetchLeaderboard() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final success = await authService.fetchLastCompetitionLeaderboard();
+    setState(() {
+      _loading = false;
+      _apiSuccess = success;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final authService = context.watch<AuthService>();
+    final leaderboard = authService.lastCompetitionLeaderboard;
     final gameHistory = authService.gameHistory;
 
-    // Create dummy data for the history screen based on the reference image
-    final historyItems = [
-      {
-        'name': 'Bashdar',
-        'lastName': 'Hakim',
-        'phone': '+964 750 000 0000',
-        'position': 'Top 1',
-        'date': '13 May 2026',
-        'isUser': false,
-        'badge': '',
-      },
-      {
-        'name': 'You',
-        'lastName': '',
-        'phone': '+964 750 000 0000',
-        'position': 'Top 3',
-        'date': '',
-        'isUser': true,
-        'badge': 'MG 5 Silver',
-      },
-      {
-        'name': 'Bashdar',
-        'lastName': 'Hakim',
-        'phone': '+964 750 000 0000',
-        'position': 'Top 3',
-        'date': '13 May 2026',
-        'isUser': false,
-        'badge': '',
-      },
-      {
-        'name': 'Bashdar',
-        'lastName': 'Hakim',
-        'phone': '+964 750 000 0000',
-        'position': 'Top 4',
-        'date': '13 May 2026',
-        'isUser': false,
-        'badge': '',
-      },
-      {
-        'name': 'Bashdar',
-        'lastName': 'Hakim',
-        'phone': '+964 750 000 0000',
-        'position': 'Top 5',
-        'date': '13 May 2026',
-        'isUser': false,
-        'badge': '',
-      },
-      {
-        'name': 'Bashdar',
-        'lastName': 'Hakim',
-        'phone': '+964 750 000 0000',
-        'position': 'Top 6',
-        'date': '13 May 2026',
-        'isUser': false,
-        'badge': '',
-      },
-      {
-        'name': 'Bashdar',
-        'lastName': 'Hakim',
-        'phone': '+964 750 000 0000',
-        'position': 'Top 7',
-        'date': '13 May 2026',
-        'isUser': false,
-        'badge': '',
-      },
-      {
-        'name': 'Bashdar',
-        'lastName': 'Hakim',
-        'phone': '+964 750 000 0000',
-        'position': 'Top 8',
-        'date': '13 May 2026',
-        'isUser': false,
-        'badge': '',
-      },
-      {
-        'name': 'Bashdar',
-        'lastName': 'Hakim',
-        'phone': '+964 750 000 0000',
-        'position': 'Top 9',
-        'date': '13 May 2026',
-        'isUser': false,
-        'badge': '',
-      },
-    ];
+    // Dummy data removed. Only use API data.
+    final showApiData = _apiSuccess && leaderboard != null;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -128,199 +71,431 @@ class TransactionHistoryScreen extends StatelessWidget {
           ),
         ),
         child: SafeArea(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            itemCount: historyItems.length,
-            itemBuilder: (context, index) {
-              final item = historyItems[index];
-              final bool isUser = item['isUser'] as bool;
-              final bool hasHighlight = isUser;
+          child: _loading
+              ? const Center(child: CircularProgressIndicator())
+              : showApiData
+                  ? _buildLeaderboardView(leaderboard)
+                  : _buildNoHistoryView(),
+        ),
+      ),
+    );
+  }
 
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: ClipRRect(
+  Widget _buildLeaderboardView(Map<String, dynamic> leaderboard) {
+    final top10 = leaderboard['top10'] as List<dynamic>? ?? [];
+    final currentPlayer = leaderboard['player'] as Map<String, dynamic>?;
+
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: top10.length,
+      itemBuilder: (context, index) {
+        final player = top10[index] as Map<String, dynamic>;
+        final position = index + 1;
+        final isTopThree = position <= 3;
+        final isCurrentPlayer = currentPlayer != null &&
+            player['player_id'] == currentPlayer['player_id'];
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(16),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(16),
-                        border: hasHighlight
-                            ? Border.all(
-                                color: const Color(0xFF94C1BA).withOpacity(0.5),
-                                width: 1)
-                            : Border.all(
-                                color: Colors.white.withOpacity(0.1),
-                                width: 0.5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 8,
-                            spreadRadius: -2,
+                  border: Border.all(
+                    color: isCurrentPlayer
+                        ? const Color(0xFF94C1BA).withOpacity(0.8)
+                        : isTopThree
+                            ? const Color(0xFF94C1BA).withOpacity(0.5)
+                            : const Color(0xFF94C1BA).withOpacity(0.3),
+                    width: isCurrentPlayer ? 2 : 1,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 8,
+                      spreadRadius: -2,
+                    ),
+                  ],
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withOpacity(0.05),
+                      Colors.white.withOpacity(0.02),
+                    ],
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      // Position badge
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: isCurrentPlayer
+                              ? const Color(0xFF94C1BA).withOpacity(0.3)
+                              : isTopThree
+                                  ? const Color(0xFF94C1BA).withOpacity(0.2)
+                                  : Colors.white.withOpacity(0.1),
+                          border: Border.all(
+                            color: const Color(0xFF94C1BA),
+                            width: 1,
                           ),
-                        ],
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            Colors.white.withOpacity(0.05),
-                            Colors.white.withOpacity(0.02),
-                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            '$position',
+                            style: TextStyle(
+                              color: isCurrentPlayer || isTopThree
+                                  ? const Color(0xFF94C1BA)
+                                  : Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            // Avatar
-                            Container(
-                              width: 48,
-                              height: 48,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
+
+                      const SizedBox(width: 12),
+
+                      // Avatar
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: const Color(0xFF00B894),
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF00B894).withOpacity(0.3),
+                              blurRadius: 8,
+                              spreadRadius: -2,
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: Image.asset(
+                            'assets/images/avatar.png',
+                            errorBuilder: (context, error, stackTrace) {
+                              return CircleAvatar(
+                                backgroundColor:
+                                    const Color(0xFF00B894).withOpacity(0.2),
+                                child: Icon(
+                                  Icons.person,
                                   color: const Color(0xFF00B894),
-                                  width: 2,
+                                  size: 24,
                                 ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF00B894)
-                                        .withOpacity(0.3),
-                                    blurRadius: 8,
-                                    spreadRadius: -2,
-                                  ),
-                                ],
-                              ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(24),
-                                child: Image.asset(
-                                  'assets/images/avatar.png',
-                                  errorBuilder: (context, error, stackTrace) {
-                                    return CircleAvatar(
-                                      backgroundColor: const Color(0xFF00B894)
-                                          .withOpacity(0.2),
-                                      child: Icon(
-                                        Icons.person,
-                                        color: const Color(0xFF00B894),
-                                        size: 24,
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
 
-                            const SizedBox(width: 12),
+                      const SizedBox(width: 12),
 
-                            // Name and phone
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        item['name'] as String,
-                                        style: TextStyle(
-                                          color: isUser
-                                              ? const Color(0xFF94C1BA)
-                                              : Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      if (item['lastName'] != '')
-                                        Text(
-                                          ' ${item['lastName']}',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 16,
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    item['phone'] as String,
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.5),
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            // Position and date
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
+                      // Name and competition
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
                               children: [
                                 Text(
-                                  item['position'] as String,
+                                  player['player_name'] ?? 'Player',
                                   style: TextStyle(
-                                    color: _getPositionColor(
-                                        item['position'] as String),
+                                    color: isCurrentPlayer
+                                        ? const Color(0xFF94C1BA)
+                                        : isTopThree
+                                            ? const Color(0xFF94C1BA)
+                                            : Colors.white,
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                if (item['date'] != '')
-                                  Text(
-                                    item['date'] as String,
-                                    style: TextStyle(
-                                      color: Colors.white.withOpacity(0.5),
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                if (item['badge'] != '')
+                                if (isCurrentPlayer) ...[
+                                  const SizedBox(width: 8),
                                   Container(
-                                    margin: const EdgeInsets.only(top: 4),
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 10, vertical: 4),
+                                        horizontal: 6, vertical: 2),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFF94C1BA)
                                           .withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
-                                        color: const Color(0xFF94C1BA)
-                                            .withOpacity(0.3),
-                                        width: 0.5,
+                                        color: const Color(0xFF94C1BA),
+                                        width: 1,
                                       ),
                                     ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.military_tech,
-                                          color: Color(0xFF94C1BA),
-                                          size: 12,
-                                        ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          item['badge'] as String,
-                                          style: const TextStyle(
-                                            color: Color(0xFF94C1BA),
-                                            fontSize: 12,
-                                          ),
-                                        ),
-                                      ],
+                                    child: const Text(
+                                      'YOU',
+                                      style: TextStyle(
+                                        color: Color(0xFF94C1BA),
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
+                                ],
                               ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              player['competition_name'] ?? 'Competition',
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.5),
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                    ),
+
+                      // Score and rank
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            'Score: ${player['score'] ?? 'N/A'}',
+                            style: TextStyle(
+                              color: isCurrentPlayer || isTopThree
+                                  ? const Color(0xFF94C1BA)
+                                  : Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Rank: ${player['rank'] ?? 'N/A'}',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.5),
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-              );
-            },
+              ),
+            ),
           ),
+        );
+      },
+    );
+  }
+
+  Widget _buildNoHistoryView() {
+    return Center(
+      child: Text(
+        'No history found.',
+        style: TextStyle(
+          color: Colors.white.withOpacity(0.7),
+          fontSize: 18,
         ),
       ),
+    );
+  }
+
+  Widget _buildDummyHistoryView(List<Map<String, dynamic>> historyItems) {
+    return ListView.builder(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      itemCount: historyItems.length,
+      itemBuilder: (context, index) {
+        final item = historyItems[index];
+        final bool isUser = item['isUser'] as bool;
+        final bool hasHighlight = isUser;
+
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(16),
+                  border: hasHighlight
+                      ? Border.all(
+                          color: const Color(0xFF94C1BA).withOpacity(0.5),
+                          width: 1)
+                      : Border.all(
+                          color: Colors.white.withOpacity(0.1), width: 0.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 8,
+                      spreadRadius: -2,
+                    ),
+                  ],
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Colors.white.withOpacity(0.05),
+                      Colors.white.withOpacity(0.02),
+                    ],
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      // Avatar
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: const Color(0xFF00B894),
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF00B894).withOpacity(0.3),
+                              blurRadius: 8,
+                              spreadRadius: -2,
+                            ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(24),
+                          child: Image.asset(
+                            'assets/images/avatar.png',
+                            errorBuilder: (context, error, stackTrace) {
+                              return CircleAvatar(
+                                backgroundColor:
+                                    const Color(0xFF00B894).withOpacity(0.2),
+                                child: Icon(
+                                  Icons.person,
+                                  color: const Color(0xFF00B894),
+                                  size: 24,
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      // Name and phone
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  item['name'] as String,
+                                  style: TextStyle(
+                                    color: isUser
+                                        ? const Color(0xFF94C1BA)
+                                        : Colors.white,
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                if (item['lastName'] != '')
+                                  Text(
+                                    ' ${item['lastName']}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              item['phone'] as String,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.5),
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Position and date
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            item['position'] as String,
+                            style: TextStyle(
+                              color:
+                                  _getPositionColor(item['position'] as String),
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          if (item['date'] != '')
+                            Text(
+                              item['date'] as String,
+                              style: TextStyle(
+                                color: Colors.white.withOpacity(0.5),
+                                fontSize: 12,
+                              ),
+                            ),
+                          if (item['badge'] != '')
+                            Container(
+                              margin: const EdgeInsets.only(top: 4),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF94C1BA).withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color:
+                                      const Color(0xFF94C1BA).withOpacity(0.3),
+                                  width: 0.5,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.military_tech,
+                                    color: Color(0xFF94C1BA),
+                                    size: 12,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    item['badge'] as String,
+                                    style: const TextStyle(
+                                      color: Color(0xFF94C1BA),
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 

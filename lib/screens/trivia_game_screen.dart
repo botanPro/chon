@@ -6,6 +6,7 @@ import '../services/auth_service.dart';
 import '../services/trivia_socket_service.dart';
 import 'dart:convert';
 import '../utils/apiConnection.dart';
+import 'package:http/http.dart' as http;
 
 class TriviaGameScreen extends StatefulWidget {
   final String competitionId;
@@ -208,6 +209,20 @@ class ConfettiPainter extends CustomPainter {
       oldDelegate.animationValue != animationValue;
 }
 
+// ---
+// FLOW (matches HTML/Node backend):
+// 1. User joins competition via REST (handled in home_screen.dart)
+// 2. Connect to socket with JWT
+// 3. Emit 'joinCompetition' with {competitionId, playerName}
+// 4. Listen for:
+//    - 'competitionData' (questions)
+//    - 'leaderboardUpdate' (real-time)
+//    - 'winners' (game over)
+// 5. Emit:
+//    - 'submitAnswer' ({competitionId, questionId, answer})
+//    - 'finishGame' (competitionId)
+// ---
+
 class _TriviaGameScreenState extends State<TriviaGameScreen>
     with TickerProviderStateMixin {
   int _currentQuestionIndex = 0;
@@ -248,109 +263,214 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
   List<Map<String, dynamic>> _leaderboard = [];
   List<String> _playerJoins = [];
 
-  late TriviaSocketService _socketService;
   List<Map<String, dynamic>> _questions = [];
-  StreamSubscription<Map<String, dynamic>>? _wsSubscription;
+  bool _loadingQuestions = true;
+
+  // Socket service instance
+  late TriviaSocketService _socketService;
+
+  Map<String, dynamic>? _finalResults;
+  bool _loadingResults = false;
 
   @override
   void initState() {
     super.initState();
-    _initializeSocketConnection();
     _initializeAnimations();
-    // Timer will start after receiving the first question
-    _questionAnimationController.forward();
-    _optionsAnimationController.forward();
-    _backgroundAnimationController.repeat();
+    _checkCompetitionStartTime();
   }
 
-  /// Initializes the socket connection and registers event listeners.
-  void _initializeSocketConnection() {
-    // Create a fresh socket service instance
-    _socketService = TriviaSocketService();
-    // Find the token from AuthService
+  void _checkCompetitionStartTime() {
+    // Check if competition has started by checking the start time from competition details
+    final startTime = widget.competitionDetails['start_time'];
+    print('[DEBUG] Competition start time check: $startTime');
+
+    if (startTime != null) {
+      try {
+        final startDateTime = DateTime.parse(startTime);
+        final now = DateTime.now();
+        final timeUntilStart = startDateTime.difference(now).inSeconds;
+
+        print('[DEBUG] Start datetime: $startDateTime');
+        print('[DEBUG] Current time: $now');
+        print('[DEBUG] Time until start: $timeUntilStart seconds');
+
+        if (timeUntilStart > 0) {
+          // Competition hasn't started yet - show countdown and wait
+          print(
+              '[DEBUG] Competition has not started yet. Showing countdown for $timeUntilStart seconds');
+          setState(() {
+            _showPreGameCountdown = true;
+            _preGameCountdown = timeUntilStart;
+          });
+          _startPreGameCountdown();
+          return;
+        } else {
+          print('[DEBUG] Competition has already started or is starting now');
+        }
+      } catch (e) {
+        print('Error parsing competition start time: $e');
+        // If there's an error parsing the time, proceed as fallback
+      }
+    } else {
+      print(
+          '[DEBUG] No start time specified for competition - proceeding immediately');
+    }
+
+    // Competition has started or no start time specified - proceed with normal setup
+    print('[DEBUG] Setting up socket connection for competition');
+    _setupSocketConnection();
+  }
+
+  void _setupSocketConnection() {
     final authService = Provider.of<AuthService>(context, listen: false);
     final token = authService.token ?? '';
-    _socketService.connect(socketUrl, token);
+    _socketService = TriviaSocketService();
 
-    _socketService.socket.on('connect', (_) {
-      debugPrint(
-          'Connected to socket, joining competition: \\${widget.competitionId.toString()}');
-      _socketService.joinCompetition(
-        widget.competitionId.toString(),
-        playerId: widget.playerId.toString(),
-        playerName: widget.playerName,
-      );
-      _socketService.getCompetitionData(widget.competitionId.toString());
-    });
+    // Connect to socket with JWT token
+    print('[DEBUG] Connecting to socket with token: $token');
+    _socketService.connect('$socketUrl', token);
 
+    // Validate joinCompetition payload
+    final competitionIdRaw = widget.competitionId;
+    final playerName = widget.playerName;
+
+    final competitionId =
+        (competitionIdRaw != null && competitionIdRaw.toString().isNotEmpty)
+            ? (int.tryParse(competitionIdRaw) ?? competitionIdRaw)
+            : null;
+
+    print(
+        '[DEBUG] joinCompetition payload: {competitionId: $competitionId (${competitionId.runtimeType}), playerName: $playerName (${playerName.runtimeType})}');
+
+    if (competitionId == null || playerName == null || playerName.isEmpty) {
+      print(
+          '[DEBUG] Invalid joinCompetition payload: {competitionId: $competitionId, playerName: $playerName}');
+      return;
+    }
+
+    _socketService.joinCompetition(
+      competitionId.toString(),
+      playerName: playerName,
+    );
+
+    // Set up event listeners
     _socketService.onLeaderboardUpdate((data) {
-      if (!mounted) return;
-      debugPrint('Received leaderboard update: \\${data.toString()}');
-      setState(() {
-        _leaderboard = List<Map<String, dynamic>>.from(data);
-      });
+      print('[DEBUG] Received leaderboard event:');
+      print(data);
+      if (mounted && data is List && data.isNotEmpty) {
+        setState(() {
+          _leaderboard = List<Map<String, dynamic>>.from(data);
+        });
+      } else if (mounted) {
+        setState(() {
+          _leaderboard = [];
+        });
+      }
     });
 
     _socketService.onPlayerJoined((data) {
-      if (!mounted) return;
-      setState(() {
-        _playerJoins.add(data['socketId'] ?? '');
-      });
-    });
-
-    // Listen for winners event
-    _socketService.socket.on('winners', (data) {
-      if (!mounted) return;
-      debugPrint('Received winners: \\${data.toString()}');
-      setState(() {
-        _leaderboard = List<Map<String, dynamic>>.from(data);
-      });
-    });
-
-    // Request questions for this competition
-    _socketService.onCompetitionData((data) {
-      if (!mounted) return;
-      debugPrint('Received competition data: \\${data.toString()}');
-      if (data['questions'] != null && data['questions'] is List) {
-        // Parse startTime and serverTime
-        final startTimeStr = data['startTime'];
-        final serverTimeStr = data['serverTime'];
-        if (startTimeStr != null && serverTimeStr != null) {
-          final startTime = DateTime.parse(startTimeStr);
-          final serverTime = DateTime.parse(serverTimeStr);
-          final diff = startTime.difference(serverTime).inSeconds;
-          if (diff > 0) {
-            setState(() {
-              _preGameCountdown = diff;
-              _showPreGameCountdown = true;
-              _startTime = startTime;
-              _questions = List<Map<String, dynamic>>.from(data['questions']);
-              _currentQuestionIndex = 0;
-              _selectedAnswerIndex = -1;
-              _timeRemaining = 3;
-              _showGameOver = false;
-              _correctAnswers = 0;
-            });
-            _startPreGameCountdown();
-            return; // Don't start the game yet!
-          }
-        }
+      print('[DEBUG] Player joined event:');
+      print(data);
+      if (mounted) {
         setState(() {
-          _questions = List<Map<String, dynamic>>.from(data['questions']);
-          _currentQuestionIndex = 0;
-          _selectedAnswerIndex = -1;
-          _timeRemaining = 3;
-          _showGameOver = false;
-          _correctAnswers = 0;
+          _playerJoins.add(data['playerId'] ?? '');
         });
-        _questionAnimationController.reset();
-        _optionsAnimationController.reset();
+      }
+    });
+
+    _socketService.onWinners((data) {
+      print('[DEBUG] Winners event:');
+      print(data);
+      if (mounted) {
+        setState(() {
+          _showGameOver = true;
+          _leaderboard = List<Map<String, dynamic>>.from(data ?? []);
+        });
+        _gameOverAnimationController.forward();
+        if (_timer.isActive) _timer.cancel();
+      }
+    });
+
+    // Add answer submission confirmation listener
+    _socketService.onAnswerSubmitted((data) {
+      print('[DEBUG] Answer submitted confirmation event:');
+      print(data);
+      if (mounted) {
+        // You can add UI feedback here if needed
+      }
+    });
+
+    // Handle competition data (questions) from socket
+    _socketService.onCompetitionData((data) {
+      print('Competition data received: $data');
+      List<Map<String, dynamic>> questions = [];
+      if (data is Map<String, dynamic> && data['questions'] is List) {
+        try {
+          questions = List<Map<String, dynamic>>.from(data['questions']);
+        } catch (e) {
+          print('Error parsing questions: $e');
+          questions = [];
+        }
+      } else {
+        print('Invalid competition data format: $data');
+      }
+
+      setState(() {
+        _questions = questions;
+        _loadingQuestions = false;
+        _currentQuestionIndex = 0;
+        _selectedAnswerIndex = -1;
+        _showGameOver = false;
+        print('[DEBUG] _questions after setState: $_questions');
+      });
+
+      if (questions.isNotEmpty) {
         _questionAnimationController.forward();
         _optionsAnimationController.forward();
+        _backgroundAnimationController.repeat();
+        _timeRemaining = _questionDuration;
         _startTimer();
       } else {
-        // Optionally handle error: no questions received
-        debugPrint('No questions found in competition data');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No questions available for this competition'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+      }
+    });
+
+    _socketService.onError((error) {
+      print('Socket error in trivia game: $error');
+      if (mounted) {
+        // Show error message to user
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Connection error: ${error is Map ? error['message'] ?? 'Unknown error' : error.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    });
+
+    // Request competition data (questions) after a short delay to ensure connection
+    Timer(const Duration(milliseconds: 500), () {
+      if (mounted && _socketService.isConnected) {
+        print(
+            'Requesting competition data for  [38;5;28m${widget.competitionId} [0m');
+        _socketService.getCompetitionData(widget.competitionId);
+      }
+    });
+
+    // Retry getting competition data if not received within 3 seconds
+    Timer(const Duration(seconds: 3), () {
+      if (mounted && _loadingQuestions && _socketService.isConnected) {
+        print(
+            'Retrying competition data request for  [38;5;28m${widget.competitionId} [0m');
+        _socketService.getCompetitionData(widget.competitionId);
       }
     });
   }
@@ -493,8 +613,7 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
             _gameOverAnimationController.forward();
             _addGameResultToHistory();
             // Emit finishGame to get winners
-            _socketService.socket
-                .emit('finishGame', widget.competitionId.toString());
+            _socketService.finishGame(widget.competitionId);
           }
         });
       }
@@ -550,26 +669,53 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
   }
 
   void _submitAnswer(int answerIndex) {
+    if (_questions.isEmpty || _currentQuestionIndex >= _questions.length) {
+      print('[DEBUG] No valid question to submit answer for.');
+      return;
+    }
     final question = _questions[_currentQuestionIndex];
-    _socketService.submitAnswer(
-      competitionId: widget.competitionId.toString(),
-      playerId: widget.playerId.toString(),
-      questionId: (question['id'] is String
-          ? question['id']
-          : question['id'].toString()),
-      answer: answerIndex.toString(),
-    );
-    // Track correct answers locally for game result
     final options = question['options'] as List<dynamic>? ?? [];
+
+    // Only submit if answerIndex is valid
+    if (answerIndex < 0 || answerIndex >= options.length) {
+      print('[DEBUG] Invalid answer index: $answerIndex');
+      return;
+    }
+
+    final competitionId = int.tryParse(widget.competitionId);
+    final questionId = (question['id'] is int)
+        ? question['id'] as int
+        : int.tryParse(question['id'].toString());
+    final answer = answerIndex;
+
+    if (competitionId == null || questionId == null) {
+      print(
+          '[DEBUG] Invalid competitionId or questionId for answer submission.');
+      return;
+    }
+
+    final payload = {
+      'competitionId': competitionId,
+      'questionId': questionId,
+      'answer': answer,
+    };
+    print('[DEBUG] Submitting answer payload: $payload');
+
+    _socketService.submitAnswer(
+      competitionId: competitionId,
+      questionId: questionId,
+      answer: answer,
+    );
+
     int correctIndex = options.indexWhere(
         (opt) => (opt as Map<String, dynamic>)['is_correct'] == true);
     if (answerIndex == correctIndex) {
       _correctAnswers++;
     }
-    // Do NOT move to next question here; wait for timer to end
   }
 
   void _startPreGameCountdown() {
+    print('[DEBUG] Starting pre-game countdown for $_preGameCountdown seconds');
     _preGameTimer?.cancel();
     _preGameTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (!mounted) return;
@@ -577,26 +723,52 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
         setState(() {
           _preGameCountdown--;
         });
+        if (_preGameCountdown % 10 == 0) {
+          print(
+              '[DEBUG] Pre-game countdown: $_preGameCountdown seconds remaining');
+        }
       } else {
         timer.cancel();
+        print(
+            '[DEBUG] Pre-game countdown finished - competition is starting now!');
         setState(() {
           _showPreGameCountdown = false;
         });
-        // Now start the game as usual
-        setState(() {
-          _currentQuestionIndex = 0;
-          _selectedAnswerIndex = -1;
-          _timeRemaining = 3;
-          _showGameOver = false;
-          _correctAnswers = 0;
-        });
-        _questionAnimationController.reset();
-        _optionsAnimationController.reset();
-        _questionAnimationController.forward();
-        _optionsAnimationController.forward();
-        _startTimer();
+        // Competition has started - now setup socket connection and start the game
+        _setupSocketConnection();
       }
     });
+  }
+
+  void _showResultsAfterGame() async {
+    setState(() {
+      _loadingResults = true;
+    });
+    try {
+      final response = await http.get(
+        Uri.parse('$apiUrl/api/competitions/${widget.competitionId}/results'),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        setState(() {
+          _finalResults = data['data'] ?? {};
+          _loadingResults = false;
+        });
+      } else {
+        setState(() {
+          _loadingResults = false;
+        });
+        print('Failed to load results: ${response.body}');
+      }
+    } catch (e) {
+      setState(() {
+        _loadingResults = false;
+      });
+      print('Error fetching results: $e');
+    }
   }
 
   @override
@@ -665,7 +837,14 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
         extendBody: true,
         body: Stack(
           children: [
-            _showGameOver ? _buildWinnersScreen() : _buildGameScreen(),
+            if (_loadingQuestions)
+              Center(child: CircularProgressIndicator())
+            else if (_showGameOver)
+              _buildWinnersScreen()
+            else if (_questions.isEmpty)
+              Center(child: Text('No questions found.'))
+            else
+              _buildGameScreen(),
             if (_showPreGameCountdown) _buildPreGameCountdownOverlay(),
             // Show competition info at the top
             Positioned(
@@ -677,39 +856,40 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    if (widget.competitionDetails['name'] != null)
-                      Text(
-                        widget.competitionDetails['name'],
-                        style: const TextStyle(
-                          color: Color(0xFF96c3bc),
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    if (widget.competitionDetails['description'] != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4.0),
-                        child: Text(
-                          widget.competitionDetails['description'],
-                          style: const TextStyle(
-                            color: Colors.white70,
-                            fontSize: 14,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    if (widget.competitionDetails['entry_fee'] != null)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 2.0),
-                        child: Text(
-                          'Entry Fee: \$${widget.competitionDetails['entry_fee']}',
-                          style: const TextStyle(
-                            color: Color(0xFF96c3bc),
-                            fontSize: 13,
-                          ),
-                        ),
-                      ),
+                    // if (widget.competitionDetails['name'] != null)
+                    //   Text(
+                    //     widget.competitionDetails['name'],
+                    //     style: const TextStyle(
+                    //       color: Color(0xFF96c3bc),
+                    //       fontSize: 22,
+                    //       fontWeight: FontWeight.bold,
+                    //     ),
+                    //     textAlign: TextAlign.center,
+                    //   ),
+                    // Removed description and entry fee display to avoid extra text in question area
+                    // if (widget.competitionDetails['description'] != null)
+                    //   Padding(
+                    //     padding: const EdgeInsets.only(top: 4.0),
+                    //     child: Text(
+                    //       widget.competitionDetails['description'],
+                    //       style: const TextStyle(
+                    //         color: Colors.white70,
+                    //         fontSize: 14,
+                    //       ),
+                    //       textAlign: TextAlign.center,
+                    //     ),
+                    //   ),
+                    // if (widget.competitionDetails['entry_fee'] != null)
+                    //   Padding(
+                    //     padding: const EdgeInsets.only(top: 2.0),
+                    //     child: Text(
+                    //       'Entry Fee: \\$${widget.competitionDetails['entry_fee']}',
+                    //       style: const TextStyle(
+                    //         color: Color(0xFF96c3bc),
+                    //         fontSize: 13,
+                    //       ),
+                    //     ),
+                    //   ),
                   ],
                 ),
               ),
@@ -721,8 +901,15 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
   }
 
   Widget _buildGameScreen() {
-    if (_questions.isEmpty || _currentQuestionIndex >= _questions.length) {
+    print('[DEBUG] _questions in _buildGameScreen: $_questions');
+    print('[DEBUG] _currentQuestionIndex: $_currentQuestionIndex');
+    if (_loadingQuestions) {
       return Center(child: CircularProgressIndicator());
+    }
+    if (_questions.isEmpty || _currentQuestionIndex >= _questions.length) {
+      print(
+          '[DEBUG] No questions found or index out of range, showing leaderboard.');
+      return Center(child: Text('No questions found.'));
     }
     final question = _questions[_currentQuestionIndex];
 
@@ -762,7 +949,16 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
   }
 
   Widget _buildWinnersScreen() {
-    final winners = _leaderboard.take(10).toList();
+    // Use leaderboard from results API if available
+    final List<dynamic> leaderboardResults =
+        _finalResults != null && _finalResults!['leaderboard'] is List
+            ? _finalResults!['leaderboard']
+            : _leaderboard.take(10).toList();
+
+    // Call results API if not already loaded
+    if (_finalResults == null && !_loadingResults) {
+      _showResultsAfterGame();
+    }
 
     return Stack(
       fit: StackFit.expand,
@@ -833,6 +1029,47 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
                         ),
                       ),
                       const SizedBox(height: 4),
+                      if (_loadingResults)
+                        const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 8.0),
+                          child: CircularProgressIndicator(
+                              color: Color(0xFF96c3bc)),
+                        )
+                      else if (_finalResults != null)
+                        Column(
+                          children: [
+                            if (_finalResults!['playerResult'] != null) ...[
+                              Text(
+                                'Final Rank: ${_finalResults!['playerResult']['rank'] ?? '--'}',
+                                style: const TextStyle(
+                                  color: Color(0xFF96c3bc),
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                'Final Score: ${_finalResults!['playerResult']['score'] ?? '--'}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              if (_finalResults!['playerResult']['prize'] !=
+                                  null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: Text(
+                                    'Prize: ${_finalResults!['playerResult']['prize']['type'] == 'cash' ? '\$' + _finalResults!['playerResult']['prize']['value'].toString() : _finalResults!['playerResult']['prize']['details']}',
+                                    style: const TextStyle(
+                                      color: Color(0xFF94C1BA),
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ],
+                        ),
                       Text(
                         'Top Players',
                         style: TextStyle(
@@ -845,13 +1082,13 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
                 ),
               ),
 
-              // Players list
+              // Players list (from results API if available)
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
-                  itemCount: winners.length,
+                  itemCount: leaderboardResults.length,
                   itemBuilder: (context, index) {
-                    final player = winners[index];
+                    final player = leaderboardResults[index];
                     return Container(
                       margin: const EdgeInsets.only(bottom: 12),
                       padding: const EdgeInsets.all(16),
@@ -886,9 +1123,13 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
                           const SizedBox(width: 16),
                           Expanded(
                             child: Text(
-                              (player['nickname'] as String?) ?? 'Unknown',
+                              (player['nickname'] as String?) ??
+                                  player['player_name'] ??
+                                  'Unknown',
                               style: TextStyle(
-                                color: player['playerId'] == widget.playerId
+                                color: player['playerId'] == widget.playerId ||
+                                        player['player_id']?.toString() ==
+                                            widget.playerId
                                     ? Color(0xFF96c3bc)
                                     : Colors.white,
                                 fontSize: 16,
@@ -896,22 +1137,27 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
                               ),
                             ),
                           ),
-                          if (player['correctAnswers'] != null)
-                            Text(
-                              '${player['correctAnswers']}/${_questions.length} correct',
-                              style: const TextStyle(
-                                color: Color(0xFF96c3bc),
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            )
-                          else if (player['score'] != null)
+                          if (player['score'] != null)
                             Text(
                               '${player['score']} pts',
                               style: const TextStyle(
                                 color: Color(0xFF96c3bc),
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          if (player['prize'] != null)
+                            Padding(
+                              padding: const EdgeInsets.only(left: 8.0),
+                              child: Text(
+                                player['prize']['type'] == 'cash'
+                                    ? '\$' + player['prize']['value'].toString()
+                                    : player['prize']['details'] ?? '',
+                                style: const TextStyle(
+                                  color: Color(0xFF94C1BA),
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
                             ),
                         ],
@@ -1499,6 +1745,9 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
   }
 
   Widget _buildPreGameCountdownOverlay() {
+    final minutes = _preGameCountdown ~/ 60;
+    final seconds = _preGameCountdown % 60;
+
     return Container(
       color: Colors.black.withOpacity(0.8),
       child: Center(
@@ -1506,7 +1755,7 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              'Game starts in',
+              'Competition starts in',
               style: TextStyle(
                 color: Color(0xFF96c3bc),
                 fontSize: 28,
@@ -1515,11 +1764,19 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
             ),
             const SizedBox(height: 24),
             Text(
-              '${_preGameCountdown}',
+              '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}',
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 80,
                 fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Please wait...',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 18,
               ),
             ),
           ],

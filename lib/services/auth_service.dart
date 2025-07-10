@@ -25,6 +25,7 @@ class AuthService extends ChangeNotifier {
   double _balance = 0.0;
   List<Transaction> _transactions = [];
   List<GameResult> _gameHistory = [];
+  Map<String, dynamic>? _lastCompetitionLeaderboard;
 
   // Public getters
   bool get isAuthenticated => _isAuthenticated;
@@ -38,6 +39,8 @@ class AuthService extends ChangeNotifier {
   double get balance => _balance;
   List<Transaction> get transactions => List.unmodifiable(_transactions);
   List<GameResult> get gameHistory => List.unmodifiable(_gameHistory);
+  Map<String, dynamic>? get lastCompetitionLeaderboard =>
+      _lastCompetitionLeaderboard;
 
   /// Sets the authentication state
   void setAuthenticated(bool isAuthenticated) {
@@ -358,6 +361,7 @@ class AuthService extends ChangeNotifier {
     _balance = 0.0;
     _transactions.clear();
     _gameHistory.clear();
+    _lastCompetitionLeaderboard = null; // Clear leaderboard on sign out
 
     // Reset navigation state and redirect to auth screen
     final navigationService = NavigationService();
@@ -393,6 +397,32 @@ class AuthService extends ChangeNotifier {
       } else {
         return false;
       }
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Fetches the last competition leaderboard for the authenticated user.
+  Future<bool> fetchLastCompetitionLeaderboard() async {
+    if (_token == null) return false;
+    final url = Uri.parse('$apiUrl/api/players/history/last');
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          _lastCompetitionLeaderboard = data['data'];
+          notifyListeners();
+          return true;
+        }
+      }
+      return false;
     } catch (e) {
       return false;
     }
