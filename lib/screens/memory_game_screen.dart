@@ -7,6 +7,7 @@ import '../widgets/prize_win_dialog.dart';
 import '../widgets/combo_counter.dart';
 import '../widgets/score_popup.dart';
 import '../widgets/game_loading.dart';
+import '../utils/responsive_utils.dart';
 
 class MemoryGameScreen extends StatefulWidget {
   const MemoryGameScreen({super.key});
@@ -231,11 +232,14 @@ class _MemoryGameScreenState extends State<MemoryGameScreen> {
             child: Stack(
               children: [
                 GridView.builder(
-                  padding: const EdgeInsets.all(16),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    crossAxisSpacing: 8,
-                    mainAxisSpacing: 8,
+                  padding: ResponsiveUtils.getResponsivePadding(context),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: ResponsiveUtils.getGridCount(context,
+                        mobile: 4, tablet: 4, desktop: 4),
+                    crossAxisSpacing:
+                        ResponsiveUtils.getResponsiveSpacing(context),
+                    mainAxisSpacing:
+                        ResponsiveUtils.getResponsiveSpacing(context),
                   ),
                   itemCount: _cards.length,
                   itemBuilder: (context, index) => MemoryCard(

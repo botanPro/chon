@@ -5,6 +5,8 @@ import '../services/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../utils/apiConnection.dart';
+import 'privacy_policy_screen.dart';
+import 'social_media_screen.dart';
 
 /// ProfileScreen displays the user's profile information including their
 /// balance, level, and account management options.
@@ -314,7 +316,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: Icons.help_outline,
           title: 'Privacy & Policy',
           onTap: () {
-            // TODO: Navigate to Privacy & Policy screen
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const PrivacyPolicyScreen(),
+              ),
+            );
           },
         ),
         _buildMenuItem(
@@ -328,7 +335,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: Icons.group_outlined,
           title: 'Social Media',
           onTap: () {
-            // TODO: Navigate to Social Media links screen
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SocialMediaScreen(),
+              ),
+            );
           },
         ),
       ],

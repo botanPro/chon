@@ -12,6 +12,7 @@ import '../screens/sound_symphony_screen.dart';
 import '../screens/gravity_puzzle_screen.dart';
 import '../screens/time_painter_screen.dart';
 import '../screens/payment_method_screen.dart';
+import '../utils/responsive_utils.dart';
 
 class GameCard extends StatelessWidget {
   final Game game;
@@ -20,17 +21,27 @@ class GameCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final borderRadius = ResponsiveUtils.getResponsiveBorderRadius(context);
+    final padding = ResponsiveUtils.getResponsivePadding(context,
+        mobile: 12, tablet: 16, desktop: 20);
+    final buttonHeight = ResponsiveUtils.getResponsiveButtonHeight(context);
+    final spacing = ResponsiveUtils.getResponsiveSpacing(context,
+        mobile: 8, tablet: 10, desktop: 12);
+    final iconSize = ResponsiveUtils.getResponsiveIconSize(context,
+        mobile: 12, tablet: 14, desktop: 16);
+
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF101513),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(borderRadius),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Game image
           ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            borderRadius:
+                BorderRadius.vertical(top: Radius.circular(borderRadius)),
             child: AspectRatio(
               aspectRatio: 1.5,
               child: Container(
@@ -38,12 +49,18 @@ class GameCard extends StatelessWidget {
                     ? const Color(0xFF00B894)
                     : const Color(0xFF6AB04C),
                 child: Center(
-                  child: Text(
+                  child: ResponsiveText(
                     game.title,
                     style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
+                    mobileFontSize: 14,
+                    tabletFontSize: 16,
+                    desktopFontSize: 18,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ),
@@ -52,7 +69,7 @@ class GameCard extends StatelessWidget {
 
           // Game details
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: padding,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -60,26 +77,28 @@ class GameCard extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 6, vertical: 2),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: spacing * 0.75, vertical: spacing * 0.25),
                       decoration: BoxDecoration(
                         color: const Color(0xFF2A2A3A),
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Row(
                         children: [
-                          const Icon(
+                          Icon(
                             Icons.star,
                             color: Colors.white,
-                            size: 12,
+                            size: iconSize,
                           ),
-                          const SizedBox(width: 4),
-                          Text(
+                          SizedBox(width: spacing * 0.5),
+                          ResponsiveText(
                             game.rating.toString(),
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 12,
                             ),
+                            mobileFontSize: 12,
+                            tabletFontSize: 13,
+                            desktopFontSize: 14,
                           ),
                         ],
                       ),
@@ -87,45 +106,54 @@ class GameCard extends StatelessWidget {
                   ],
                 ),
 
-                const SizedBox(height: 8),
+                SizedBox(height: spacing),
 
                 // Price
-                Text(
+                ResponsiveText(
                   '\$ ${game.prizeValue.toInt()}',
                   style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
+                  mobileFontSize: 20,
+                  tabletFontSize: 24,
+                  desktopFontSize: 28,
                 ),
 
-                const SizedBox(height: 4),
+                SizedBox(height: spacing * 0.5),
 
                 // Game name
-                const Text(
+                ResponsiveText(
                   'Game Name',
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: Colors.white,
-                    fontSize: 16,
                   ),
+                  mobileFontSize: 16,
+                  tabletFontSize: 18,
+                  desktopFontSize: 20,
                 ),
 
-                const SizedBox(height: 4),
+                SizedBox(height: spacing * 0.5),
 
                 // Description
-                Text(
+                ResponsiveText(
                   game.description,
                   style: const TextStyle(
                     color: Color(0xFF8E8E8E),
-                    fontSize: 12,
                   ),
+                  mobileFontSize: 12,
+                  tabletFontSize: 14,
+                  desktopFontSize: 16,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
 
-                const SizedBox(height: 12),
+                SizedBox(height: spacing * 1.5),
 
                 // Play button
                 SizedBox(
                   width: double.infinity,
+                  height: buttonHeight,
                   child: ElevatedButton(
                     onPressed: () {
                       // Navigate to payment screen
@@ -143,7 +171,7 @@ class GameCard extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.black,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: EdgeInsets.symmetric(vertical: spacing),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
@@ -151,11 +179,19 @@ class GameCard extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text('Play Now'),
-                        const SizedBox(width: 4),
+                        ResponsiveText(
+                          'Play Now',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                          ),
+                          mobileFontSize: 14,
+                          tabletFontSize: 16,
+                          desktopFontSize: 18,
+                        ),
+                        SizedBox(width: spacing * 0.5),
                         Icon(
                           Icons.arrow_forward,
-                          size: 16,
+                          size: iconSize,
                           color: Colors.grey.shade800,
                         ),
                       ],

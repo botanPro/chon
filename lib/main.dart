@@ -84,6 +84,12 @@ void _configureSystemUI() {
       systemNavigationBarIconBrightness: Brightness.light,
     ),
   );
+
+  // Lock orientation to portrait only
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 }
 
 /// Root application widget that configures the MaterialApp and theme

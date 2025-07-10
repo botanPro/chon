@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import '../utils/responsive_utils.dart';
 
 /// A layout widget that provides a consistent structure for the main screens
 /// of the application, including the bottom navigation bar.
@@ -22,6 +23,15 @@ class MainLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final borderRadius = ResponsiveUtils.getResponsiveBorderRadius(context,
+        mobile: 20, tablet: 24, desktop: 28);
+    final selectedFontSize = ResponsiveUtils.getResponsiveFontSize(context,
+        mobile: 12, tablet: 13, desktop: 14);
+    final unselectedFontSize = ResponsiveUtils.getResponsiveFontSize(context,
+        mobile: 11, tablet: 12, desktop: 13);
+    final logoSize = ResponsiveUtils.getResponsiveIconSize(context,
+        mobile: 60, tablet: 68, desktop: 76);
+
     return Scaffold(
       body: body,
       extendBody: true, // Make the body extend behind the navigation bar
@@ -36,9 +46,9 @@ class MainLayout extends StatelessWidget {
           ],
         ),
         child: ClipRRect(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(borderRadius),
+            topRight: Radius.circular(borderRadius),
           ),
           child: Theme(
             data: Theme.of(context).copyWith(
@@ -52,22 +62,24 @@ class MainLayout extends StatelessWidget {
               type: BottomNavigationBarType.fixed,
               showSelectedLabels: true,
               showUnselectedLabels: true,
-              selectedLabelStyle: const TextStyle(
+              selectedLabelStyle: TextStyle(
                 fontWeight: FontWeight.w500,
-                fontSize: 12,
+                fontSize: selectedFontSize,
               ),
-              unselectedLabelStyle: const TextStyle(
-                fontSize: 11,
+              unselectedLabelStyle: TextStyle(
+                fontSize: unselectedFontSize,
               ),
               elevation: 0,
               items: [
-                _buildNavItem(Icons.home_outlined, Icons.home, 'Home', 0),
                 _buildNavItem(
-                    Icons.history_outlined, Icons.history, 'History', 1),
-                _buildLogoNavItem(),
-                _buildNavItem(Icons.notifications_outlined, Icons.notifications,
-                    'Notifications', 3),
-                _buildNavItem(Icons.person_outline, Icons.person, 'Profile', 4),
+                    context, Icons.home_outlined, Icons.home, 'Home', 0),
+                _buildNavItem(context, Icons.history_outlined, Icons.history,
+                    'History', 1),
+                _buildLogoNavItem(logoSize),
+                _buildNavItem(context, Icons.notifications_outlined,
+                    Icons.notifications, 'Notifications', 3),
+                _buildNavItem(
+                    context, Icons.person_outline, Icons.person, 'Profile', 4),
               ],
               currentIndex: currentIndex,
               onTap: onNavigationTap ?? _handleNavigation,
@@ -78,14 +90,21 @@ class MainLayout extends StatelessWidget {
     );
   }
 
-  BottomNavigationBarItem _buildNavItem(
-      IconData icon, IconData activeIcon, String label, int index) {
+  BottomNavigationBarItem _buildNavItem(BuildContext context, IconData icon,
+      IconData activeIcon, String label, int index) {
+    final iconSize = ResponsiveUtils.getResponsiveIconSize(context,
+        mobile: 26, tablet: 28, desktop: 30);
+    final activeIconSize = ResponsiveUtils.getResponsiveIconSize(context,
+        mobile: 28, tablet: 30, desktop: 32);
+    final iconPadding = ResponsiveUtils.getResponsiveSpacing(context,
+        mobile: 4, tablet: 5, desktop: 6);
+
     return BottomNavigationBarItem(
       icon: Padding(
-        padding: const EdgeInsets.only(bottom: 4),
+        padding: EdgeInsets.only(bottom: iconPadding),
         child: Icon(
           index == currentIndex ? activeIcon : icon,
-          size: index == currentIndex ? 28 : 26,
+          size: index == currentIndex ? activeIconSize : iconSize,
           color: index == currentIndex
               ? const Color(0xFF00B894)
               : const Color(0xFF8E8E8E),
@@ -95,11 +114,11 @@ class MainLayout extends StatelessWidget {
     );
   }
 
-  BottomNavigationBarItem _buildLogoNavItem() {
+  BottomNavigationBarItem _buildLogoNavItem(double logoSize) {
     return BottomNavigationBarItem(
       icon: Container(
-        height: 60,
-        width: 60,
+        height: logoSize,
+        width: logoSize,
         padding: const EdgeInsets.all(2),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
@@ -119,19 +138,19 @@ class MainLayout extends StatelessWidget {
               child: LogoSpinAnimation(
                 child: Image.asset(
                   'assets/images/chon.png',
-                  width: 56,
-                  height: 56,
+                  width: logoSize * 0.93,
+                  height: logoSize * 0.93,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     debugPrint('Error loading logo image: $error');
-                    return const Text(
+                    return Text(
                       'CHON',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 14,
+                        fontSize: logoSize * 0.23,
                         fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
-                        shadows: [
+                        shadows: const [
                           Shadow(
                             blurRadius: 4.0,
                             color: Color(0x4D000000),

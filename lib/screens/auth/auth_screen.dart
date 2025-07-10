@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:provider/provider.dart';
 import '../../services/auth_service.dart';
 import '../../utils/apiConnection.dart';
+import '../../utils/responsive_utils.dart';
 
 // Animated gradient background painter
 class AnimatedGradientPainter extends CustomPainter {
@@ -279,6 +280,41 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                             ),
                           ),
                           const SizedBox(height: 16),
+                          // Testing button - remove in production
+                          Container(
+                            height: 56,
+                            decoration: BoxDecoration(
+                              color: Colors.red.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.red, width: 1),
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () {
+                                  // Navigate directly to home screen for testing
+                                  Navigator.pushNamedAndRemoveUntil(
+                                    context,
+                                    '/home',
+                                    (route) => false,
+                                  );
+                                },
+                                borderRadius: BorderRadius.circular(12),
+                                child: Center(
+                                  child: Text(
+                                    'IGNORE LOGIN (Testing)',
+                                    style: textTheme.labelLarge?.copyWith(
+                                      color: Colors.red,
+                                      fontSize: isSmallScreen ? 11 : 12,
+                                      fontWeight: FontWeight.w600,
+                                      fontFamily: 'Inter',
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
                         ],
                       ),
                     ),
@@ -433,15 +469,18 @@ class _SignUpDrawerState extends State<SignUpDrawer>
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
-    final isSmallScreen = screenSize.width < 360 || screenSize.height < 600;
+    final isSmallScreen = ResponsiveUtils.isSmallScreen(context);
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final modalHeight = ResponsiveUtils.getResponsiveModalHeight(context);
+    final borderRadius = ResponsiveUtils.getResponsiveBorderRadius(context,
+        mobile: 32, tablet: 36, desktop: 40);
 
     return Container(
-      height: MediaQuery.of(context).size.height * 0.9,
-      decoration: const BoxDecoration(
-        color: Color(0xFF0A0E0D),
+      height: modalHeight,
+      decoration: BoxDecoration(
+        color: const Color(0xFF0A0E0D),
         borderRadius: BorderRadius.vertical(
-          top: Radius.circular(32),
+          top: Radius.circular(borderRadius),
         ),
       ),
       child: Column(
@@ -460,71 +499,71 @@ class _SignUpDrawerState extends State<SignUpDrawer>
             ),
           ),
           const SizedBox(height: 24),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.06),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ShaderMask(
-                  shaderCallback: (Rect bounds) {
-                    return const LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: [
-                        Color(0xFF96c3bc), // Teal 500
-                        Color(0xFF7b9f9a), // Teal 400
-                        Color(0xFF627d79), // Teal 300
-                      ],
-                      stops: [0.0, 0.5, 1.0],
-                    ).createShader(bounds);
-                  },
-                  child: Row(
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            AppLocalizations.of(context)!.welcomeToOurGameArea,
-                            style: GoogleFonts.inter(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -0.5,
-                              fontSize: isSmallScreen ? 22 : 30,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+          ResponsiveContainer(
+            mobilePadding: 20,
+            tabletPadding: 24,
+            desktopPadding: 32,
+            child: ShaderMask(
+              shaderCallback: (Rect bounds) {
+                return const LinearGradient(
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                  colors: [
+                    Color(0xFF96c3bc), // Teal 500
+                    Color(0xFF7b9f9a), // Teal 400
+                    Color(0xFF627d79), // Teal 300
+                  ],
+                  stops: [0.0, 0.5, 1.0],
+                ).createShader(bounds);
+              },
+              child: ResponsiveText(
+                AppLocalizations.of(context)!.welcomeToOurGameArea,
+                style: GoogleFonts.inter(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.5,
                 ),
-              ],
+                mobileFontSize: 20,
+                tabletFontSize: 26,
+                desktopFontSize: 30,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ),
           const SizedBox(height: 24),
-          Padding(
-            padding: EdgeInsets.symmetric(horizontal: screenSize.width * 0.06),
+          ResponsiveContainer(
+            mobilePadding: 20,
+            tabletPadding: 24,
+            desktopPadding: 32,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
+                ResponsiveText(
                   widget.isSignIn
                       ? AppLocalizations.of(context)!.signInAccount
                       : AppLocalizations.of(context)!.signUpAccount,
                   style: GoogleFonts.inter(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
-                    fontSize: isSmallScreen ? 18 : 20,
                   ),
+                  mobileFontSize: 18,
+                  tabletFontSize: 20,
+                  desktopFontSize: 22,
                 ),
                 const SizedBox(height: 8),
-                Text(
+                ResponsiveText(
                   widget.isSignIn
                       ? AppLocalizations.of(context)!.signInDescription
                       : AppLocalizations.of(context)!.signUpDescription,
                   style: GoogleFonts.inter(
                     color: Colors.white.withOpacity(0.5),
-                    fontSize: isSmallScreen ? 12 : 14,
                   ),
+                  mobileFontSize: 12,
+                  tabletFontSize: 14,
+                  desktopFontSize: 16,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
@@ -533,8 +572,12 @@ class _SignUpDrawerState extends State<SignUpDrawer>
           Expanded(
             child: SingleChildScrollView(
               padding: EdgeInsets.only(
-                left: screenSize.width * 0.06,
-                right: screenSize.width * 0.06,
+                left: ResponsiveUtils.getResponsivePadding(context,
+                        mobile: 20, tablet: 24, desktop: 32)
+                    .left,
+                right: ResponsiveUtils.getResponsivePadding(context,
+                        mobile: 20, tablet: 24, desktop: 32)
+                    .right,
                 bottom: bottomInset > 0 ? bottomInset : 0,
               ),
               child: Column(
@@ -555,13 +598,18 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        widget.isSignIn
-                            ? AppLocalizations.of(context)!.dontHaveAccount
-                            : AppLocalizations.of(context)!.alreadyHaveAccount,
-                        style: GoogleFonts.inter(
-                          color: Colors.white.withOpacity(0.7),
-                          fontSize: isSmallScreen ? 12 : 14,
+                      Flexible(
+                        child: ResponsiveText(
+                          widget.isSignIn
+                              ? AppLocalizations.of(context)!.dontHaveAccount
+                              : AppLocalizations.of(context)!
+                                  .alreadyHaveAccount,
+                          style: GoogleFonts.inter(
+                            color: Colors.white.withOpacity(0.7),
+                          ),
+                          mobileFontSize: 12,
+                          tabletFontSize: 14,
+                          desktopFontSize: 16,
                         ),
                       ),
                       GestureDetector(
@@ -587,15 +635,17 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                             }
                           });
                         },
-                        child: Text(
+                        child: ResponsiveText(
                           widget.isSignIn
                               ? AppLocalizations.of(context)!.signUp
                               : AppLocalizations.of(context)!.signIn,
                           style: GoogleFonts.inter(
                             color: const Color(0xFF96c3bc), // Teal 500
                             fontWeight: FontWeight.w600,
-                            fontSize: isSmallScreen ? 12 : 14,
                           ),
+                          mobileFontSize: 12,
+                          tabletFontSize: 14,
+                          desktopFontSize: 16,
                         ),
                       ),
                     ],
@@ -634,7 +684,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                                                 Colors.black),
                                       ),
                                     )
-                                  : Text(
+                                  : ResponsiveText(
                                       widget.isSignIn
                                           ? AppLocalizations.of(context)!.signIn
                                           : AppLocalizations.of(context)!
@@ -642,8 +692,10 @@ class _SignUpDrawerState extends State<SignUpDrawer>
                                       style: GoogleFonts.inter(
                                         color: Colors.black,
                                         fontWeight: FontWeight.w600,
-                                        fontSize: isSmallScreen ? 12 : 14,
                                       ),
+                                      mobileFontSize: 12,
+                                      tabletFontSize: 14,
+                                      desktopFontSize: 16,
                                     ),
                               const Icon(
                                 Icons.arrow_forward,

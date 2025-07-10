@@ -12,6 +12,7 @@ import 'dart:convert';
 import '../services/trivia_socket_service.dart';
 import '../screens/trivia_game_screen.dart';
 import '../utils/apiConnection.dart';
+import '../utils/responsive_utils.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -20,25 +21,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  int _days = 30;
-  int _hours = 30;
-  int _minutes = 30;
-  int _seconds = 30;
-  Timer? _timer;
-
-  // Animation controllers for each time unit - make them nullable
-  AnimationController? _daysController;
-  AnimationController? _hoursController;
-  AnimationController? _minutesController;
-  AnimationController? _secondsController;
-
-  // Previous values to detect changes
-  int _prevDays = 30;
-  int _prevHours = 30;
-  int _prevMinutes = 30;
-  int _prevSeconds = 30;
-
+class _HomeScreenState extends State<HomeScreen> {
   List<dynamic>? _competitions;
   Map<int, bool> _gameTimerFinished = {};
 
@@ -46,107 +29,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     print('HomeScreen initState');
-    _initControllers();
-    _startTimer();
     _competitions = [];
 
     // Fetch competitions using REST API
     _fetchCompetitions();
   }
 
-  void _initControllers() {
-    _daysController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-
-    _hoursController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-
-    _minutesController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-
-    _secondsController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    );
-  }
-
   @override
   void dispose() {
-    // Cancel timer first
-    _timer?.cancel();
-
-    // Then dispose controllers
-    _daysController?.dispose();
-    _hoursController?.dispose();
-    _minutesController?.dispose();
-    _secondsController?.dispose();
-
     // Clean up socket listeners
     TriviaSocketService().disconnect();
 
     super.dispose();
-  }
-
-  void _startTimer() {
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) return; // Check if widget is still mounted
-
-      setState(() {
-        // Store previous values
-        _prevDays = _days;
-        _prevHours = _hours;
-        _prevMinutes = _minutes;
-        _prevSeconds = _seconds;
-
-        if (_seconds > 0) {
-          _seconds--;
-        } else {
-          _seconds = 59;
-          if (_minutes > 0) {
-            _minutes--;
-          } else {
-            _minutes = 59;
-            if (_hours > 0) {
-              _hours--;
-            } else {
-              _hours = 23;
-              if (_days > 0) {
-                _days--;
-              } else {
-                timer.cancel();
-              }
-            }
-          }
-        }
-
-        // Trigger animations for changed values
-        if (_prevSeconds != _seconds && _secondsController != null) {
-          _secondsController!.reset();
-          _secondsController!.forward();
-        }
-
-        if (_prevMinutes != _minutes && _minutesController != null) {
-          _minutesController!.reset();
-          _minutesController!.forward();
-        }
-
-        if (_prevHours != _hours && _hoursController != null) {
-          _hoursController!.reset();
-          _hoursController!.forward();
-        }
-
-        if (_prevDays != _days && _daysController != null) {
-          _daysController!.reset();
-          _daysController!.forward();
-        }
-      });
-    });
   }
 
   Future<void> _fetchCompetitions() async {
@@ -379,101 +273,50 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
                     const SizedBox(height: 24),
 
-                    // Countdown section
+                    // Ad Banner Placeholder
                     Container(
+                      height: 110,
+                      width: double.infinity,
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF101513),
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            const Color(0xFF2D3748).withOpacity(0.8),
+                            const Color(0xFF1A202C).withOpacity(0.9),
+                          ],
+                        ),
                         borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.1),
+                          width: 1,
+                        ),
                       ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Row(
-                            children: [
-                              Icon(
-                                Icons.timer_outlined,
-                                color: Colors.white,
-                                size: 18,
-                              ),
-                              SizedBox(width: 8),
-                              Text(
-                                'Countdown',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
+                          Icon(
+                            Icons.ads_click,
+                            color: Colors.white.withOpacity(0.6),
+                            size: 28,
                           ),
-                          const SizedBox(height: 16),
-                          LayoutBuilder(builder: (context, constraints) {
-                            // Calculate the width available for each time box
-                            final boxWidth = (constraints.maxWidth - 24) /
-                                4; // 24 is for spacing between boxes
-                            return Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _buildTimeBox(
-                                    context,
-                                    _days,
-                                    AppLocalizations.of(context)!.days,
-                                    _daysController,
-                                    boxWidth),
-                                _buildTimeBox(
-                                    context,
-                                    _hours,
-                                    AppLocalizations.of(context)!.hours,
-                                    _hoursController,
-                                    boxWidth),
-                                _buildTimeBox(
-                                    context,
-                                    _minutes,
-                                    AppLocalizations.of(context)!.minutes,
-                                    _minutesController,
-                                    boxWidth),
-                                _buildTimeBox(
-                                    context,
-                                    _seconds,
-                                    AppLocalizations.of(context)!.seconds,
-                                    _secondsController,
-                                    boxWidth),
-                              ],
-                            );
-                          }),
-                          const SizedBox(height: 16),
+                          const SizedBox(height: 6),
                           Text(
-                            AppLocalizations.of(context)!.gameWillStart,
-                            style: const TextStyle(
-                              color: Color(0xFF737373),
-                              fontSize: 12, // Reduced font size
+                            'Advertisment Space',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.8),
+                              fontSize: 15,
+                              fontWeight: FontWeight.w500,
                             ),
-                            maxLines: 2, // Allow wrapping
-                            overflow: TextOverflow.ellipsis,
                           ),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton.icon(
-                              onPressed: () {},
-                              icon: const Icon(Icons.notifications_outlined,
-                                  size: 16), // Reduced icon size
-                              label: Text(
-                                  AppLocalizations.of(context)!.notifyMe,
-                                  style: TextStyle(
-                                      fontSize: 14)), // Reduced font size
-                              style: ElevatedButton.styleFrom(
-                                foregroundColor: Colors.white,
-                                backgroundColor: const Color(0xFF262B29),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  side: const BorderSide(
-                                      color: Color(0xFF2A2A3A)),
-                                ),
-                              ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Your ads will appear here',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.5),
+                              fontSize: 11,
                             ),
                           ),
                         ],
@@ -501,12 +344,18 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       GridView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 0.55,
-                          crossAxisSpacing: 16,
-                          mainAxisSpacing: 16,
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: ResponsiveUtils.getGridCount(context),
+                          childAspectRatio:
+                              ResponsiveUtils.getCardAspectRatio(context),
+                          crossAxisSpacing:
+                              ResponsiveUtils.getResponsiveSpacing(context,
+                                  mobile: 12, tablet: 16, desktop: 20),
+                          mainAxisSpacing: ResponsiveUtils.getResponsiveSpacing(
+                              context,
+                              mobile: 12,
+                              tablet: 16,
+                              desktop: 20),
                         ),
                         itemCount: games.length,
                         itemBuilder: (context, index) {
@@ -725,180 +574,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       ),
 
                     const SizedBox(height: 24),
-
-                    // News section
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF101513),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'News for you',
-                            style: TextStyle(
-                              color: Color(0xFF8E8E8E),
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          RichText(
-                            text: const TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: 'Since yesterday your ',
-                                  style: TextStyle(
-                                    color: Color(0xFF8E8E8E),
-                                    fontSize: 16, // Reduced font size
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: 'sales ',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16, // Reduced font size
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: 'have increased!',
-                                  style: TextStyle(
-                                    color: Color(0xFF8E8E8E),
-                                    fontSize: 16, // Reduced font size
-                                  ),
-                                ),
-                              ],
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 24),
                   ],
                 ),
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildTimeBox(BuildContext context, int value, String label,
-      AnimationController? controller, double boxWidth) {
-    final fontSize = boxWidth * 0.5; // Responsive font size based on box width
-
-    if (controller == null) {
-      // Fallback if controller is not initialized
-      return Container(
-        width: boxWidth,
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: BoxDecoration(
-          color: const Color(0xFF242F2C),
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          children: [
-            SizedBox(
-              height: 40,
-              child: Center(
-                child: FittedBox(
-                  fit: BoxFit.contain,
-                  child: Text(
-                    value.toString(),
-                    style: TextStyle(
-                      color: const Color(0xFF96C3BC),
-                      fontSize: fontSize,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                color: const Color(0xFFEFEFEF),
-                fontSize: boxWidth * 0.15, // Responsive font size for label
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Container(
-      width: boxWidth,
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF242F2C),
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          SizedBox(
-            height: 40,
-            child: AnimatedBuilder(
-              animation: controller,
-              builder: (context, child) {
-                // Create a fade-in animation
-                final opacity = controller.value < 0.5
-                    ? 1.0 - controller.value * 2 // Fade out in first half
-                    : (controller.value - 0.5) * 2; // Fade in in second half
-
-                return Opacity(
-                  opacity: opacity,
-                  child: child,
-                );
-              },
-              child: Center(
-                child: FittedBox(
-                  fit: BoxFit.contain,
-                  child: Text(
-                    value.toString(),
-                    style: TextStyle(
-                      color: const Color(0xFF96C3BC),
-                      fontSize: fontSize,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(
-              color: const Color(0xFFEFEFEF),
-              fontSize: boxWidth * 0.15, // Responsive font size for label
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
       ),
     );
   }

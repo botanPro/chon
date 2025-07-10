@@ -78,15 +78,12 @@ class NotificationsScreen extends StatelessWidget {
     );
   }
 
-  /// Builds the app bar with title and back button
+  /// Builds the app bar with title only
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back, color: Colors.white),
-        onPressed: () => Navigator.of(context).pop(),
-      ),
+      automaticallyImplyLeading: false,
       title: const Text(
         'Notifications',
         style: TextStyle(
