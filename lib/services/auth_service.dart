@@ -4,7 +4,6 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'navigation_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:io';
 import '../utils/apiConnection.dart';
 
 /// Service that handles all authentication and user-related functionality.
@@ -69,11 +68,28 @@ class AuthService extends ChangeNotifier {
         return false;
       }
 
-      // Additional check by trying to reach a reliable server
-      final result = await InternetAddress.lookup('google.com')
-          .timeout(const Duration(seconds: 5));
+      // For web platform, connectivity check is sufficient
+      // For mobile/desktop, do an additional HTTP check
+      if (connectivityResult == ConnectivityResult.wifi ||
+          connectivityResult == ConnectivityResult.mobile ||
+          connectivityResult == ConnectivityResult.ethernet) {
+        // Try to make a simple HTTP request to verify actual connectivity
+        try {
+          final response = await http.get(
+            Uri.parse('https://www.google.com'),
+            headers: {'User-Agent': 'CHON-App'},
+          ).timeout(const Duration(seconds: 5));
 
-      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+          return response.statusCode == 200;
+        } catch (e) {
+          // If HTTP request fails, still return true if we have network connectivity
+          // This handles cases where the test URL might be blocked but internet works
+          print('HTTP connectivity test failed, but network is available: $e');
+          return true;
+        }
+      }
+
+      return false;
     } catch (e) {
       print('Internet connectivity check failed: $e');
       return false;
@@ -84,7 +100,8 @@ class AuthService extends ChangeNotifier {
   Map<String, dynamic> _handleNetworkError(dynamic error) {
     String message = 'Network error occurred';
 
-    if (error is SocketException) {
+    if (error.toString().contains('SocketException') ||
+        error.toString().contains('No internet connection')) {
       message =
           'No internet connection. Please check your network and try again.';
     } else if (error.toString().contains('TimeoutException')) {
