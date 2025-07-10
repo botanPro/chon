@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../l10n/app_localizations.dart';
 
 class PersonalInfoScreen extends StatefulWidget {
   const PersonalInfoScreen({super.key});
@@ -68,7 +69,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'ARE YOU READY TO',
+                AppLocalizations.of(context)!.areYouReadyTo,
                 style: GoogleFonts.inter(
                   fontSize: isSmallScreen ? 20 : 25,
                   fontWeight: FontWeight.w700,
@@ -84,7 +85,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                 ),
               ),
               Text(
-                'PLAY THE GAMES?',
+                AppLocalizations.of(context)!.playTheGames,
                 style: GoogleFonts.inter(
                   fontSize: isSmallScreen ? 20 : 25,
                   fontWeight: FontWeight.w700,
@@ -101,7 +102,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
               ),
               const SizedBox(height: 10),
               Text(
-                'Personal Information',
+                AppLocalizations.of(context)!.personalInformation,
                 style: GoogleFonts.inter(
                   fontSize: isSmallScreen ? 24 : 28,
                   fontWeight: FontWeight.w600,
@@ -110,7 +111,7 @@ class _PersonalInfoScreenState extends State<PersonalInfoScreen> {
                 textAlign: TextAlign.left,
               ),
               Text(
-                'Please fill in your details to complete your profile',
+                AppLocalizations.of(context)!.fillDetails,
                 style: GoogleFonts.inter(
                   fontSize: isSmallScreen ? 12 : 14,
                   color: Colors.white.withOpacity(0.7),

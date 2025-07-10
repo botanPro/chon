@@ -7,6 +7,7 @@ import 'dart:convert';
 import '../utils/apiConnection.dart';
 import 'privacy_policy_screen.dart';
 import 'social_media_screen.dart';
+import '../l10n/app_localizations.dart';
 
 /// ProfileScreen displays the user's profile information including their
 /// balance, level, and account management options.
@@ -73,7 +74,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         children: [
           // User nickname from AuthService
           Text(
-            context.watch<AuthService>().nickname ?? 'User',
+            context.watch<AuthService>().nickname ??
+                AppLocalizations.of(context)!.user,
             style: const TextStyle(
               color: Colors.white,
               fontSize: 20,
@@ -218,8 +220,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Balance',
+                  Text(
+                    AppLocalizations.of(context)!.balance,
                     style: TextStyle(
                       color: Colors.white54,
                       fontSize: 14,
@@ -267,10 +269,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 24, top: 16, bottom: 8),
+        Padding(
+          padding: const EdgeInsets.only(left: 24, top: 16, bottom: 8),
           child: Text(
-            'Account',
+            AppLocalizations.of(context)!.account,
             style: TextStyle(
               color: Colors.white38,
               fontSize: 18,
@@ -280,14 +282,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         _buildMenuItem(
           icon: Icons.person_outline,
-          title: 'Edit Profile',
+          title: AppLocalizations.of(context)!.editProfile,
           onTap: () {
             _showEditProfileDialog(context);
           },
         ),
         _buildMenuItem(
           icon: Icons.notifications_outlined,
-          title: 'Notifications',
+          title: AppLocalizations.of(context)!.notifications,
           onTap: () {
             // TODO: Navigate to Notifications screen
           },
@@ -301,10 +303,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.only(left: 24, top: 24, bottom: 8),
+        Padding(
+          padding: const EdgeInsets.only(left: 24, top: 24, bottom: 8),
           child: Text(
-            'More',
+            AppLocalizations.of(context)!.more,
             style: TextStyle(
               color: Colors.white38,
               fontSize: 18,
@@ -326,14 +328,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
         _buildMenuItem(
           icon: Icons.star_outline,
-          title: 'Rate Us',
+          title: AppLocalizations.of(context)!.rateUs,
           onTap: () {
             // TODO: Implement app rating functionality
           },
         ),
         _buildMenuItem(
           icon: Icons.group_outlined,
-          title: 'Social Media',
+          title: AppLocalizations.of(context)!.socialMedia,
           onTap: () {
             Navigator.push(
               context,
@@ -357,7 +359,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           final shouldLogout = await showDialog<bool>(
             context: context,
             builder: (context) => AlertDialog(
-              title: const Text('Logout'),
+              title: Text(AppLocalizations.of(context)!.logout),
               content: const Text('Are you sure you want to logout?'),
               actions: [
                 TextButton(
@@ -498,7 +500,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return StatefulBuilder(
           builder: (context, setState) {
             return AlertDialog(
-              title: const Text('Edit Nickname'),
+              title: Text(AppLocalizations.of(context)!.editNickname),
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [

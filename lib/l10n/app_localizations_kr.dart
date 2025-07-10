@@ -233,4 +233,164 @@ class AppLocalizationsKr extends AppLocalizations {
 
   @override
   String get gameInstructions => 'ڕێنماییەکانی یاری';
+
+  @override
+  String get areYouReadyTo => 'ئامادەی بۆ';
+
+  @override
+  String get playTheGames => 'یاری کردن؟';
+
+  @override
+  String get personalInformation => 'زانیاری کەسی';
+
+  @override
+  String get user => 'بەکارهێنەر';
+
+  @override
+  String get balance => 'باڵانس';
+
+  @override
+  String get account => 'هەژمار';
+
+  @override
+  String get editProfile => 'دەستکاریی پرۆفایل';
+
+  @override
+  String get notifications => 'ئاگاداری';
+
+  @override
+  String get more => 'زیاتر';
+
+  @override
+  String get rateUs => 'نرخاندنمان';
+
+  @override
+  String get socialMedia => 'سۆشیال میدیا';
+
+  @override
+  String get logout => 'چوونەدەرەوە';
+
+  @override
+  String get cancel => 'پاشگەزبوونەوە';
+
+  @override
+  String get loggedOutSuccessfully => 'بە سەرکەوتووی چوویتەدەرەوە';
+
+  @override
+  String get editNickname => 'دەستکاریی ناوی نازناو';
+
+  @override
+  String get nicknameCannotBeEmpty => 'ناوی نازناو نابێت بەتاڵ بێت';
+
+  @override
+  String get nicknameUpdatedSuccessfully =>
+      'ناوی نازناو بە سەرکەوتووی نوێکرایەوە';
+
+  @override
+  String get save => 'هەڵگرتن';
+
+  @override
+  String get home => 'سەرەتا';
+
+  @override
+  String get history => 'مێژوو';
+
+  @override
+  String get profile => 'پرۆفایل';
+
+  @override
+  String get choosePaymentGateway => 'ڕێگای پارەدانەکە هەڵبژێرە';
+
+  @override
+  String get justRandomText => 'تەنها دەقی ڕاستەقینە لێرە';
+
+  @override
+  String get visaCard => 'کارتی ڤیزا';
+
+  @override
+  String get masterCard => 'ماستەر کارت';
+
+  @override
+  String get applePay => 'ئەپڵ پەی';
+
+  @override
+  String get stripe => 'سترایپ';
+
+  @override
+  String get paypal => 'پەی پاڵ';
+
+  @override
+  String get startGame => 'دەستپێکردنی یاری';
+
+  @override
+  String get ignoreLoginTesting => 'پشتگوێخستنی چوونەژوور (تاقیکردنەوە)';
+
+  @override
+  String get playAgain => 'دووبارە یاری بکە';
+
+  @override
+  String get advertisementSpace => 'شوێنی ڕیکلام';
+
+  @override
+  String get yourAdsWillAppearHere => 'ڕیکلامەکانت لێرە دەردەکەون';
+
+  @override
+  String get privacyPolicy => 'سیاسەتی نهێنی';
+
+  @override
+  String get privacyPolicyTitle => 'سیاسەتی نهێنی';
+
+  @override
+  String get privacyPolicyContent =>
+      'لۆڕەم ئیپسوم دۆلۆر سیت ئامێت، کۆنسێکتیتوور ئادیپیسکینگ ئێلیت. سێد دۆ ئێیوسمۆد تێمپۆڕ ئینکیدیدونت ئوت لابۆڕی ئێت دۆلۆڕی ماگنا ئالیکوا.';
+
+  @override
+  String get informationCollection => 'کۆکردنەوەی زانیاری';
+
+  @override
+  String get informationCollectionContent =>
+      'دووئیس ئاوتی ئیڕوڕی دۆلۆر لە ڕێپڕیهێندەڕیت لە ڤۆڵوپتاتی ڤێلیت ئێسی کیلوم دۆلۆڕی ئێو فوگیات نوڵا پاڕیاتوور. ئێکسێپتێوور سینت ئۆکایکات کوپیداتات نۆن پڕۆیدێنت.';
+
+  @override
+  String get dataUsage => 'بەکارهێنانی زانیاری';
+
+  @override
+  String get dataUsageContent =>
+      'سێد ئوت پێڕسپیکیاتیس ئوندی ئۆمنیس ئیستی ناتوس ئێڕۆڕ سیت ڤۆڵوپتاتێم ئاکوسانتیوم دۆلۆڕێمکوی لاودانتیوم، تۆتام ڕێم ئاپێڕیام.';
+
+  @override
+  String get security => 'ئاسایش';
+
+  @override
+  String get securityContent =>
+      'نێمۆ ئێنیم ئیپسام ڤۆڵوپتاتێم کویا ڤۆڵوپتاس سیت ئاسپێڕناتوور ئاوت ئۆدیت ئاوت فوگیت، سێد کویا کۆنسێکوونتوور ماگنی دۆلۆڕێس ئێۆس کوی ڕاتیۆنی ڤۆڵوپتاتێم سێکوی نێسکیونت.';
+
+  @override
+  String get thirdPartyServices => 'خزمەتگوزاری لایەنی سێیەم';
+
+  @override
+  String get thirdPartyServicesContent =>
+      'نێکوی پۆڕۆ کویسکوام ئێست، کوی دۆلۆڕێم ئیپسوم کویا دۆلۆڕ سیت ئامێت، کۆنسێکتیتوور، ئادیپیسکی ڤێلیت، سێد کویا نۆن نومکوام ئێیوس مۆدی تێمپۆڕا.';
+
+  @override
+  String get contact => 'پەیوەندی';
+
+  @override
+  String get contactContent =>
+      'ئوت ئێنیم ئاد مینیما ڤێنیام، کویس نۆسترووم ئێگزێڕسیتاتیۆنێم ئوڵام کۆڕپۆڕیس سوسکیپیت لابۆڕیۆسام، نیسی ئوت ئالیکویت ئێگز ئێا کۆممۆدی کۆنسێکواتوور؟';
+
+  @override
+  String get facebook => 'فەیسبووک';
+
+  @override
+  String get instagram => 'ئینستاگڕام';
+
+  @override
+  String get linkedin => 'لینکدئین';
+
+  @override
+  String get comingSoon => 'بەم زووانە';
+
+  @override
+  String get thisFeatureIsComingSoon => 'ئەم تایبەتمەندییە بەم زووانە دێت!';
 }

@@ -378,5 +378,260 @@
   "gameInstructions": "Game Instructions",
   "@gameInstructions": {
     "description": "Game instructions label"
+  },
+
+  "areYouReadyTo": "ARE YOU READY TO",
+  "@areYouReadyTo": {
+    "description": "Are you ready to text"
+  },
+
+  "playTheGames": "PLAY THE GAMES?",
+  "@playTheGames": {
+    "description": "Play the games text"
+  },
+
+  "personalInformation": "Personal Information",
+  "@personalInformation": {
+    "description": "Personal information section title"
+  },
+
+  "user": "User",
+  "@user": {
+    "description": "Default user name"
+  },
+
+  "balance": "Balance",
+  "@balance": {
+    "description": "Balance label"
+  },
+
+  "account": "Account",
+  "@account": {
+    "description": "Account section title"
+  },
+
+  "editProfile": "Edit Profile",
+  "@editProfile": {
+    "description": "Edit profile option"
+  },
+
+  "notifications": "Notifications",
+  "@notifications": {
+    "description": "Notifications option"
+  },
+
+  "more": "More",
+  "@more": {
+    "description": "More section title"
+  },
+
+  "rateUs": "Rate Us",
+  "@rateUs": {
+    "description": "Rate us option"
+  },
+
+  "socialMedia": "Social Media",
+  "@socialMedia": {
+    "description": "Social media option"
+  },
+
+  "logout": "Logout",
+  "@logout": {
+    "description": "Logout option"
+  },
+
+  "cancel": "Cancel",
+  "@cancel": {
+    "description": "Cancel button text"
+  },
+
+  "loggedOutSuccessfully": "Logged out successfully",
+  "@loggedOutSuccessfully": {
+    "description": "Logged out success message"
+  },
+
+  "editNickname": "Edit Nickname",
+  "@editNickname": {
+    "description": "Edit nickname dialog title"
+  },
+
+  "nicknameCannotBeEmpty": "Nickname cannot be empty",
+  "@nicknameCannotBeEmpty": {
+    "description": "Nickname validation error"
+  },
+
+  "nicknameUpdatedSuccessfully": "Nickname updated successfully",
+  "@nicknameUpdatedSuccessfully": {
+    "description": "Nickname update success message"
+  },
+
+  "save": "Save",
+  "@save": {
+    "description": "Save button text"
+  },
+
+  "home": "Home",
+  "@home": {
+    "description": "Home navigation label"
+  },
+
+  "history": "History",
+  "@history": {
+    "description": "History navigation label"
+  },
+
+  "profile": "Profile",
+  "@profile": {
+    "description": "Profile navigation label"
+  },
+
+  "choosePaymentGateway": "Choose a Payment Gateway",
+  "@choosePaymentGateway": {
+    "description": "Payment gateway selection title"
+  },
+
+  "justRandomText": "Just a random text here",
+  "@justRandomText": {
+    "description": "Generic placeholder text"
+  },
+
+  "visaCard": "Visa Card",
+  "@visaCard": {
+    "description": "Visa card payment option"
+  },
+
+  "masterCard": "Master Card",
+  "@masterCard": {
+    "description": "Master card payment option"
+  },
+
+  "applePay": "Apple Pay",
+  "@applePay": {
+    "description": "Apple Pay payment option"
+  },
+
+  "stripe": "Stripe",
+  "@stripe": {
+    "description": "Stripe payment option"
+  },
+
+  "paypal": "PayPal",
+  "@paypal": {
+    "description": "PayPal payment option"
+  },
+
+  "startGame": "Start Game",
+  "@startGame": {
+    "description": "Start game button text"
+  },
+
+  "ignoreLoginTesting": "IGNORE LOGIN (Testing)",
+  "@ignoreLoginTesting": {
+    "description": "Testing skip login button"
+  },
+
+  "playAgain": "Play Again",
+  "@playAgain": {
+    "description": "Play again button in prize dialog"
+  },
+
+  "advertisementSpace": "Advertisement Space",
+  "@advertisementSpace": {
+    "description": "Advertisement space placeholder"
+  },
+
+  "yourAdsWillAppearHere": "Your ads will appear here",
+  "@yourAdsWillAppearHere": {
+    "description": "Advertisement placeholder subtitle"
+  },
+
+  "privacyPolicy": "Privacy Policy",
+  "@privacyPolicy": {
+    "description": "Privacy policy title"
+  },
+
+  "privacyPolicyTitle": "Privacy Policy",
+  "@privacyPolicyTitle": {
+    "description": "Privacy policy main title"
+  },
+
+  "privacyPolicyContent": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+  "@privacyPolicyContent": {
+    "description": "Privacy policy content"
+  },
+
+  "informationCollection": "Information Collection",
+  "@informationCollection": {
+    "description": "Information collection section title"
+  },
+
+  "informationCollectionContent": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+  "@informationCollectionContent": {
+    "description": "Information collection content"
+  },
+
+  "dataUsage": "Data Usage",
+  "@dataUsage": {
+    "description": "Data usage section title"
+  },
+
+  "dataUsageContent": "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.",
+  "@dataUsageContent": {
+    "description": "Data usage content"
+  },
+
+  "security": "Security",
+  "@security": {
+    "description": "Security section title"
+  },
+
+  "securityContent": "Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.",
+  "@securityContent": {
+    "description": "Security content"
+  },
+
+  "thirdPartyServices": "Third Party Services",
+  "@thirdPartyServices": {
+    "description": "Third party services section title"
+  },
+
+  "thirdPartyServicesContent": "Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.",
+  "@thirdPartyServicesContent": {
+    "description": "Third party services content"
+  },
+
+  "contact": "Contact",
+  "@contact": {
+    "description": "Contact section title"
+  },
+
+  "contactContent": "Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur.",
+  "@contactContent": {
+    "description": "Contact content"
+  },
+
+  "facebook": "Facebook",
+  "@facebook": {
+    "description": "Facebook social media"
+  },
+
+  "instagram": "Instagram",
+  "@instagram": {
+    "description": "Instagram social media"
+  },
+
+  "linkedin": "LinkedIn",
+  "@linkedin": {
+    "description": "LinkedIn social media"
+  },
+
+  "comingSoon": "Coming Soon",
+  "@comingSoon": {
+    "description": "Coming soon message"
+  },
+
+  "thisFeatureIsComingSoon": "This feature is coming soon!",
+  "@thisFeatureIsComingSoon": {
+    "description": "Coming soon dialog message"
   }
 } 

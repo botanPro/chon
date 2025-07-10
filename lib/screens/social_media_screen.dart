@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 /// Social Media screen displaying Facebook, Instagram, and LinkedIn options
 class SocialMediaScreen extends StatelessWidget {
@@ -49,7 +50,7 @@ class SocialMediaScreen extends StatelessWidget {
                 _buildSocialMediaCard(
                   context,
                   icon: Icons.facebook,
-                  title: 'Facebook',
+                  title: AppLocalizations.of(context)!.facebook,
                   description: 'Follow us for updates and news',
                   color: const Color(0xFF1877F2),
                   onTap: () {
@@ -61,7 +62,7 @@ class SocialMediaScreen extends StatelessWidget {
                 _buildSocialMediaCard(
                   context,
                   icon: Icons.photo_camera,
-                  title: 'Instagram',
+                  title: AppLocalizations.of(context)!.instagram,
                   description: 'See our latest photos and stories',
                   color: const Color(0xFFE4405F),
                   onTap: () {
@@ -73,7 +74,7 @@ class SocialMediaScreen extends StatelessWidget {
                 _buildSocialMediaCard(
                   context,
                   icon: Icons.business,
-                  title: 'LinkedIn',
+                  title: AppLocalizations.of(context)!.linkedin,
                   description: 'Connect with us professionally',
                   color: const Color(0xFF0A66C2),
                   onTap: () {
@@ -110,8 +111,8 @@ class SocialMediaScreen extends StatelessWidget {
         icon: const Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () => Navigator.of(context).pop(),
       ),
-      title: const Text(
-        'Social Media',
+      title: Text(
+        AppLocalizations.of(context)!.socialMedia,
         style: TextStyle(
           color: Colors.white,
           fontSize: 20,

@@ -11,6 +11,7 @@ import 'screens/localization_demo_screen.dart';
 import 'services/auth_service.dart';
 import 'services/navigation_service.dart';
 import 'services/localization_service.dart';
+import 'services/rtl_localization_delegate.dart';
 import 'layouts/main_layout.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -108,10 +109,14 @@ class MainApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           theme: _buildAppTheme(),
 
-          // Localization configuration
+          // Localization configuration with RTL support
           locale: localizationService.currentLocale,
           localizationsDelegates: [
             AppLocalizations.delegate,
+            // Custom RTL delegates for Kurdish
+            const RTLMaterialLocalizationsDelegate(),
+            const RTLCupertinoLocalizationsDelegate(),
+            // Default delegates
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
@@ -130,7 +135,15 @@ class MainApp extends StatelessWidget {
             if (child == null) {
               return const SplashScreen();
             }
-            return child;
+            // Ensure MaterialLocalizations are available with RTL support
+            return Directionality(
+              textDirection: localizationService.textDirection,
+              child: Localizations.override(
+                context: context,
+                locale: localizationService.currentLocale,
+                child: child,
+              ),
+            );
           },
         );
       },

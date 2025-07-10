@@ -378,5 +378,260 @@
   "gameInstructions": "ڕێنماییەکانی یاری",
   "@gameInstructions": {
     "description": "Game instructions label"
+  },
+
+  "areYouReadyTo": "ئامادەی بۆ",
+  "@areYouReadyTo": {
+    "description": "Are you ready to text"
+  },
+
+  "playTheGames": "یاری کردن؟",
+  "@playTheGames": {
+    "description": "Play the games text"
+  },
+
+  "personalInformation": "زانیاری کەسی",
+  "@personalInformation": {
+    "description": "Personal information section title"
+  },
+
+  "user": "بەکارهێنەر",
+  "@user": {
+    "description": "Default user name"
+  },
+
+  "balance": "باڵانس",
+  "@balance": {
+    "description": "Balance label"
+  },
+
+  "account": "هەژمار",
+  "@account": {
+    "description": "Account section title"
+  },
+
+  "editProfile": "دەستکاریی پرۆفایل",
+  "@editProfile": {
+    "description": "Edit profile option"
+  },
+
+  "notifications": "ئاگاداری",
+  "@notifications": {
+    "description": "Notifications option"
+  },
+
+  "more": "زیاتر",
+  "@more": {
+    "description": "More section title"
+  },
+
+  "rateUs": "نرخاندنمان",
+  "@rateUs": {
+    "description": "Rate us option"
+  },
+
+  "socialMedia": "سۆشیال میدیا",
+  "@socialMedia": {
+    "description": "Social media option"
+  },
+
+  "logout": "چوونەدەرەوە",
+  "@logout": {
+    "description": "Logout option"
+  },
+
+  "cancel": "پاشگەزبوونەوە",
+  "@cancel": {
+    "description": "Cancel button text"
+  },
+
+  "loggedOutSuccessfully": "بە سەرکەوتووی چوویتەدەرەوە",
+  "@loggedOutSuccessfully": {
+    "description": "Logged out success message"
+  },
+
+  "editNickname": "دەستکاریی ناوی نازناو",
+  "@editNickname": {
+    "description": "Edit nickname dialog title"
+  },
+
+  "nicknameCannotBeEmpty": "ناوی نازناو نابێت بەتاڵ بێت",
+  "@nicknameCannotBeEmpty": {
+    "description": "Nickname validation error"
+  },
+
+  "nicknameUpdatedSuccessfully": "ناوی نازناو بە سەرکەوتووی نوێکرایەوە",
+  "@nicknameUpdatedSuccessfully": {
+    "description": "Nickname update success message"
+  },
+
+  "save": "هەڵگرتن",
+  "@save": {
+    "description": "Save button text"
+  },
+
+  "home": "سەرەتا",
+  "@home": {
+    "description": "Home navigation label"
+  },
+
+  "history": "مێژوو",
+  "@history": {
+    "description": "History navigation label"
+  },
+
+  "profile": "پرۆفایل",
+  "@profile": {
+    "description": "Profile navigation label"
+  },
+
+  "choosePaymentGateway": "ڕێگای پارەدانەکە هەڵبژێرە",
+  "@choosePaymentGateway": {
+    "description": "Payment gateway selection title"
+  },
+
+  "justRandomText": "تەنها دەقی ڕاستەقینە لێرە",
+  "@justRandomText": {
+    "description": "Generic placeholder text"
+  },
+
+  "visaCard": "کارتی ڤیزا",
+  "@visaCard": {
+    "description": "Visa card payment option"
+  },
+
+  "masterCard": "ماستەر کارت",
+  "@masterCard": {
+    "description": "Master card payment option"
+  },
+
+  "applePay": "ئەپڵ پەی",
+  "@applePay": {
+    "description": "Apple Pay payment option"
+  },
+
+  "stripe": "سترایپ",
+  "@stripe": {
+    "description": "Stripe payment option"
+  },
+
+  "paypal": "پەی پاڵ",
+  "@paypal": {
+    "description": "PayPal payment option"
+  },
+
+  "startGame": "دەستپێکردنی یاری",
+  "@startGame": {
+    "description": "Start game button text"
+  },
+
+  "ignoreLoginTesting": "پشتگوێخستنی چوونەژوور (تاقیکردنەوە)",
+  "@ignoreLoginTesting": {
+    "description": "Testing skip login button"
+  },
+
+  "playAgain": "دووبارە یاری بکە",
+  "@playAgain": {
+    "description": "Play again button in prize dialog"
+  },
+
+  "advertisementSpace": "شوێنی ڕیکلام",
+  "@advertisementSpace": {
+    "description": "Advertisement space placeholder"
+  },
+
+  "yourAdsWillAppearHere": "ڕیکلامەکانت لێرە دەردەکەون",
+  "@yourAdsWillAppearHere": {
+    "description": "Advertisement placeholder subtitle"
+  },
+
+  "privacyPolicy": "سیاسەتی نهێنی",
+  "@privacyPolicy": {
+    "description": "Privacy policy title"
+  },
+
+  "privacyPolicyTitle": "سیاسەتی نهێنی",
+  "@privacyPolicyTitle": {
+    "description": "Privacy policy main title"
+  },
+
+  "privacyPolicyContent": "لۆڕەم ئیپسوم دۆلۆر سیت ئامێت، کۆنسێکتیتوور ئادیپیسکینگ ئێلیت. سێد دۆ ئێیوسمۆد تێمپۆڕ ئینکیدیدونت ئوت لابۆڕی ئێت دۆلۆڕی ماگنا ئالیکوا.",
+  "@privacyPolicyContent": {
+    "description": "Privacy policy content"
+  },
+
+  "informationCollection": "کۆکردنەوەی زانیاری",
+  "@informationCollection": {
+    "description": "Information collection section title"
+  },
+
+  "informationCollectionContent": "دووئیس ئاوتی ئیڕوڕی دۆلۆر لە ڕێپڕیهێندەڕیت لە ڤۆڵوپتاتی ڤێلیت ئێسی کیلوم دۆلۆڕی ئێو فوگیات نوڵا پاڕیاتوور. ئێکسێپتێوور سینت ئۆکایکات کوپیداتات نۆن پڕۆیدێنت.",
+  "@informationCollectionContent": {
+    "description": "Information collection content"
+  },
+
+  "dataUsage": "بەکارهێنانی زانیاری",
+  "@dataUsage": {
+    "description": "Data usage section title"
+  },
+
+  "dataUsageContent": "سێد ئوت پێڕسپیکیاتیس ئوندی ئۆمنیس ئیستی ناتوس ئێڕۆڕ سیت ڤۆڵوپتاتێم ئاکوسانتیوم دۆلۆڕێمکوی لاودانتیوم، تۆتام ڕێم ئاپێڕیام.",
+  "@dataUsageContent": {
+    "description": "Data usage content"
+  },
+
+  "security": "ئاسایش",
+  "@security": {
+    "description": "Security section title"
+  },
+
+  "securityContent": "نێمۆ ئێنیم ئیپسام ڤۆڵوپتاتێم کویا ڤۆڵوپتاس سیت ئاسپێڕناتوور ئاوت ئۆدیت ئاوت فوگیت، سێد کویا کۆنسێکوونتوور ماگنی دۆلۆڕێس ئێۆس کوی ڕاتیۆنی ڤۆڵوپتاتێم سێکوی نێسکیونت.",
+  "@securityContent": {
+    "description": "Security content"
+  },
+
+  "thirdPartyServices": "خزمەتگوزاری لایەنی سێیەم",
+  "@thirdPartyServices": {
+    "description": "Third party services section title"
+  },
+
+  "thirdPartyServicesContent": "نێکوی پۆڕۆ کویسکوام ئێست، کوی دۆلۆڕێم ئیپسوم کویا دۆلۆڕ سیت ئامێت، کۆنسێکتیتوور، ئادیپیسکی ڤێلیت، سێد کویا نۆن نومکوام ئێیوس مۆدی تێمپۆڕا.",
+  "@thirdPartyServicesContent": {
+    "description": "Third party services content"
+  },
+
+  "contact": "پەیوەندی",
+  "@contact": {
+    "description": "Contact section title"
+  },
+
+  "contactContent": "ئوت ئێنیم ئاد مینیما ڤێنیام، کویس نۆسترووم ئێگزێڕسیتاتیۆنێم ئوڵام کۆڕپۆڕیس سوسکیپیت لابۆڕیۆسام، نیسی ئوت ئالیکویت ئێگز ئێا کۆممۆدی کۆنسێکواتوور؟",
+  "@contactContent": {
+    "description": "Contact content"
+  },
+
+  "facebook": "فەیسبووک",
+  "@facebook": {
+    "description": "Facebook social media"
+  },
+
+  "instagram": "ئینستاگڕام",
+  "@instagram": {
+    "description": "Instagram social media"
+  },
+
+  "linkedin": "لینکدئین",
+  "@linkedin": {
+    "description": "LinkedIn social media"
+  },
+
+  "comingSoon": "بەم زووانە",
+  "@comingSoon": {
+    "description": "Coming soon message"
+  },
+
+  "thisFeatureIsComingSoon": "ئەم تایبەتمەندییە بەم زووانە دێت!",
+  "@thisFeatureIsComingSoon": {
+    "description": "Coming soon dialog message"
   }
 } 

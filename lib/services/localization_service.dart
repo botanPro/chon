@@ -25,6 +25,13 @@ class LocalizationService extends ChangeNotifier {
   String get currentLanguageName =>
       languageNames[currentLanguageCode] ?? 'English';
 
+  /// Check if current language is RTL
+  bool get isRTL => currentLanguageCode == 'kr';
+
+  /// Get text direction for current language
+  TextDirection get textDirection =>
+      isRTL ? TextDirection.rtl : TextDirection.ltr;
+
   /// Initialize the service and load saved language
   Future<void> initialize() async {
     try {

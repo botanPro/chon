@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 /// Privacy Policy screen displaying dummy/lorem ipsum content
 class PrivacyPolicyScreen extends StatelessWidget {
@@ -117,8 +118,8 @@ class PrivacyPolicyScreen extends StatelessWidget {
         icon: const Icon(Icons.arrow_back, color: Colors.white),
         onPressed: () => Navigator.of(context).pop(),
       ),
-      title: const Text(
-        'Privacy & Policy',
+      title: Text(
+        AppLocalizations.of(context)!.privacyPolicy,
         style: TextStyle(
           color: Colors.white,
           fontSize: 20,

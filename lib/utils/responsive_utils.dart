@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../services/localization_service.dart';
+import 'package:provider/provider.dart';
 
 /// Responsive breakpoints for different screen sizes
 class ResponsiveBreakpoints {
@@ -192,6 +194,39 @@ class ResponsiveUtils {
       DeviceType.tablet => 52.0,
       DeviceType.desktop => 56.0,
     };
+  }
+
+  /// Check if current locale is RTL
+  static bool isRTL(BuildContext context) {
+    try {
+      final localizationService =
+          Provider.of<LocalizationService>(context, listen: false);
+      return localizationService.isRTL;
+    } catch (e) {
+      // Fallback: check Directionality
+      return Directionality.of(context) == TextDirection.rtl;
+    }
+  }
+
+  /// Get text direction for current locale
+  static TextDirection getTextDirection(BuildContext context) {
+    return isRTL(context) ? TextDirection.rtl : TextDirection.ltr;
+  }
+
+  /// Get appropriate EdgeInsets for RTL layouts
+  static EdgeInsetsDirectional getDirectionalPadding(
+    BuildContext context, {
+    double? start,
+    double? end,
+    double? top,
+    double? bottom,
+  }) {
+    return EdgeInsetsDirectional.only(
+      start: start ?? 0,
+      end: end ?? 0,
+      top: top ?? 0,
+      bottom: bottom ?? 0,
+    );
   }
 
   /// Get responsive modal height

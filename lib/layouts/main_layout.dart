@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../utils/responsive_utils.dart';
+import '../l10n/app_localizations.dart';
 
 /// A layout widget that provides a consistent structure for the main screens
 /// of the application, including the bottom navigation bar.
@@ -50,39 +51,46 @@ class MainLayout extends StatelessWidget {
             topLeft: Radius.circular(borderRadius),
             topRight: Radius.circular(borderRadius),
           ),
-          child: Theme(
-            data: Theme.of(context).copyWith(
-              splashColor: Colors.transparent,
-              highlightColor: Colors.transparent,
-            ),
-            child: BottomNavigationBar(
-              backgroundColor: const Color(0xFF101513),
-              selectedItemColor: const Color(0xFF00B894),
-              unselectedItemColor: const Color(0xFF8E8E8E),
-              type: BottomNavigationBarType.fixed,
-              showSelectedLabels: true,
-              showUnselectedLabels: true,
-              selectedLabelStyle: TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: selectedFontSize,
+          child: Material(
+            color: Colors.transparent,
+            child: Theme(
+              data: Theme.of(context).copyWith(
+                splashColor: Colors.transparent,
+                highlightColor: Colors.transparent,
               ),
-              unselectedLabelStyle: TextStyle(
-                fontSize: unselectedFontSize,
+              child: BottomNavigationBar(
+                backgroundColor: const Color(0xFF101513),
+                selectedItemColor: const Color(0xFF00B894),
+                unselectedItemColor: const Color(0xFF8E8E8E),
+                type: BottomNavigationBarType.fixed,
+                showSelectedLabels: true,
+                showUnselectedLabels: true,
+                selectedLabelStyle: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: selectedFontSize,
+                ),
+                unselectedLabelStyle: TextStyle(
+                  fontSize: unselectedFontSize,
+                ),
+                elevation: 0,
+                items: [
+                  _buildNavItem(context, Icons.home_outlined, Icons.home,
+                      AppLocalizations.of(context)!.home, 0),
+                  _buildNavItem(context, Icons.history_outlined, Icons.history,
+                      AppLocalizations.of(context)!.history, 1),
+                  _buildLogoNavItem(logoSize),
+                  _buildNavItem(
+                      context,
+                      Icons.notifications_outlined,
+                      Icons.notifications,
+                      AppLocalizations.of(context)!.notifications,
+                      3),
+                  _buildNavItem(context, Icons.person_outline, Icons.person,
+                      AppLocalizations.of(context)!.profile, 4),
+                ],
+                currentIndex: currentIndex,
+                onTap: onNavigationTap ?? _handleNavigation,
               ),
-              elevation: 0,
-              items: [
-                _buildNavItem(
-                    context, Icons.home_outlined, Icons.home, 'Home', 0),
-                _buildNavItem(context, Icons.history_outlined, Icons.history,
-                    'History', 1),
-                _buildLogoNavItem(logoSize),
-                _buildNavItem(context, Icons.notifications_outlined,
-                    Icons.notifications, 'Notifications', 3),
-                _buildNavItem(
-                    context, Icons.person_outline, Icons.person, 'Profile', 4),
-              ],
-              currentIndex: currentIndex,
-              onTap: onNavigationTap ?? _handleNavigation,
             ),
           ),
         ),

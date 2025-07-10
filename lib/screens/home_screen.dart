@@ -304,7 +304,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Advertisment Space',
+                            AppLocalizations.of(context)!.advertisementSpace,
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.8),
                               fontSize: 15,
@@ -313,7 +313,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            'Your ads will appear here',
+                            AppLocalizations.of(context)!.yourAdsWillAppearHere,
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.5),
                               fontSize: 11,

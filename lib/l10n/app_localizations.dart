@@ -523,6 +523,312 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Game Instructions'**
   String get gameInstructions;
+
+  /// Are you ready to text
+  ///
+  /// In en, this message translates to:
+  /// **'ARE YOU READY TO'**
+  String get areYouReadyTo;
+
+  /// Play the games text
+  ///
+  /// In en, this message translates to:
+  /// **'PLAY THE GAMES?'**
+  String get playTheGames;
+
+  /// Personal information section title
+  ///
+  /// In en, this message translates to:
+  /// **'Personal Information'**
+  String get personalInformation;
+
+  /// Default user name
+  ///
+  /// In en, this message translates to:
+  /// **'User'**
+  String get user;
+
+  /// Balance label
+  ///
+  /// In en, this message translates to:
+  /// **'Balance'**
+  String get balance;
+
+  /// Account section title
+  ///
+  /// In en, this message translates to:
+  /// **'Account'**
+  String get account;
+
+  /// Edit profile option
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Profile'**
+  String get editProfile;
+
+  /// Notifications option
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// More section title
+  ///
+  /// In en, this message translates to:
+  /// **'More'**
+  String get more;
+
+  /// Rate us option
+  ///
+  /// In en, this message translates to:
+  /// **'Rate Us'**
+  String get rateUs;
+
+  /// Social media option
+  ///
+  /// In en, this message translates to:
+  /// **'Social Media'**
+  String get socialMedia;
+
+  /// Logout option
+  ///
+  /// In en, this message translates to:
+  /// **'Logout'**
+  String get logout;
+
+  /// Cancel button text
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// Logged out success message
+  ///
+  /// In en, this message translates to:
+  /// **'Logged out successfully'**
+  String get loggedOutSuccessfully;
+
+  /// Edit nickname dialog title
+  ///
+  /// In en, this message translates to:
+  /// **'Edit Nickname'**
+  String get editNickname;
+
+  /// Nickname validation error
+  ///
+  /// In en, this message translates to:
+  /// **'Nickname cannot be empty'**
+  String get nicknameCannotBeEmpty;
+
+  /// Nickname update success message
+  ///
+  /// In en, this message translates to:
+  /// **'Nickname updated successfully'**
+  String get nicknameUpdatedSuccessfully;
+
+  /// Save button text
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get save;
+
+  /// Home navigation label
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get home;
+
+  /// History navigation label
+  ///
+  /// In en, this message translates to:
+  /// **'History'**
+  String get history;
+
+  /// Profile navigation label
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profile;
+
+  /// Payment gateway selection title
+  ///
+  /// In en, this message translates to:
+  /// **'Choose a Payment Gateway'**
+  String get choosePaymentGateway;
+
+  /// Generic placeholder text
+  ///
+  /// In en, this message translates to:
+  /// **'Just a random text here'**
+  String get justRandomText;
+
+  /// Visa card payment option
+  ///
+  /// In en, this message translates to:
+  /// **'Visa Card'**
+  String get visaCard;
+
+  /// Master card payment option
+  ///
+  /// In en, this message translates to:
+  /// **'Master Card'**
+  String get masterCard;
+
+  /// Apple Pay payment option
+  ///
+  /// In en, this message translates to:
+  /// **'Apple Pay'**
+  String get applePay;
+
+  /// Stripe payment option
+  ///
+  /// In en, this message translates to:
+  /// **'Stripe'**
+  String get stripe;
+
+  /// PayPal payment option
+  ///
+  /// In en, this message translates to:
+  /// **'PayPal'**
+  String get paypal;
+
+  /// Start game button text
+  ///
+  /// In en, this message translates to:
+  /// **'Start Game'**
+  String get startGame;
+
+  /// Testing skip login button
+  ///
+  /// In en, this message translates to:
+  /// **'IGNORE LOGIN (Testing)'**
+  String get ignoreLoginTesting;
+
+  /// Play again button in prize dialog
+  ///
+  /// In en, this message translates to:
+  /// **'Play Again'**
+  String get playAgain;
+
+  /// Advertisement space placeholder
+  ///
+  /// In en, this message translates to:
+  /// **'Advertisement Space'**
+  String get advertisementSpace;
+
+  /// Advertisement placeholder subtitle
+  ///
+  /// In en, this message translates to:
+  /// **'Your ads will appear here'**
+  String get yourAdsWillAppearHere;
+
+  /// Privacy policy title
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicy;
+
+  /// Privacy policy main title
+  ///
+  /// In en, this message translates to:
+  /// **'Privacy Policy'**
+  String get privacyPolicyTitle;
+
+  /// Privacy policy content
+  ///
+  /// In en, this message translates to:
+  /// **'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.'**
+  String get privacyPolicyContent;
+
+  /// Information collection section title
+  ///
+  /// In en, this message translates to:
+  /// **'Information Collection'**
+  String get informationCollection;
+
+  /// Information collection content
+  ///
+  /// In en, this message translates to:
+  /// **'Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.'**
+  String get informationCollectionContent;
+
+  /// Data usage section title
+  ///
+  /// In en, this message translates to:
+  /// **'Data Usage'**
+  String get dataUsage;
+
+  /// Data usage content
+  ///
+  /// In en, this message translates to:
+  /// **'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.'**
+  String get dataUsageContent;
+
+  /// Security section title
+  ///
+  /// In en, this message translates to:
+  /// **'Security'**
+  String get security;
+
+  /// Security content
+  ///
+  /// In en, this message translates to:
+  /// **'Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt.'**
+  String get securityContent;
+
+  /// Third party services section title
+  ///
+  /// In en, this message translates to:
+  /// **'Third Party Services'**
+  String get thirdPartyServices;
+
+  /// Third party services content
+  ///
+  /// In en, this message translates to:
+  /// **'Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem.'**
+  String get thirdPartyServicesContent;
+
+  /// Contact section title
+  ///
+  /// In en, this message translates to:
+  /// **'Contact'**
+  String get contact;
+
+  /// Contact content
+  ///
+  /// In en, this message translates to:
+  /// **'Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur.'**
+  String get contactContent;
+
+  /// Facebook social media
+  ///
+  /// In en, this message translates to:
+  /// **'Facebook'**
+  String get facebook;
+
+  /// Instagram social media
+  ///
+  /// In en, this message translates to:
+  /// **'Instagram'**
+  String get instagram;
+
+  /// LinkedIn social media
+  ///
+  /// In en, this message translates to:
+  /// **'LinkedIn'**
+  String get linkedin;
+
+  /// Coming soon message
+  ///
+  /// In en, this message translates to:
+  /// **'Coming Soon'**
+  String get comingSoon;
+
+  /// Coming soon dialog message
+  ///
+  /// In en, this message translates to:
+  /// **'This feature is coming soon!'**
+  String get thisFeatureIsComingSoon;
 }
 
 class _AppLocalizationsDelegate
