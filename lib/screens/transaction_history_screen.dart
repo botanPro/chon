@@ -19,12 +19,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchLeaderboard();
+    _fetchLeaderboardHistory();
   }
 
-  Future<void> _fetchLeaderboard() async {
+  Future<void> _fetchLeaderboardHistory() async {
     final authService = Provider.of<AuthService>(context, listen: false);
-    final success = await authService.fetchLastCompetitionLeaderboard();
+    final success = await authService.fetchLeaderboardHistory();
     setState(() {
       _loading = false;
       _apiSuccess = success;
@@ -35,11 +35,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final authService = context.watch<AuthService>();
-    final leaderboard = authService.lastCompetitionLeaderboard;
-    final gameHistory = authService.gameHistory;
-
-    // Dummy data removed. Only use API data.
-    final showApiData = _apiSuccess && leaderboard != null;
+    final leaderboardHistory = authService.leaderboardHistory;
+    final historyList =
+        leaderboardHistory != null && leaderboardHistory['history'] is List
+            ? leaderboardHistory['history'] as List
+            : [];
+    final showApiData = _apiSuccess && historyList.isNotEmpty;
 
     return Scaffold(
       extendBodyBehindAppBar: true,
@@ -74,27 +75,19 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           child: _loading
               ? const Center(child: CircularProgressIndicator())
               : showApiData
-                  ? _buildLeaderboardView(leaderboard)
+                  ? _buildHistoryListView(historyList)
                   : _buildNoHistoryView(),
         ),
       ),
     );
   }
 
-  Widget _buildLeaderboardView(Map<String, dynamic> leaderboard) {
-    final top10 = leaderboard['top10'] as List<dynamic>? ?? [];
-    final currentPlayer = leaderboard['player'] as Map<String, dynamic>?;
-
+  Widget _buildHistoryListView(List historyList) {
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      itemCount: top10.length,
+      itemCount: historyList.length,
       itemBuilder: (context, index) {
-        final player = top10[index] as Map<String, dynamic>;
-        final position = index + 1;
-        final isTopThree = position <= 3;
-        final isCurrentPlayer = currentPlayer != null &&
-            player['player_id'] == currentPlayer['player_id'];
-
+        final item = historyList[index] as Map<String, dynamic>;
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: ClipRRect(
@@ -106,12 +99,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   color: Colors.black.withOpacity(0.2),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: isCurrentPlayer
-                        ? const Color(0xFF94C1BA).withOpacity(0.8)
-                        : isTopThree
-                            ? const Color(0xFF94C1BA).withOpacity(0.5)
-                            : const Color(0xFF94C1BA).withOpacity(0.3),
-                    width: isCurrentPlayer ? 2 : 1,
+                    color: const Color(0xFF94C1BA).withOpacity(0.5),
+                    width: 1,
                   ),
                   boxShadow: [
                     BoxShadow(
@@ -133,17 +122,13 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                   padding: const EdgeInsets.all(16),
                   child: Row(
                     children: [
-                      // Position badge
+                      // Competition ID
                       Container(
                         width: 40,
                         height: 40,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: isCurrentPlayer
-                              ? const Color(0xFF94C1BA).withOpacity(0.3)
-                              : isTopThree
-                                  ? const Color(0xFF94C1BA).withOpacity(0.2)
-                                  : Colors.white.withOpacity(0.1),
+                          color: const Color(0xFF94C1BA).withOpacity(0.2),
                           border: Border.all(
                             color: const Color(0xFF94C1BA),
                             width: 1,
@@ -151,107 +136,32 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                         ),
                         child: Center(
                           child: Text(
-                            '$position',
-                            style: TextStyle(
-                              color: isCurrentPlayer || isTopThree
-                                  ? const Color(0xFF94C1BA)
-                                  : Colors.white,
+                            '${item['competition_id'] ?? ''}',
+                            style: const TextStyle(
+                              color: Color(0xFF94C1BA),
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
                       ),
-
                       const SizedBox(width: 12),
-
-                      // Avatar
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: const Color(0xFF00B894),
-                            width: 2,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF00B894).withOpacity(0.3),
-                              blurRadius: 8,
-                              spreadRadius: -2,
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(24),
-                          child: Image.asset(
-                            'assets/images/avatar.png',
-                            errorBuilder: (context, error, stackTrace) {
-                              return CircleAvatar(
-                                backgroundColor:
-                                    const Color(0xFF00B894).withOpacity(0.2),
-                                child: Icon(
-                                  Icons.person,
-                                  color: const Color(0xFF00B894),
-                                  size: 24,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(width: 12),
-
-                      // Name and competition
+                      // Nickname
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Row(
-                              children: [
-                                Text(
-                                  player['player_name'] ?? 'Player',
-                                  style: TextStyle(
-                                    color: isCurrentPlayer
-                                        ? const Color(0xFF94C1BA)
-                                        : isTopThree
-                                            ? const Color(0xFF94C1BA)
-                                            : Colors.white,
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                                if (isCurrentPlayer) ...[
-                                  const SizedBox(width: 8),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 6, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFF94C1BA)
-                                          .withOpacity(0.2),
-                                      borderRadius: BorderRadius.circular(8),
-                                      border: Border.all(
-                                        color: const Color(0xFF94C1BA),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      'YOU',
-                                      style: TextStyle(
-                                        color: Color(0xFF94C1BA),
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ],
+                            Text(
+                              item['nickname'] ?? 'Player',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              player['competition_name'] ?? 'Competition',
+                              'Rank: ${item['rank'] ?? 'N/A'}',
                               style: TextStyle(
                                 color: Colors.white.withOpacity(0.5),
                                 fontSize: 12,
@@ -260,27 +170,16 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                           ],
                         ),
                       ),
-
-                      // Score and rank
+                      // Score
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            'Score: ${player['score'] ?? 'N/A'}',
-                            style: TextStyle(
-                              color: isCurrentPlayer || isTopThree
-                                  ? const Color(0xFF94C1BA)
-                                  : Colors.white,
+                            'Score: ${item['score'] ?? 'N/A'}',
+                            style: const TextStyle(
+                              color: Color(0xFF94C1BA),
                               fontSize: 16,
                               fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Rank: ${player['rank'] ?? 'N/A'}',
-                            style: TextStyle(
-                              color: Colors.white.withOpacity(0.5),
-                              fontSize: 12,
                             ),
                           ),
                         ],

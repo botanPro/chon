@@ -26,6 +26,7 @@ class AuthService extends ChangeNotifier {
   List<Transaction> _transactions = [];
   List<GameResult> _gameHistory = [];
   Map<String, dynamic>? _lastCompetitionLeaderboard;
+  Map<String, dynamic>? _leaderboardHistory;
 
   // Public getters
   bool get isAuthenticated => _isAuthenticated;
@@ -41,6 +42,7 @@ class AuthService extends ChangeNotifier {
   List<GameResult> get gameHistory => List.unmodifiable(_gameHistory);
   Map<String, dynamic>? get lastCompetitionLeaderboard =>
       _lastCompetitionLeaderboard;
+  Map<String, dynamic>? get leaderboardHistory => _leaderboardHistory;
 
   /// Sets the authentication state
   void setAuthenticated(bool isAuthenticated) {
@@ -362,6 +364,7 @@ class AuthService extends ChangeNotifier {
     _transactions.clear();
     _gameHistory.clear();
     _lastCompetitionLeaderboard = null; // Clear leaderboard on sign out
+    _leaderboardHistory = null; // Clear leaderboard history on sign out
 
     // Reset navigation state and redirect to auth screen
     final navigationService = NavigationService();
@@ -418,6 +421,32 @@ class AuthService extends ChangeNotifier {
         final data = jsonDecode(response.body);
         if (data['success'] == true && data['data'] != null) {
           _lastCompetitionLeaderboard = data['data'];
+          notifyListeners();
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Fetches the full leaderboard history for the authenticated user.
+  Future<bool> fetchLeaderboardHistory() async {
+    if (_token == null) return false;
+    final url = Uri.parse('$apiUrl/api/players/history');
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          _leaderboardHistory = {'history': data['data']};
           notifyListeners();
           return true;
         }
