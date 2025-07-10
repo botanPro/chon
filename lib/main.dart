@@ -51,6 +51,10 @@ Future<void> main() async {
   final localizationService = LocalizationService();
   await localizationService.initialize();
 
+  // Initialize authentication service
+  final authService = AuthService();
+  await authService.initialize();
+
   // Add error handling
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
@@ -62,7 +66,7 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => AuthService()),
+        ChangeNotifierProvider.value(value: authService),
         ChangeNotifierProvider.value(value: localizationService),
       ],
       child: const MainApp(),
@@ -110,9 +114,11 @@ class MainApp extends StatelessWidget {
 
           // Use the navigation key from our service for programmatic navigation
           navigatorKey: navigationService.navigatorKey,
-          home: authService.isAuthenticated
-              ? const AppNavigator()
-              : const AuthScreen(),
+          home: authService.isLoading
+              ? const SplashScreen()
+              : authService.isAuthenticated
+                  ? const AppNavigator()
+                  : const AuthScreen(),
           onGenerateRoute: _generateRoute,
           builder: (context, child) {
             if (child == null) {

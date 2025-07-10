@@ -1,15 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'navigation_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:io';
 import '../utils/apiConnection.dart';
 
 /// Service that handles all authentication and user-related functionality.
 ///
-/// This includes user registration, login, session management, and financial transactions.
-/// Currently uses dummy data and mock implementations that will be replaced with
-/// actual API calls in production.
+/// This service manages user authentication, token persistence, and secure
+/// communication with the backend API.
 class AuthService extends ChangeNotifier {
+  // SharedPreferences keys for persistent storage
+  static const String _tokenKey = 'auth_token';
+  static const String _userIdKey = 'user_id';
+  static const String _nicknameKey = 'nickname';
+  static const String _levelKey = 'level';
+  static const String _phoneKey = 'phone';
+  static const String _languageKey = 'language';
+  static const String _isVerifiedKey = 'is_verified';
+
   // User authentication state
   bool _isAuthenticated = false;
   String? _userId;
@@ -20,6 +31,8 @@ class AuthService extends ChangeNotifier {
   String? _nickname; // User's nickname
   int _level = 0; // User's level
   String _language = 'English'; // User's preferred language
+  bool _isVerified = false;
+  bool _isLoading = false;
 
   // User financial data
   double _balance = 0.0;
@@ -33,10 +46,12 @@ class AuthService extends ChangeNotifier {
   String? get userId => _userId;
   String? get userPhone => _userPhone;
   bool get isNewUser => _isNewUser;
-  String? get token => _token; // Getter for JWT token
-  String? get nickname => _nickname; // Getter for nickname
-  int get level => _level; // Getter for level
-  String get language => _language; // Getter for language
+  String? get token => _token;
+  String? get nickname => _nickname;
+  int get level => _level;
+  String get language => _language;
+  bool get isVerified => _isVerified;
+  bool get isLoading => _isLoading;
   double get balance => _balance;
   List<Transaction> get transactions => List.unmodifiable(_transactions);
   List<GameResult> get gameHistory => List.unmodifiable(_gameHistory);
@@ -44,15 +59,181 @@ class AuthService extends ChangeNotifier {
       _lastCompetitionLeaderboard;
   Map<String, dynamic>? get leaderboardHistory => _leaderboardHistory;
 
+  /// Checks if the device has internet connectivity
+  Future<bool> _hasInternetConnection() async {
+    try {
+      final connectivityResult = await Connectivity().checkConnectivity();
+
+      // Check if device is connected to a network
+      if (connectivityResult == ConnectivityResult.none) {
+        return false;
+      }
+
+      // Additional check by trying to reach a reliable server
+      final result = await InternetAddress.lookup('google.com')
+          .timeout(const Duration(seconds: 5));
+
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } catch (e) {
+      print('Internet connectivity check failed: $e');
+      return false;
+    }
+  }
+
+  /// Handles network-related errors and returns appropriate error messages
+  Map<String, dynamic> _handleNetworkError(dynamic error) {
+    String message = 'Network error occurred';
+
+    if (error is SocketException) {
+      message =
+          'No internet connection. Please check your network and try again.';
+    } else if (error.toString().contains('TimeoutException')) {
+      message = 'Request timed out. Please check your internet connection.';
+    } else if (error.toString().contains('Connection refused') ||
+        error.toString().contains('Failed to connect')) {
+      message =
+          'Unable to connect to server. Please check your internet connection.';
+    } else if (error.toString().contains('Connection reset') ||
+        error.toString().contains('Connection closed')) {
+      message =
+          'Connection lost. Please check your internet connection and try again.';
+    }
+
+    return {'success': false, 'message': message, 'error': 'network_error'};
+  }
+
+  /// Initialize the service and restore authentication state from persistent storage
+  Future<void> initialize() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString(_tokenKey);
+
+      if (token != null) {
+        // Validate token with backend
+        final isValid = await _validateToken(token);
+
+        if (isValid) {
+          // Restore user data from storage
+          _token = token;
+          _userId = prefs.getString(_userIdKey);
+          _nickname = prefs.getString(_nicknameKey);
+          _level = prefs.getInt(_levelKey) ?? 0;
+          _userPhone = prefs.getString(_phoneKey);
+          _language = prefs.getString(_languageKey) ?? 'English';
+          _isVerified = prefs.getBool(_isVerifiedKey) ?? false;
+          _isAuthenticated = true;
+
+          print('Authentication restored from storage');
+        } else {
+          // Token is invalid, clear stored data
+          await _clearStoredAuthData();
+          print('Stored token is invalid, cleared auth data');
+        }
+      }
+    } catch (e) {
+      print('Error initializing auth service: $e');
+      await _clearStoredAuthData();
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Validates a JWT token with the backend
+  Future<bool> _validateToken(String token) async {
+    try {
+      // Basic token format validation
+      if (token.isEmpty ||
+          !token.contains('.') ||
+          token.split('.').length != 3) {
+        print('Invalid token format');
+        return false;
+      }
+
+      final url = Uri.parse('$apiUrl/api/players/profile');
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+      ).timeout(const Duration(seconds: 10)); // Add timeout
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['success'] == true;
+      } else if (response.statusCode == 401) {
+        print('Token expired or invalid');
+        return false;
+      }
+      return false;
+    } catch (e) {
+      print('Token validation error: $e');
+      return false;
+    }
+  }
+
+  /// Saves authentication data to persistent storage
+  Future<void> _saveAuthData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+
+      if (_token != null) {
+        await prefs.setString(_tokenKey, _token!);
+      }
+      if (_userId != null) {
+        await prefs.setString(_userIdKey, _userId!);
+      }
+      if (_nickname != null) {
+        await prefs.setString(_nicknameKey, _nickname!);
+      }
+      if (_userPhone != null) {
+        await prefs.setString(_phoneKey, _userPhone!);
+      }
+
+      await prefs.setInt(_levelKey, _level);
+      await prefs.setString(_languageKey, _language);
+      await prefs.setBool(_isVerifiedKey, _isVerified);
+
+      print('Authentication data saved to storage');
+    } catch (e) {
+      print('Error saving auth data: $e');
+    }
+  }
+
+  /// Clears all authentication data from persistent storage
+  Future<void> _clearStoredAuthData() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_tokenKey);
+      await prefs.remove(_userIdKey);
+      await prefs.remove(_nicknameKey);
+      await prefs.remove(_levelKey);
+      await prefs.remove(_phoneKey);
+      await prefs.remove(_languageKey);
+      await prefs.remove(_isVerifiedKey);
+
+      print('Authentication data cleared from storage');
+    } catch (e) {
+      print('Error clearing auth data: $e');
+    }
+  }
+
   /// Sets the authentication state
   void setAuthenticated(bool isAuthenticated) {
     _isAuthenticated = isAuthenticated;
     if (!isAuthenticated) {
-      _token = null; // Clear token on logout
-      _userId = null; // Clear user ID on logout
-      _nickname = null; // Clear nickname on logout
-      _level = 0; // Reset level on logout
-      _language = 'English'; // Reset language on logout
+      _token = null;
+      _userId = null;
+      _nickname = null;
+      _level = 0;
+      _language = 'English';
+      _isVerified = false;
+      _userPhone = null;
+      _clearStoredAuthData();
     }
     notifyListeners();
   }
@@ -60,40 +241,39 @@ class AuthService extends ChangeNotifier {
   /// Sets the JWT token for API authentication
   void setToken(String token) {
     _token = token;
+    _saveAuthData();
     notifyListeners();
   }
 
   /// Sets the user ID
   void setUserId(String userId) {
     _userId = userId;
+    _saveAuthData();
     notifyListeners();
   }
 
   /// Sets the user's nickname
   void setNickname(String nickname) {
     _nickname = nickname;
+    _saveAuthData();
     notifyListeners();
   }
 
   /// Sets the user's level
   void setLevel(int level) {
     _level = level;
+    _saveAuthData();
     notifyListeners();
   }
 
   /// Sets the user's preferred language
   void setLanguage(String language) {
     _language = language;
+    _saveAuthData();
     notifyListeners();
   }
 
   /// Formats a phone number to the standard international format.
-  ///
-  /// Handles different input formats and ensures the number has the correct
-  /// country code prefix (+964 for Iraq).
-  ///
-  /// [phone] The phone number to format
-  /// Returns the formatted phone number
   String _formatPhoneNumber(String phone) {
     // Remove any non-digit characters
     phone = phone.replaceAll(RegExp(r'[^0-9]'), '');
@@ -110,77 +290,296 @@ class AuthService extends ChangeNotifier {
     return phone;
   }
 
-  /// Checks if an account exists for the given phone number and sends OTP.
-  ///
-  /// This is the first step in the authentication flow. It determines if the
-  /// user is new or existing and triggers the OTP verification process.
-  ///
-  /// [phone] The phone number to check
-  /// Returns true if OTP was sent successfully, false otherwise
-  Future<bool> checkPhoneAndSendOTP(String phone) async {
+  /// Registers a new user with the backend
+  Future<Map<String, dynamic>> registerUser({
+    required String whatsappNumber,
+    required String nickname,
+    required String language,
+  }) async {
     try {
-      final formattedPhone = _formatPhoneNumber(phone);
-
-      // TODO: Replace with actual API call to verify phone and send OTP
-      await Future.delayed(const Duration(seconds: 1));
-
-      // MOCK IMPLEMENTATION: Simulate checking if user exists
-      // In production, this would be an API call to the backend
-      _isNewUser = !formattedPhone.contains('751');
-      _userPhone = formattedPhone;
-      _verificationId = 'test-verification-id';
-
+      _isLoading = true;
       notifyListeners();
-      return true;
+
+      // Check internet connectivity first
+      final hasInternet = await _hasInternetConnection();
+      if (!hasInternet) {
+        return {
+          'success': false,
+          'message':
+              'No internet connection. Please check your network and try again.',
+          'error': 'no_internet'
+        };
+      }
+
+      final formattedPhone = _formatPhoneNumber(whatsappNumber);
+      final url = Uri.parse('$apiUrl/api/players/register');
+
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'whatsapp_number': formattedPhone,
+              'nickname': nickname,
+              'language': language,
+            }),
+          )
+          .timeout(const Duration(seconds: 30));
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _userPhone = formattedPhone;
+        _nickname = nickname;
+        _language = language;
+        _isNewUser = true;
+
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Registration successful',
+          'data': data['data']
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Registration failed',
+          'error': data['error']
+        };
+      }
     } catch (e) {
-      _userPhone = null;
-      _verificationId = null;
+      print('Registration error: $e');
+      return _handleNetworkError(e);
+    } finally {
+      _isLoading = false;
       notifyListeners();
-      return false;
     }
   }
 
-  /// Verifies the OTP code entered by the user.
-  ///
-  /// This is the second step in the authentication flow. If successful,
-  /// it will either complete the login process or prompt for additional
-  /// registration information for new users.
-  ///
-  /// [otp] The OTP code entered by the user
-  /// Returns true if verification was successful, false otherwise
-  Future<bool> verifyOTP(String otp) async {
+  /// Requests login OTP for an existing user
+  Future<Map<String, dynamic>> requestLoginOTP(String whatsappNumber) async {
     try {
-      // TODO: Replace with actual OTP verification API call
-      await Future.delayed(const Duration(seconds: 1));
+      _isLoading = true;
+      notifyListeners();
 
-      // MOCK IMPLEMENTATION: For testing purposes, accept "123456" as valid
-      if (otp == '123456') {
+      // Check internet connectivity first
+      final hasInternet = await _hasInternetConnection();
+      if (!hasInternet) {
+        return {
+          'success': false,
+          'message':
+              'No internet connection. Please check your network and try again.',
+          'error': 'no_internet'
+        };
+      }
+
+      final formattedPhone = _formatPhoneNumber(whatsappNumber);
+      final url = Uri.parse('$apiUrl/api/players/login');
+
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'whatsapp_number': formattedPhone,
+            }),
+          )
+          .timeout(const Duration(seconds: 30));
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        _userPhone = formattedPhone;
+        _isNewUser = false;
+
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Login OTP sent',
+          'data': data['data']
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Login failed',
+          'error': data['error']
+        };
+      }
+    } catch (e) {
+      print('Login OTP request error: $e');
+      return _handleNetworkError(e);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Verifies the OTP code entered by the user
+  Future<Map<String, dynamic>> verifyOTP(String otp) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      if (_userPhone == null) {
+        return {
+          'success': false,
+          'message': 'Phone number not set',
+          'error': 'No phone number'
+        };
+      }
+
+      // Check internet connectivity first
+      final hasInternet = await _hasInternetConnection();
+      if (!hasInternet) {
+        return {
+          'success': false,
+          'message':
+              'No internet connection. Please check your network and try again.',
+          'error': 'no_internet'
+        };
+      }
+
+      final url = Uri.parse('$apiUrl/api/players/verify');
+
+      final response = await http
+          .post(
+            url,
+            headers: {'Content-Type': 'application/json'},
+            body: jsonEncode({
+              'whatsapp_number': _userPhone,
+              'otp_code': otp,
+            }),
+          )
+          .timeout(const Duration(seconds: 30));
+
+      final data = jsonDecode(response.body);
+
+      if (response.statusCode == 200) {
+        final playerData = data['data'];
+
+        // Set authentication data
+        _token = playerData['token'];
+        _userId = playerData['player']['id'].toString();
+        _nickname = playerData['player']['nickname'];
+        _level = playerData['player']['level'] ?? 0;
+        _isVerified = playerData['player']['is_verified'] ?? false;
         _isAuthenticated = true;
-        _userId = 'user_${_userPhone}';
-        _balance = 1000000; // Initial balance for testing
 
-        // Add sample game history for testing UI
-        _addSampleGameHistory();
-
-        notifyListeners();
+        // Save to persistent storage
+        await _saveAuthData();
 
         // Navigate to home screen
         NavigationService().navigateToReplacement('/home');
 
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Verification successful',
+          'data': playerData
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Verification failed',
+          'error': data['error']
+        };
+      }
+    } catch (e) {
+      print('OTP verification error: $e');
+      return _handleNetworkError(e);
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Checks if an account exists for the given phone number and sends OTP
+  Future<bool> checkPhoneAndSendOTP(String phone) async {
+    try {
+      final formattedPhone = _formatPhoneNumber(phone);
+
+      // First, try to request login OTP (for existing users)
+      final loginResult = await requestLoginOTP(formattedPhone);
+
+      if (loginResult['success']) {
+        _isNewUser = false;
         return true;
       }
-      return false;
+
+      // If login failed, the user might be new, so we'll handle this in the UI
+      // by showing registration form
+      _userPhone = formattedPhone;
+      _isNewUser = true;
+      notifyListeners();
+      return true;
     } catch (e) {
+      print('Phone check error: $e');
       return false;
     }
   }
 
-  /// Adds a new game result to the user's history.
-  ///
-  /// Also updates the user's balance and transaction history if the game
-  /// resulted in a financial win or loss.
-  ///
-  /// [result] The game result to add
+  /// Signs out the current user and clears all user data
+  Future<void> signOut() async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      // Call backend logout endpoint if we have a token
+      if (_token != null) {
+        final url = Uri.parse('$apiUrl/api/players/logout');
+        try {
+          // Check internet connectivity, but don't block logout if no internet
+          final hasInternet = await _hasInternetConnection();
+          if (hasInternet) {
+            await http.post(
+              url,
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer $_token',
+              },
+            ).timeout(const Duration(seconds: 15));
+            print('Backend logout successful');
+          } else {
+            print('No internet connection - proceeding with local logout only');
+          }
+        } catch (e) {
+          print('Backend logout error: $e');
+          // Continue with local logout even if backend call fails
+        }
+      }
+
+      // Clear all authentication data
+      await _clearStoredAuthData();
+
+      // Reset all user-related data
+      _isAuthenticated = false;
+      _userId = null;
+      _userPhone = null;
+      _verificationId = null;
+      _isNewUser = false;
+      _token = null;
+      _nickname = null;
+      _level = 0;
+      _language = 'English';
+      _isVerified = false;
+      _balance = 0.0;
+      _transactions.clear();
+      _gameHistory.clear();
+      _lastCompetitionLeaderboard = null;
+      _leaderboardHistory = null;
+
+      // Reset navigation state and redirect to auth screen
+      final navigationService = NavigationService();
+      navigationService.resetNavigation();
+      navigationService.navigateToReplacement('/auth');
+
+      print('User signed out successfully');
+    } catch (e) {
+      print('Sign out error: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Adds a new game result to the user's history
   void addGameResult(GameResult result) {
     _gameHistory.add(result);
 
@@ -201,101 +600,61 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Adds sample game history data for testing purposes.
-  ///
-  /// This is used to populate the UI with realistic-looking data
-  /// during development and testing.
-  void _addSampleGameHistory() {
-    _gameHistory = [
-      GameResult(
-        gameType: 'Trivia Challenge',
-        position: 'Top 1',
-        score: 3,
-        totalQuestions: 3,
-        winAmount: 50.0,
-        timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-      ),
-      GameResult(
-        gameType: 'Daily Quiz',
-        position: 'Top 3',
-        score: 7,
-        totalQuestions: 10,
-        winAmount: 20.0,
-        timestamp: DateTime.now().subtract(const Duration(days: 1)),
-      ),
-      GameResult(
-        gameType: 'Speed Challenge',
-        position: 'Top 5',
-        score: 4,
-        totalQuestions: 5,
-        winAmount: 10.0,
-        timestamp: DateTime.now().subtract(const Duration(days: 2)),
-      ),
-      GameResult(
-        gameType: 'Trivia Challenge',
-        position: 'Top 10',
-        score: 2,
-        totalQuestions: 3,
-        winAmount: 5.0,
-        timestamp: DateTime.now().subtract(const Duration(days: 3)),
-      ),
-      GameResult(
-        gameType: 'Daily Quiz',
-        position: 'Top 20',
-        score: 5,
-        totalQuestions: 10,
-        winAmount: 0.0,
-        timestamp: DateTime.now().subtract(const Duration(days: 4)),
-      ),
-    ];
-
-    // Add corresponding transactions for wins
-    for (final game in _gameHistory) {
-      if (game.winAmount > 0) {
-        _transactions.add(
-          Transaction(
-            type: TransactionType.gameWin,
-            amount: game.winAmount,
-            method: game.gameType,
-            timestamp: game.timestamp,
-            status: TransactionStatus.completed,
-          ),
-        );
-      }
-    }
-  }
-
-  /// Completes the registration process for new users.
-  ///
-  /// This is called after OTP verification for new users to collect
-  /// additional required information.
-  ///
-  /// [password] The user's chosen password
-  /// Returns true if registration was completed successfully, false otherwise
-  Future<bool> completeRegistration(String password) async {
+  /// Fetches the last competition leaderboard for the authenticated user
+  Future<bool> fetchLastCompetitionLeaderboard() async {
+    if (_token == null) return false;
+    final url = Uri.parse('$apiUrl/api/players/history/last');
     try {
-      // TODO: Replace with actual API call to complete registration
-      await Future.delayed(const Duration(seconds: 1));
-
-      _isAuthenticated = true;
-      _userId = 'user_${_userPhone}';
-      _balance = 0.0; // New users start with 0 balance
-      notifyListeners();
-
-      // Navigate to home screen
-      NavigationService().navigateToReplacement('/home');
-
-      return true;
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+      ).timeout(const Duration(seconds: 15));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          _lastCompetitionLeaderboard = data['data'];
+          notifyListeners();
+          return true;
+        }
+      }
+      return false;
     } catch (e) {
+      print('Error fetching last competition leaderboard: $e');
       return false;
     }
   }
 
-  /// Deposits funds into the user's account.
-  ///
-  /// [amount] The amount to deposit
-  /// [method] The payment method used (e.g., "Credit Card", "PayPal")
-  /// Returns true if deposit was successful, false otherwise
+  /// Fetches the full leaderboard history for the authenticated user
+  Future<bool> fetchLeaderboardHistory() async {
+    if (_token == null) return false;
+    final url = Uri.parse('$apiUrl/api/players/history');
+    try {
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $_token',
+        },
+      ).timeout(const Duration(seconds: 15));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['success'] == true && data['data'] != null) {
+          _leaderboardHistory = {'history': data['data']};
+          notifyListeners();
+          return true;
+        }
+      }
+      return false;
+    } catch (e) {
+      print('Error fetching leaderboard history: $e');
+      return false;
+    }
+  }
+
+  /// Deposits funds into the user's account
   Future<bool> deposit(double amount, String method) async {
     try {
       // TODO: Replace with actual payment gateway integration
@@ -314,15 +673,12 @@ class AuthService extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
+      print('Deposit error: $e');
       return false;
     }
   }
 
-  /// Withdraws funds from the user's account.
-  ///
-  /// [amount] The amount to withdraw
-  /// [method] The withdrawal method (e.g., "Bank Transfer")
-  /// Returns true if withdrawal was successful, false otherwise
+  /// Withdraws funds from the user's account
   Future<bool> withdraw(double amount, String method) async {
     try {
       // TODO: Replace with actual withdrawal API integration
@@ -346,43 +702,39 @@ class AuthService extends ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
+      print('Withdrawal error: $e');
       return false;
     }
   }
 
-  /// Signs out the current user and clears all user data.
-  ///
-  /// This resets the authentication state and navigates back to the auth screen.
-  Future<void> signOut() async {
-    // Reset all user-related data
-    _isAuthenticated = false;
-    _userId = null;
-    _userPhone = null;
-    _verificationId = null;
-    _isNewUser = false;
-    _balance = 0.0;
-    _transactions.clear();
-    _gameHistory.clear();
-    _lastCompetitionLeaderboard = null; // Clear leaderboard on sign out
-    _leaderboardHistory = null; // Clear leaderboard history on sign out
+  /// Completes the registration process for new users
+  Future<bool> completeRegistration(String password) async {
+    try {
+      // TODO: Replace with actual API call to complete registration
+      await Future.delayed(const Duration(seconds: 1));
 
-    // Reset navigation state and redirect to auth screen
-    final navigationService = NavigationService();
-    navigationService.resetNavigation();
-    navigationService.navigateToReplacement('/auth');
+      _isAuthenticated = true;
+      _userId = 'user_${_userPhone}';
+      _balance = 0.0; // New users start with 0 balance
+      await _saveAuthData();
+      notifyListeners();
 
-    notifyListeners();
+      // Navigate to home screen
+      NavigationService().navigateToReplacement('/home');
+
+      return true;
+    } catch (e) {
+      print('Registration completion error: $e');
+      return false;
+    }
   }
 
-  /// Registers a new user with the given WhatsApp number and nickname.
-  ///
-  /// Returns true if registration was successful, false otherwise.
+  /// Static method for registering a new user (backward compatibility)
   static Future<bool> register({
     required String whatsappNumber,
     required String nickname,
     required String language,
   }) async {
-    print('Sending language: $language'); // Debug print
     final url = Uri.parse('$apiUrl/api/players/register');
     try {
       final response = await http.post(
@@ -395,64 +747,12 @@ class AuthService extends ChangeNotifier {
         }),
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
-        // Optionally parse response.body if needed
         return true;
       } else {
         return false;
       }
     } catch (e) {
-      return false;
-    }
-  }
-
-  /// Fetches the last competition leaderboard for the authenticated user.
-  Future<bool> fetchLastCompetitionLeaderboard() async {
-    if (_token == null) return false;
-    final url = Uri.parse('$apiUrl/api/players/history/last');
-    try {
-      final response = await http.get(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $_token',
-        },
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['success'] == true && data['data'] != null) {
-          _lastCompetitionLeaderboard = data['data'];
-          notifyListeners();
-          return true;
-        }
-      }
-      return false;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// Fetches the full leaderboard history for the authenticated user.
-  Future<bool> fetchLeaderboardHistory() async {
-    if (_token == null) return false;
-    final url = Uri.parse('$apiUrl/api/players/history');
-    try {
-      final response = await http.get(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $_token',
-        },
-      );
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['success'] == true && data['data'] != null) {
-          _leaderboardHistory = {'history': data['data']};
-          notifyListeners();
-          return true;
-        }
-      }
-      return false;
-    } catch (e) {
+      print('Static registration error: $e');
       return false;
     }
   }

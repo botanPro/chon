@@ -388,7 +388,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  /// Performs the actual logout API call
+  /// Performs the actual logout using AuthService
   Future<void> _performLogout(BuildContext context) async {
     try {
       // Show loading indicator
@@ -402,122 +402,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       );
 
-      // Get auth service to access token
+      // Get auth service and perform logout
       final authService = context.read<AuthService>();
+      await authService.signOut();
 
-      // Check if token exists
-      if (authService.token == null) {
-        // Hide loading indicator
+      // Hide loading indicator if still showing
+      if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
-
-        // Show error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content:
-                Text('No authentication token found. Please log in again.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-
-        // Force logout and navigate to auth screen
-        authService.setAuthenticated(false);
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/',
-          (route) => false,
-        );
-        return;
       }
 
-      print('Logout - Using token: ${authService.token}');
-
-      final headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ${authService.token}',
-      };
-
-      print('Logout - Full headers: $headers');
-      print('Logout - Authorization header: ${headers['Authorization']}');
-
-      final response = await http.post(
-        Uri.parse('$apiUrl/api/players/logout'),
-        headers: headers,
+      // Show success message
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Logged out successfully'),
+          backgroundColor: Colors.green,
+        ),
       );
-
-      print('Logout API Response Status: ${response.statusCode}');
-      print('Logout API Response Body: ${response.body}');
-
-      // Hide loading indicator
-      Navigator.of(context).pop();
-
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = jsonDecode(response.body);
-
-        if (data['success'] == true) {
-          // Update authentication state
-          authService.setAuthenticated(false);
-
-          // Show success message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(data['message'] ?? 'Logged out successfully'),
-              backgroundColor: Colors.green,
-            ),
-          );
-
-          // Navigate to auth screen
-          Navigator.of(context).pushNamedAndRemoveUntil(
-            '/',
-            (route) => false,
-          );
-        } else {
-          // Show error message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(data['message'] ?? 'Logout failed'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      } else if (response.statusCode == 401) {
-        // Token is invalid or expired
-        print('Logout - Token is invalid or expired');
-
-        // Show error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Session expired. Please log in again.'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-
-        // Force logout and navigate to auth screen
-        authService.setAuthenticated(false);
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          '/',
-          (route) => false,
-        );
-      } else {
-        // Show error message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                'Logout failed: ${response.statusCode} - ${response.body}'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
     } catch (e) {
       // Hide loading indicator if still showing
       if (Navigator.of(context).canPop()) {
         Navigator.of(context).pop();
       }
 
-      print('Logout - Network error: $e');
+      print('Logout - Error: $e');
 
       // Show error message
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Network error: $e'),
+          content: Text('Logout error: $e'),
           backgroundColor: Colors.red,
         ),
       );
@@ -623,8 +535,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             }
                             print('Token used for profile update: $token');
                             final response = await http.put(
-                              Uri.parse(
-                                  '$apiUrl/api/players/profile'),
+                              Uri.parse('$apiUrl/api/players/profile'),
                               headers: {
                                 'Content-Type': 'application/json',
                                 'Authorization': 'Bearer $token',

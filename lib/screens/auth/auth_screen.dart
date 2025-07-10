@@ -6,6 +6,8 @@ import 'verification_screen.dart';
 import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:provider/provider.dart';
+import '../../services/auth_service.dart';
 import '../../utils/apiConnection.dart';
 
 // Animated gradient background painter
@@ -858,38 +860,20 @@ class _SignUpDrawerState extends State<SignUpDrawer>
     setState(() => _isLoading = true);
 
     try {
-      // Format phone number to ensure consistency
-      String formattedPhone = phone;
-      if (phone.startsWith('0')) {
-        formattedPhone = '+964${phone.substring(1)}';
-      } else if (!phone.startsWith('+')) {
-        formattedPhone = '+964$phone';
-      }
-
-      final requestBody = {
-        'whatsapp_number': formattedPhone,
-        'nickname': nickname,
-        'language': _selectedLanguage,
-      };
-
-      print('Sending language: $_selectedLanguage');
-      print('Request body: $requestBody');
-
-      final response = await http.post(
-        Uri.parse('$apiUrl/api/players/register'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(requestBody),
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final result = await authService.registerUser(
+        whatsappNumber: phone,
+        nickname: nickname,
+        language: _selectedLanguage,
       );
 
-      print('Sign Up - Status: ${response.statusCode}');
-      print('Sign Up - Body: ${response.body}');
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      if (result['success']) {
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
             title: Text(AppLocalizations.of(context)!.success),
-            content: Text(AppLocalizations.of(context)!.otpSent),
+            content: Text(
+                result['message'] ?? AppLocalizations.of(context)!.otpSent),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -901,27 +885,45 @@ class _SignUpDrawerState extends State<SignUpDrawer>
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) =>
-                VerificationScreen(phoneNumber: formattedPhone),
+            builder: (context) => VerificationScreen(phoneNumber: phone),
           ),
         );
       } else {
-        String errorMsg = 'Sign up failed.';
-        try {
-          final Map<String, dynamic> body = jsonDecode(response.body);
-          if (body.containsKey('message')) {
-            errorMsg = body['message'];
-          }
-        } catch (e) {
-          errorMsg =
-              'Sign up failed. Status: ${response.statusCode}\nBody: ${response.body}';
+        // Show appropriate error dialog based on error type
+        String title = AppLocalizations.of(context)!.error;
+        IconData icon = Icons.error;
+        Color iconColor = Colors.red;
+
+        if (result['error'] == 'no_internet' ||
+            result['error'] == 'network_error') {
+          title = 'Connection Error';
+          icon = Icons.wifi_off;
+          iconColor = Colors.orange;
         }
+
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text(AppLocalizations.of(context)!.error),
-            content: Text(errorMsg),
+            title: Row(
+              children: [
+                Icon(icon, color: iconColor, size: 24),
+                const SizedBox(width: 8),
+                Text(title),
+              ],
+            ),
+            content: Text(result['message'] ?? 'Registration failed'),
             actions: [
+              if (result['error'] == 'no_internet' ||
+                  result['error'] == 'network_error') ...[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _handleSignUp(); // Retry the registration
+                  },
+                  child: const Text('Retry'),
+                  style: TextButton.styleFrom(foregroundColor: Colors.blue),
+                ),
+              ],
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
                 child: Text(AppLocalizations.of(context)!.ok),
@@ -936,7 +938,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
         context: context,
         builder: (context) => AlertDialog(
           title: Text(AppLocalizations.of(context)!.networkError),
-          content: Text(e.toString()),
+          content: Text('Error: ${e.toString()}'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
@@ -944,9 +946,6 @@ class _SignUpDrawerState extends State<SignUpDrawer>
             ),
           ],
         ),
-      );
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: $e')),
       );
     } finally {
       setState(() => _isLoading = false);
@@ -967,35 +966,16 @@ class _SignUpDrawerState extends State<SignUpDrawer>
     setState(() => _isLoading = true);
 
     try {
-      // Format phone number to ensure consistency
-      String formattedPhone = phone;
-      if (phone.startsWith('0')) {
-        formattedPhone = '+964${phone.substring(1)}';
-      } else if (!phone.startsWith('+')) {
-        formattedPhone = '+964$phone';
-      }
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final result = await authService.requestLoginOTP(phone);
 
-      final requestBody = {
-        'whatsapp_number': formattedPhone,
-      };
-
-      print('Sign In - Request Body: $requestBody');
-
-      final response = await http.post(
-        Uri.parse('$apiUrl/api/players/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(requestBody),
-      );
-
-      print('Sign In - Status: ${response.statusCode}');
-      print('Sign In - Body: ${response.body}');
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
+      if (result['success']) {
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
             title: Text(AppLocalizations.of(context)!.success),
-            content: Text(AppLocalizations.of(context)!.otpSent),
+            content: Text(
+                result['message'] ?? AppLocalizations.of(context)!.otpSent),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -1008,28 +988,47 @@ class _SignUpDrawerState extends State<SignUpDrawer>
           context,
           MaterialPageRoute(
             builder: (context) => VerificationScreen(
-              phoneNumber: formattedPhone,
+              phoneNumber: phone,
               isSignIn: true, // Pass flag to indicate this is sign in flow
             ),
           ),
         );
       } else {
-        String errorMsg = 'Sign in failed.';
-        try {
-          final Map<String, dynamic> body = jsonDecode(response.body);
-          if (body.containsKey('message')) {
-            errorMsg = body['message'];
-          }
-        } catch (e) {
-          errorMsg =
-              'Sign in failed. Status: ${response.statusCode}\nBody: ${response.body}';
+        // Show appropriate error dialog based on error type
+        String title = AppLocalizations.of(context)!.error;
+        IconData icon = Icons.error;
+        Color iconColor = Colors.red;
+
+        if (result['error'] == 'no_internet' ||
+            result['error'] == 'network_error') {
+          title = 'Connection Error';
+          icon = Icons.wifi_off;
+          iconColor = Colors.orange;
         }
+
         await showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text(AppLocalizations.of(context)!.error),
-            content: Text(errorMsg),
+            title: Row(
+              children: [
+                Icon(icon, color: iconColor, size: 24),
+                const SizedBox(width: 8),
+                Text(title),
+              ],
+            ),
+            content: Text(result['message'] ?? 'Sign in failed'),
             actions: [
+              if (result['error'] == 'no_internet' ||
+                  result['error'] == 'network_error') ...[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _handleSignIn(); // Retry the sign in
+                  },
+                  child: const Text('Retry'),
+                  style: TextButton.styleFrom(foregroundColor: Colors.blue),
+                ),
+              ],
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
                 child: Text(AppLocalizations.of(context)!.ok),
@@ -1044,7 +1043,7 @@ class _SignUpDrawerState extends State<SignUpDrawer>
         context: context,
         builder: (context) => AlertDialog(
           title: Text(AppLocalizations.of(context)!.networkError),
-          content: Text(e.toString()),
+          content: Text('Error: ${e.toString()}'),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
