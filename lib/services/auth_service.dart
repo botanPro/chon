@@ -124,7 +124,8 @@ class AuthService extends ChangeNotifier {
     String message = 'Network error occurred';
     String errorType = 'network_error';
 
-    if (error is SocketException) {
+    if (error.toString().contains('SocketException') ||
+        error.toString().contains('No internet connection')) {
       message =
           'No internet connection. Please check your network and try again.';
       errorType = 'no_internet';
