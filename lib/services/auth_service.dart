@@ -5,6 +5,7 @@ import 'navigation_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 import '../utils/apiConnection.dart';
 
 /// Service that handles all authentication and user-related functionality.
@@ -34,6 +35,10 @@ class AuthService extends ChangeNotifier {
   bool _isVerified = false;
   bool _isLoading = false;
 
+  // Network connectivity state
+  bool _isConnected = true;
+  StreamSubscription<ConnectivityResult>? _connectivitySubscription;
+
   // User financial data
   double _balance = 0.0;
   List<Transaction> _transactions = [];
@@ -52,6 +57,7 @@ class AuthService extends ChangeNotifier {
   String get language => _language;
   bool get isVerified => _isVerified;
   bool get isLoading => _isLoading;
+  bool get hasInternetConnection => _isConnected;
   double get balance => _balance;
   List<Transaction> get transactions => List.unmodifiable(_transactions);
   List<GameResult> get gameHistory => List.unmodifiable(_gameHistory);
@@ -61,11 +67,18 @@ class AuthService extends ChangeNotifier {
 
   /// Checks if the device has internet connectivity
   Future<bool> _hasInternetConnection() async {
+    // First check cached connection status
+    if (!_isConnected) {
+      print('No internet connection (cached status)');
+      return false;
+    }
+
     try {
       final connectivityResult = await Connectivity().checkConnectivity();
 
       // Check if device is connected to a network
       if (connectivityResult == ConnectivityResult.none) {
+        print('No network connectivity detected');
         return false;
       }
 
@@ -73,7 +86,9 @@ class AuthService extends ChangeNotifier {
       final result = await InternetAddress.lookup('google.com')
           .timeout(const Duration(seconds: 5));
 
-      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+      final hasInternet = result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+      print('Internet connectivity check result: $hasInternet');
+      return hasInternet;
     } catch (e) {
       print('Internet connectivity check failed: $e');
       return false;
@@ -83,23 +98,29 @@ class AuthService extends ChangeNotifier {
   /// Handles network-related errors and returns appropriate error messages
   Map<String, dynamic> _handleNetworkError(dynamic error) {
     String message = 'Network error occurred';
+    String errorType = 'network_error';
 
     if (error is SocketException) {
       message =
           'No internet connection. Please check your network and try again.';
+      errorType = 'no_internet';
     } else if (error.toString().contains('TimeoutException')) {
       message = 'Request timed out. Please check your internet connection.';
+      errorType = 'timeout';
     } else if (error.toString().contains('Connection refused') ||
         error.toString().contains('Failed to connect')) {
       message =
           'Unable to connect to server. Please check your internet connection.';
+      errorType = 'connection_failed';
     } else if (error.toString().contains('Connection reset') ||
         error.toString().contains('Connection closed')) {
       message =
           'Connection lost. Please check your internet connection and try again.';
+      errorType = 'connection_lost';
     }
 
-    return {'success': false, 'message': message, 'error': 'network_error'};
+    print('Network error handled: $errorType - $message');
+    return {'success': false, 'message': message, 'error': errorType};
   }
 
   /// Initialize the service and restore authentication state from persistent storage
@@ -108,6 +129,9 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
 
     try {
+      // Initialize connectivity listener
+      _initializeConnectivityListener();
+
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString(_tokenKey);
 
@@ -140,6 +164,48 @@ class AuthService extends ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Initialize connectivity listener to monitor network changes
+  void _initializeConnectivityListener() {
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen(
+      (ConnectivityResult result) async {
+        bool wasConnected = _isConnected;
+
+        if (result == ConnectivityResult.none) {
+          _isConnected = false;
+          print('Network connectivity lost');
+        } else {
+          // Check actual internet connectivity
+          _isConnected = await _checkInternetConnectivity();
+          print('Network connectivity changed: $_isConnected');
+        }
+
+        // Only notify if the connection status actually changed
+        if (wasConnected != _isConnected) {
+          notifyListeners();
+        }
+      },
+    );
+  }
+
+  /// Check actual internet connectivity by trying to reach a server
+  Future<bool> _checkInternetConnectivity() async {
+    try {
+      final result = await InternetAddress.lookup('google.com')
+          .timeout(const Duration(seconds: 3));
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } catch (e) {
+      print('Internet connectivity check failed: $e');
+      return false;
+    }
+  }
+
+  /// Dispose the service and clean up resources
+  @override
+  void dispose() {
+    _connectivitySubscription?.cancel();
+    super.dispose();
   }
 
   /// Validates a JWT token with the backend

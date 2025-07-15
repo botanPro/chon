@@ -35,6 +35,7 @@ class _VerificationScreenState extends State<VerificationScreen> {
   );
 
   bool _isLoading = false;
+  bool _isResending = false;
 
   @override
   void dispose() {
@@ -50,6 +51,101 @@ class _VerificationScreenState extends State<VerificationScreen> {
   void _onCodeChanged(String value, int index) {
     if (value.length == 1 && index < 5) {
       _focusNodes[index + 1].requestFocus();
+    }
+  }
+
+  /// Resends OTP to the user's phone number
+  Future<void> _resendOTP() async {
+    if (_isResending) return;
+
+    setState(() => _isResending = true);
+
+    try {
+      final authService = Provider.of<AuthService>(context, listen: false);
+
+      // Determine if this is a sign in or sign up flow
+      final result = widget.isSignIn
+          ? await authService.requestLoginOTP(widget.phoneNumber)
+          : await authService.registerUser(
+              whatsappNumber: widget.phoneNumber,
+              nickname: 'User', // This will be ignored for existing users
+              language: 'en',
+            );
+
+      if (result['success']) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('OTP code resent successfully'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          String title = 'Resend Failed';
+          IconData icon = Icons.error;
+          Color iconColor = Colors.red;
+
+          if (result['error'] == 'no_internet' ||
+              result['error'] == 'network_error') {
+            title = 'Connection Error';
+            icon = Icons.wifi_off;
+            iconColor = Colors.orange;
+          }
+
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Row(
+                children: [
+                  Icon(icon, color: iconColor, size: 24),
+                  const SizedBox(width: 8),
+                  Text(title),
+                ],
+              ),
+              content: Text(result['message'] ?? 'Failed to resend OTP'),
+              actions: [
+                if (result['error'] == 'no_internet' ||
+                    result['error'] == 'network_error') ...[
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      _resendOTP();
+                    },
+                    child: const Text('Retry'),
+                    style: TextButton.styleFrom(foregroundColor: Colors.blue),
+                  ),
+                ],
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: Text('Network error: ${e.toString()}'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK'),
+              ),
+            ],
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isResending = false);
+      }
     }
   }
 
@@ -190,6 +286,50 @@ class _VerificationScreenState extends State<VerificationScreen> {
       ),
       body: Stack(
         children: [
+          // Network status indicator
+          Positioned(
+            top: MediaQuery.of(context).padding.top + 16,
+            left: 16,
+            right: 16,
+            child: Consumer<AuthService>(
+              builder: (context, authService, child) {
+                if (authService.hasInternetConnection) {
+                  return const SizedBox.shrink();
+                }
+
+                return Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withOpacity(0.9),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange, width: 1),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.wifi_off,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'No internet connection. Please check your network.',
+                          style: GoogleFonts.inter(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+
           // Main content in a scrollable container
           SingleChildScrollView(
             physics: const ClampingScrollPhysics(),
@@ -296,16 +436,24 @@ class _VerificationScreenState extends State<VerificationScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        onPressed: () {
-                          // TODO: Implement resend code functionality
-                        },
-                        icon: const Icon(
-                          Icons.refresh,
-                          color: Color(0xFF96C3BC),
-                          size: 18,
-                        ),
+                        onPressed: _isResending ? null : _resendOTP,
+                        icon: _isResending
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Color(0xFF96C3BC)),
+                                ),
+                              )
+                            : const Icon(
+                                Icons.refresh,
+                                color: Color(0xFF96C3BC),
+                                size: 18,
+                              ),
                         label: Text(
-                          'Resend Code',
+                          _isResending ? 'Resending...' : 'Resend Code',
                           style: GoogleFonts.inter(
                             color: const Color(0xFF96C3BC),
                             fontWeight: FontWeight.w500,
