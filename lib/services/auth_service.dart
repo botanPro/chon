@@ -65,12 +65,13 @@ class AuthService extends ChangeNotifier {
       _lastCompetitionLeaderboard;
   Map<String, dynamic>? get leaderboardHistory => _leaderboardHistory;
 
-  /// Checks if the device has internet connectivity
+  /// Checks if the device has internet connectivity OR can reach backend (localhost:3001)
   Future<bool> _hasInternetConnection() async {
     // First check cached connection status
     if (!_isConnected) {
       print('No internet connection (cached status)');
-      return false;
+      // Try backend as fallback
+      return await _canReachBackend();
     }
 
     try {
@@ -79,18 +80,41 @@ class AuthService extends ChangeNotifier {
       // Check if device is connected to a network
       if (connectivityResult == ConnectivityResult.none) {
         print('No network connectivity detected');
-        return false;
+        // Try backend as fallback
+        return await _canReachBackend();
       }
 
-      // Additional check by trying to reach a reliable server
-      final result = await InternetAddress.lookup('google.com')
-          .timeout(const Duration(seconds: 5));
+      // Try to reach a reliable server (Google)
+      try {
+        final result = await InternetAddress.lookup('google.com')
+            .timeout(const Duration(seconds: 5));
+        if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
+          print('Internet connectivity check result: true');
+          return true;
+        }
+      } catch (e) {
+        print('Google DNS check failed: $e');
+      }
 
-      final hasInternet = result.isNotEmpty && result[0].rawAddress.isNotEmpty;
-      print('Internet connectivity check result: $hasInternet');
-      return hasInternet;
+      // If Google check fails, try backend as fallback
+      return await _canReachBackend();
     } catch (e) {
       print('Internet connectivity check failed: $e');
+      // Try backend as fallback
+      return await _canReachBackend();
+    }
+  }
+
+  /// Checks if the backend (localhost:3001) is reachable
+  Future<bool> _canReachBackend() async {
+    try {
+      final url = Uri.parse('apiUrl/health'); // or any always-up endpoint
+      final response = await http.get(url).timeout(const Duration(seconds: 3));
+      final ok = response.statusCode == 200;
+      print('Backend connectivity check result: $ok');
+      return ok;
+    } catch (e) {
+      print('Backend connectivity check failed: $e');
       return false;
     }
   }

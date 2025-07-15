@@ -1029,13 +1029,7 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
                         ),
                       ),
                       const SizedBox(height: 4),
-                      if (_loadingResults)
-                        const Padding(
-                          padding: EdgeInsets.symmetric(vertical: 8.0),
-                          child: CircularProgressIndicator(
-                              color: Color(0xFF96c3bc)),
-                        )
-                      else if (_finalResults != null)
+                      if (_finalResults != null)
                         Column(
                           children: [
                             if (_finalResults!['playerResult'] != null) ...[
