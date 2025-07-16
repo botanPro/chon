@@ -393,4 +393,7 @@ class AppLocalizationsKr extends AppLocalizations {
 
   @override
   String get thisFeatureIsComingSoon => 'ئەم تایبەتمەندییە بەم زووانە دێت!';
+
+  @override
+  String get points => 'خاڵەکان';
 }

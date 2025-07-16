@@ -633,5 +633,10 @@
   "thisFeatureIsComingSoon": "This feature is coming soon!",
   "@thisFeatureIsComingSoon": {
     "description": "Coming soon dialog message"
+  },
+
+  "points": "Points",
+  "@points": {
+    "description": "Points label for user profile points display"
   }
 } 

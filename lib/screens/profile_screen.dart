@@ -221,36 +221,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    AppLocalizations.of(context)!.balance,
+                    AppLocalizations.of(context)!
+                        .points, // Change label to 'points'
                     style: TextStyle(
                       color: Colors.white54,
                       fontSize: 14,
                     ),
                   ),
                   const SizedBox(height: 15),
-                  // Balance with dollar sign
+                  // Points display (no dollar sign)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Padding(
-                        padding: EdgeInsets.only(top: 4),
-                        child: Text(
-                          '\$',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w300,
-                          ),
-                        ),
-                      ),
+                      // Removed dollar sign
                       const Text(
-                        '1,000,000',
+                        '1,000,000', // Replace with actual points variable if available
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 36,
                           fontWeight: FontWeight.w600,
                           letterSpacing: -0.5,
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.only(top: 10, left: 6),
+                        child: Text(
+                          'pts', // Add points unit
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w400,
+                          ),
                         ),
                       ),
                     ],
@@ -345,8 +347,131 @@ class _ProfileScreenState extends State<ProfileScreen> {
             );
           },
         ),
+        // Add Delete Account button here
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          child: SizedBox(
+            width: 160,
+            height: 36,
+            child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.red,
+                side: const BorderSide(color: Colors.red),
+                textStyle:
+                    const TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+              ),
+              icon: const Icon(Icons.delete_outline, size: 18),
+              label: const Text('Delete Account'),
+              onPressed: _onDeleteAccountPressed,
+            ),
+          ),
+        ),
       ],
     );
+  }
+
+  void _onDeleteAccountPressed() async {
+    print('[DEBUG] Delete Account button pressed');
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Account'),
+        content: const Text(
+            'Are you sure you want to delete your account? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Delete'),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+          ),
+        ],
+      ),
+    );
+    if (shouldDelete == true) {
+      await _performDeleteAccount();
+    }
+  }
+
+  Future<void> _performDeleteAccount() async {
+    print('[DEBUG] Entered _performDeleteAccount');
+    try {
+      // Show loading indicator
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00B894)),
+          ),
+        ),
+      );
+      final authService = context.read<AuthService>();
+      final token = authService.token;
+      final url = '$apiUrl/api/players/me';
+      print('[DEBUG] Attempting account deletion');
+      print('[DEBUG] DELETE URL: ' + url);
+      print('[DEBUG] JWT Token (for debug only, do not log in production): ' +
+          (token ?? 'NULL'));
+      if (token == null) throw Exception('Not authenticated');
+      final response = await http.delete(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+      print('[DEBUG] Response status: ' + response.statusCode.toString());
+      print('[DEBUG] Response body: ' + response.body);
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        // Log out user and show success
+        await authService.signOut();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Account deleted successfully.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
+      } else {
+        final errorMsg = response.body.isNotEmpty
+            ? jsonDecode(response.body)['message'] ??
+                'Failed to delete account.'
+            : 'Failed to delete account.';
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(errorMsg),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (Navigator.of(context).canPop()) {
+        Navigator.of(context).pop();
+      }
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Delete account error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   /// Builds the logout button at the bottom of the screen
@@ -432,6 +557,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           backgroundColor: Colors.green,
         ),
       );
+
+      // Navigate to AuthScreen and clear navigation stack
+      Navigator.of(context).pushNamedAndRemoveUntil('/auth', (route) => false);
     } catch (e) {
       // Hide loading indicator if still showing
       if (Navigator.of(context).canPop()) {

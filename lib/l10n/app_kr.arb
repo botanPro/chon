@@ -633,5 +633,10 @@
   "thisFeatureIsComingSoon": "ئەم تایبەتمەندییە بەم زووانە دێت!",
   "@thisFeatureIsComingSoon": {
     "description": "Coming soon dialog message"
+  },
+
+  "points": "خاڵەکان",
+  "@points": {
+    "description": "Points label for user profile points display"
   }
 } 

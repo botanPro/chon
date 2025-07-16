@@ -392,4 +392,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get thisFeatureIsComingSoon => 'This feature is coming soon!';
+
+  @override
+  String get points => 'Points';
 }

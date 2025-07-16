@@ -829,6 +829,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'This feature is coming soon!'**
   String get thisFeatureIsComingSoon;
+
+  /// Points label for user profile points display
+  ///
+  /// In en, this message translates to:
+  /// **'Points'**
+  String get points;
 }
 
 class _AppLocalizationsDelegate
