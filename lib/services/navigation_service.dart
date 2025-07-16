@@ -34,8 +34,9 @@ class NavigationService {
   static const int homeTab = 0;
   static const int historyTab = 1;
   static const int centerTab = 2;
-  static const int notificationsTab = 3;
-  static const int profileTab = 4;
+  // static const int notificationsTab = 3; // Commented out notifications tab
+  static const int profileTab =
+      3; // Updated from 4 to 3 since notifications was removed
 
   /// Reset navigation state (used when logging out)
   /// This ensures the app returns to the home tab when a user logs out
@@ -101,9 +102,6 @@ class NavigationService {
       case centerTab:
         // Center logo - special handling if needed
         break;
-      case notificationsTab:
-        // Notifications screen logic if needed
-        break;
       case profileTab:
         // Profile screen logic if needed
         break;
@@ -124,8 +122,6 @@ class NavigationService {
       case centerTab:
         // Center logo - return to home
         return const HomeScreen();
-      case notificationsTab:
-        return const NotificationsScreen();
       case profileTab:
         return const ProfileScreen();
       default:

@@ -302,9 +302,9 @@ class _AuthScreenState extends State<AuthScreen> with TickerProviderStateMixin {
                                 borderRadius: BorderRadius.circular(12),
                                 child: Center(
                                   child: Text(
-                                    'IGNORE LOGIN (Testing)',
+                                    'Login as guest',
                                     style: textTheme.labelLarge?.copyWith(
-                                      color: Colors.red,
+                                      color: Colors.white,
                                       fontSize: isSmallScreen ? 11 : 12,
                                       fontWeight: FontWeight.w600,
                                       fontFamily: 'Inter',

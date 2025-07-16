@@ -5,6 +5,7 @@ import '../services/auth_service.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../utils/apiConnection.dart';
+import '../utils/responsive_utils.dart';
 import 'privacy_policy_screen.dart';
 import 'social_media_screen.dart';
 import '../l10n/app_localizations.dart';
@@ -21,7 +22,32 @@ class ProfileScreen extends StatefulWidget {
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _ProfileScreenState extends State<ProfileScreen>
+    with TickerProviderStateMixin {
+  late AnimationController _pulseController;
+  late AnimationController _glowController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 3000),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _glowController = AnimationController(
+      duration: const Duration(milliseconds: 4000),
+      vsync: this,
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    _glowController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     // Access auth service to get user data (currently using dummy data)
@@ -122,147 +148,383 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// Builds the level indicator with star icon
   Widget _buildLevelIndicator(BuildContext context) {
     final level = context.watch<AuthService>().level;
+
+    // Responsive sizing
+    final isSmallScreen = ResponsiveUtils.isSmallScreen(context);
+    final iconSize = ResponsiveUtils.getResponsiveIconSize(
+      context,
+      mobile: 14.0,
+      tablet: 16.0,
+      desktop: 18.0,
+    );
+
+    final fontSize = ResponsiveUtils.getResponsiveFontSize(
+      context,
+      mobile: 12.0,
+      tablet: 14.0,
+      desktop: 16.0,
+    );
+
+    final horizontalPadding = ResponsiveUtils.getResponsiveSpacing(
+      context,
+      mobile: 12.0,
+      tablet: 16.0,
+      desktop: 20.0,
+    );
+
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.star,
-            color: Color(0xFF94C1BA),
-            size: 16,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            'Level $level',
-            style: const TextStyle(
-              color: Color(0xFF94C1BA),
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
+      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+      child: Center(
+        child: TweenAnimationBuilder<double>(
+          duration: const Duration(milliseconds: 1000),
+          tween: Tween(begin: 0.0, end: 1.0),
+          builder: (context, animationValue, child) {
+            return Opacity(
+              opacity: animationValue,
+              child: Transform.translate(
+                offset: Offset(0, 20 * (1 - animationValue)),
+                child: Container(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: isSmallScreen ? 16 : 20,
+                    vertical: isSmallScreen ? 8 : 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF94C1BA).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: const Color(0xFF94C1BA).withOpacity(0.3),
+                      width: 1,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF94C1BA).withOpacity(0.1),
+                        blurRadius: 8,
+                        spreadRadius: 0,
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      TweenAnimationBuilder<double>(
+                        duration: const Duration(milliseconds: 1500),
+                        tween: Tween(begin: 0.0, end: 1.0),
+                        builder: (context, starValue, child) {
+                          return Transform.scale(
+                            scale: 0.5 + (0.5 * starValue),
+                            child: Transform.rotate(
+                              angle: starValue * 0.5,
+                              child: Icon(
+                                Icons.star,
+                                color: const Color(0xFF94C1BA),
+                                size: iconSize,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                      SizedBox(width: isSmallScreen ? 6 : 8),
+                      Text(
+                        'Level $level',
+                        style: TextStyle(
+                          color: const Color(0xFF94C1BA),
+                          fontSize: fontSize,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
 
   /// Builds the circular balance display with progress indicator
   Widget _buildBalanceCircle() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 40),
-      child: Center(
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            // Outer glow effect
-            Container(
-              width: 240,
-              height: 240,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF94C1BA).withOpacity(0.1),
-                    blurRadius: 40,
-                    spreadRadius: 5,
-                  ),
-                ],
-              ),
-            ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate responsive sizes based on screen width
+        final screenWidth = MediaQuery.of(context).size.width;
+        final screenHeight = MediaQuery.of(context).size.height;
 
-            // Progress circle background (darker ring)
-            Container(
-              width: 220,
-              height: 220,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.transparent,
-                border: Border.all(
-                  color: const Color(0xFF1A2322).withOpacity(0.8),
-                  width: 15,
-                ),
-              ),
-            ),
+        // Responsive sizing
+        final isSmallScreen = ResponsiveUtils.isSmallScreen(context);
+        final isTablet = ResponsiveUtils.isTablet(context);
 
-            // Animated progress circle (65% complete)
-            SizedBox(
-              width: 220,
-              height: 220,
-              child: Transform.rotate(
-                angle: -0.65, // Rotate to match design
-                child: CustomPaint(
-                  painter: CircleProgressPainter(
-                    progress: 0.65,
-                    progressColor: const Color(0xFF94C1BA),
-                    backgroundColor: Colors.transparent,
-                    strokeWidth: 15,
-                  ),
-                ),
-              ),
-            ),
+        // Calculate circle sizes based on screen size
+        final outerCircleSize = isSmallScreen
+            ? screenWidth * 0.7 // 70% of screen width for small screens
+            : isTablet
+                ? 280.0 // Fixed size for tablets
+                : 320.0; // Fixed size for larger screens
 
-            // Inner circle with balance display
-            Container(
-              width: 180,
-              height: 180,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF0A0E0D),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 10,
-                    spreadRadius: 1,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    AppLocalizations.of(context)!
-                        .points, // Change label to 'points'
-                    style: TextStyle(
-                      color: Colors.white54,
-                      fontSize: 14,
-                    ),
-                  ),
-                  const SizedBox(height: 15),
-                  // Points display (no dollar sign)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+        final progressCircleSize =
+            outerCircleSize * 0.92; // 92% of outer circle
+        final innerCircleSize = outerCircleSize * 0.75; // 75% of outer circle
+
+        // Responsive font sizes
+        final labelFontSize = ResponsiveUtils.getResponsiveFontSize(
+          context,
+          mobile: 12.0,
+          tablet: 14.0,
+          desktop: 16.0,
+        );
+
+        final pointsFontSize = ResponsiveUtils.getResponsiveFontSize(
+          context,
+          mobile: 28.0,
+          tablet: 36.0,
+          desktop: 42.0,
+        );
+
+        final unitFontSize = ResponsiveUtils.getResponsiveFontSize(
+          context,
+          mobile: 14.0,
+          tablet: 18.0,
+          desktop: 20.0,
+        );
+
+        // Responsive stroke width
+        final strokeWidth = isSmallScreen ? 12.0 : 15.0;
+
+        // Responsive padding
+        final verticalPadding = isSmallScreen ? 20.0 : 40.0;
+
+        return Padding(
+          padding: EdgeInsets.symmetric(vertical: verticalPadding),
+          child: Center(
+            child: TweenAnimationBuilder<double>(
+              duration: const Duration(milliseconds: 1500),
+              tween: Tween(begin: 0.0, end: 1.0),
+              builder: (context, animationValue, child) {
+                return Transform.scale(
+                  scale: animationValue,
+                  child: Stack(
+                    alignment: Alignment.center,
                     children: [
-                      // Removed dollar sign
-                      const Text(
-                        '1,000,000', // Replace with actual points variable if available
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 36,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: -0.5,
+                      // Enhanced outer glow effect with animation
+                      AnimatedBuilder(
+                        animation: _glowController,
+                        builder: (context, child) {
+                          return Opacity(
+                            opacity: 0.5 + (0.5 * _glowController.value),
+                            child: Transform.translate(
+                              offset: Offset(0, 20 * _glowController.value),
+                              child: Container(
+                                width: outerCircleSize,
+                                height: outerCircleSize,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF94C1BA)
+                                          .withOpacity(
+                                              0.15 * _glowController.value),
+                                      blurRadius: 40 * _glowController.value,
+                                      spreadRadius: 5 * _glowController.value,
+                                    ),
+                                    BoxShadow(
+                                      color: const Color(0xFF00B894)
+                                          .withOpacity(
+                                              0.1 * _glowController.value),
+                                      blurRadius: 20 * _glowController.value,
+                                      spreadRadius: 2 * _glowController.value,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+
+                      // Progress circle background with enhanced styling
+                      Container(
+                        width: progressCircleSize,
+                        height: progressCircleSize,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.transparent,
+                          border: Border.all(
+                            color: const Color(0xFF1A2322).withOpacity(0.9),
+                            width: strokeWidth,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 8,
+                              spreadRadius: 1,
+                            ),
+                          ],
                         ),
                       ),
-                      const Padding(
-                        padding: EdgeInsets.only(top: 10, left: 6),
-                        child: Text(
-                          'pts', // Add points unit
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w400,
+
+                      // Animated progress circle with smooth animation and pulsing effect
+                      AnimatedBuilder(
+                        animation: _pulseController,
+                        builder: (context, child) {
+                          return SizedBox(
+                            width: progressCircleSize,
+                            height: progressCircleSize,
+                            child: TweenAnimationBuilder<double>(
+                              duration: const Duration(milliseconds: 2000),
+                              tween: Tween(begin: 0.0, end: 0.65),
+                              builder: (context, progress, child) {
+                                return Transform.rotate(
+                                  angle: -progress * 2 * 3.14159,
+                                  child: Transform.scale(
+                                    scale:
+                                        1.0 + (0.02 * _pulseController.value),
+                                    child: CustomPaint(
+                                      painter: CircleProgressPainter(
+                                        progress: progress,
+                                        progressColor: const Color(0xFF94C1BA),
+                                        backgroundColor: Colors.transparent,
+                                        strokeWidth: strokeWidth,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          );
+                        },
+                      ),
+
+                      // Inner circle with enhanced styling and responsive content
+                      Container(
+                        width: innerCircleSize,
+                        height: innerCircleSize,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              const Color(0xFF0A0E0D),
+                              const Color(0xFF0E1211),
+                              const Color(0xFF0A1615),
+                            ],
                           ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.4),
+                              blurRadius: 15,
+                              spreadRadius: 2,
+                              offset: const Offset(0, 4),
+                            ),
+                            BoxShadow(
+                              color: const Color(0xFF00B894).withOpacity(0.1),
+                              blurRadius: 8,
+                              spreadRadius: 0,
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            // Animated label
+                            TweenAnimationBuilder<double>(
+                              duration: const Duration(milliseconds: 800),
+                              tween: Tween(begin: 0.0, end: 1.0),
+                              builder: (context, value, child) {
+                                return Opacity(
+                                  opacity: value,
+                                  child: Transform.translate(
+                                    offset: Offset(0, 10 * (1 - value)),
+                                    child: Text(
+                                      AppLocalizations.of(context)!.points,
+                                      style: TextStyle(
+                                        color: Colors.white54,
+                                        fontSize: labelFontSize,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            SizedBox(height: isSmallScreen ? 8 : 15),
+                            // Animated points display
+                            TweenAnimationBuilder<double>(
+                              duration: const Duration(milliseconds: 1200),
+                              tween: Tween(begin: 0.0, end: 1.0),
+                              builder: (context, value, child) {
+                                return Opacity(
+                                  opacity: value,
+                                  child: Transform.scale(
+                                    scale: 0.8 + (0.2 * value),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        AnimatedBuilder(
+                                          animation: _glowController,
+                                          builder: (context, child) {
+                                            return Text(
+                                              '100', // Replace with actual points variable if available
+                                              style: TextStyle(
+                                                color: Colors.white,
+                                                fontSize: pointsFontSize,
+                                                fontWeight: FontWeight.w700,
+                                                letterSpacing: -0.5,
+                                                shadows: [
+                                                  Shadow(
+                                                    color: const Color(
+                                                            0xFF00B894)
+                                                        .withOpacity(0.3 +
+                                                            (0.2 *
+                                                                _glowController
+                                                                    .value)),
+                                                    blurRadius: 4 +
+                                                        (2 *
+                                                            _glowController
+                                                                .value),
+                                                    offset: const Offset(0, 2),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                        Padding(
+                                          padding: EdgeInsets.only(
+                                            top: pointsFontSize * 0.3,
+                                            left: 6,
+                                          ),
+                                          child: Text(
+                                            'pts',
+                                            style: TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: unitFontSize,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     ],
                   ),
-                ],
-              ),
+                );
+              },
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 
@@ -289,13 +551,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _showEditProfileDialog(context);
           },
         ),
-        _buildMenuItem(
-          icon: Icons.notifications_outlined,
-          title: AppLocalizations.of(context)!.notifications,
-          onTap: () {
-            // TODO: Navigate to Notifications screen
-          },
-        ),
+        // _buildMenuItem(
+        //   icon: Icons.notifications_outlined,
+        //   title: AppLocalizations.of(context)!.notifications,
+        //   onTap: () {
+        //     // TODO: Navigate to Notifications screen
+        //   },
+        // ),
       ],
     );
   }
