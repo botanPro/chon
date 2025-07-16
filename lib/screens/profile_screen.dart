@@ -468,8 +468,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                                         AnimatedBuilder(
                                           animation: _glowController,
                                           builder: (context, child) {
+                                            final auth =
+                                                context.watch<AuthService>();
                                             return Text(
-                                              '100', // Replace with actual points variable if available
+                                              '${auth.totalScore}',
                                               style: TextStyle(
                                                 color: Colors.white,
                                                 fontSize: pointsFontSize,

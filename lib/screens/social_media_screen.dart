@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Social Media screen displaying Facebook, Instagram, and LinkedIn options
 class SocialMediaScreen extends StatelessWidget {
@@ -53,9 +54,11 @@ class SocialMediaScreen extends StatelessWidget {
                   title: AppLocalizations.of(context)!.facebook,
                   description: 'Follow us for updates and news',
                   color: const Color(0xFF1877F2),
-                  onTap: () {
-                    // TODO: Open Facebook link
-                    _showComingSoonDialog(context, 'Facebook');
+                  onTap: () async {
+                    const url =
+                        'https://www.facebook.com/share/16eFCBGGwE/?mibextid=wwXIfr';
+                    await launchUrl(Uri.parse(url),
+                        mode: LaunchMode.platformDefault);
                   },
                 ),
                 const SizedBox(height: 16),
@@ -65,9 +68,11 @@ class SocialMediaScreen extends StatelessWidget {
                   title: AppLocalizations.of(context)!.instagram,
                   description: 'See our latest photos and stories',
                   color: const Color(0xFFE4405F),
-                  onTap: () {
-                    // TODO: Open Instagram link
-                    _showComingSoonDialog(context, 'Instagram');
+                  onTap: () async {
+                    const url =
+                        'https://www.instagram.com/chon.app?igsh=dTV5ejNtczcwb3c1';
+                    await launchUrl(Uri.parse(url),
+                        mode: LaunchMode.platformDefault);
                   },
                 ),
                 const SizedBox(height: 16),
@@ -77,9 +82,11 @@ class SocialMediaScreen extends StatelessWidget {
                   title: AppLocalizations.of(context)!.linkedin,
                   description: 'Connect with us professionally',
                   color: const Color(0xFF0A66C2),
-                  onTap: () {
-                    // TODO: Open LinkedIn link
-                    _showComingSoonDialog(context, 'LinkedIn');
+                  onTap: () async {
+                    const url =
+                        'https://www.linkedin.com/in/chon-app-34a029371?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app';
+                    await launchUrl(Uri.parse(url),
+                        mode: LaunchMode.platformDefault);
                   },
                 ),
                 const Spacer(),

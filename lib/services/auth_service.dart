@@ -21,6 +21,7 @@ class AuthService extends ChangeNotifier {
   static const String _phoneKey = 'phone';
   static const String _languageKey = 'language';
   static const String _isVerifiedKey = 'is_verified';
+  static const String _totalScoreKey = 'total_score';
 
   // User authentication state
   bool _isAuthenticated = false;
@@ -34,6 +35,8 @@ class AuthService extends ChangeNotifier {
   String _language = 'English'; // User's preferred language
   bool _isVerified = false;
   bool _isLoading = false;
+  int _totalScore = 0;
+  int get totalScore => _totalScore;
 
   // Network connectivity state
   bool _isConnected = true;
@@ -173,6 +176,7 @@ class AuthService extends ChangeNotifier {
           _userPhone = prefs.getString(_phoneKey);
           _language = prefs.getString(_languageKey) ?? 'English';
           _isVerified = prefs.getBool(_isVerifiedKey) ?? false;
+          _totalScore = prefs.getInt(_totalScoreKey) ?? 0;
           _isAuthenticated = true;
 
           print('Authentication restored from storage');
@@ -255,7 +259,13 @@ class AuthService extends ChangeNotifier {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data['success'] == true;
+        if (data['success'] == true && data['data'] != null) {
+          final player = data['data']['player'];
+          _totalScore = player['total_score'] ?? 0;
+          await _saveAuthData();
+          return true;
+        }
+        return false;
       } else if (response.statusCode == 401) {
         print('Token expired or invalid');
         return false;
@@ -284,10 +294,10 @@ class AuthService extends ChangeNotifier {
       if (_userPhone != null) {
         await prefs.setString(_phoneKey, _userPhone!);
       }
-
       await prefs.setInt(_levelKey, _level);
       await prefs.setString(_languageKey, _language);
       await prefs.setBool(_isVerifiedKey, _isVerified);
+      await prefs.setInt(_totalScoreKey, _totalScore);
 
       print('Authentication data saved to storage');
     } catch (e) {
@@ -306,6 +316,7 @@ class AuthService extends ChangeNotifier {
       await prefs.remove(_phoneKey);
       await prefs.remove(_languageKey);
       await prefs.remove(_isVerifiedKey);
+      await prefs.remove(_totalScoreKey);
 
       print('Authentication data cleared from storage');
     } catch (e) {
@@ -552,6 +563,7 @@ class AuthService extends ChangeNotifier {
         _nickname = playerData['player']['nickname'];
         _level = playerData['player']['level'] ?? 0;
         _isVerified = playerData['player']['is_verified'] ?? false;
+        _totalScore = playerData['player']['total_score'] ?? 0;
         _isAuthenticated = true;
 
         // Save to persistent storage
