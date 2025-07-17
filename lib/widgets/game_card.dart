@@ -156,15 +156,54 @@ class GameCard extends StatelessWidget {
                   height: buttonHeight,
                   child: ElevatedButton(
                     onPressed: () {
-                      // Navigate to payment screen
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => PaymentMethodScreen(
-                            amount: game.prizeValue,
-                            gameName: game.title,
-                            competitionId: game.competitionId,
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
                           ),
+                          title: Text(game.title,
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold)),
+                          content: Text(
+                              game.description ?? 'No description available.'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              child: const Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => PaymentMethodScreen(
+                                      amount: game.prizeValue,
+                                      gameName: game.title,
+                                      competitionId: game.competitionId,
+                                    ),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                foregroundColor: Colors.black,
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Text('Play Now'),
+                                  SizedBox(width: spacing * 0.5),
+                                  Icon(
+                                    Icons.arrow_forward,
+                                    size: iconSize,
+                                    color: Colors.grey.shade800,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     },
@@ -180,7 +219,7 @@ class GameCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         ResponsiveText(
-                          'Play Now',
+                          'Game Details',
                           style: const TextStyle(
                             fontWeight: FontWeight.w600,
                           ),
@@ -190,7 +229,7 @@ class GameCard extends StatelessWidget {
                         ),
                         SizedBox(width: spacing * 0.5),
                         Icon(
-                          Icons.arrow_forward,
+                          Icons.info_outline,
                           size: iconSize,
                           color: Colors.grey.shade800,
                         ),

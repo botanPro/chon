@@ -162,6 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final rootContext = context;
     final games = (_competitions ?? [])
         .map((comp) => Game(
               competitionId: comp['id']?.toString() ?? '',
@@ -506,65 +507,278 @@ class _HomeScreenState extends State<HomeScreen> {
                                             width: double.infinity,
                                             child: ElevatedButton(
                                               onPressed: () async {
-                                                final authService =
-                                                    Provider.of<AuthService>(
-                                                        context,
-                                                        listen: false);
-                                                final playerId =
-                                                    authService.userId ??
-                                                        'player_demo';
-                                                final playerName =
-                                                    authService.nickname ??
-                                                        'User';
-                                                final token =
-                                                    authService.token ?? '';
-                                                final details =
-                                                    await fetchCompetitionDetails(
-                                                        game.competitionId,
-                                                        token);
-                                                if (details != null) {
-                                                  // Check open_time before allowing registration
-                                                  final openTimeStr =
-                                                      details['open_time'] ??
-                                                          '';
-                                                  if (openTimeStr.isNotEmpty) {
-                                                    final openTime =
-                                                        DateTime.parse(
-                                                                openTimeStr)
-                                                            .toUtc();
-                                                    final now =
-                                                        DateTime.now().toUtc();
-                                                    if (now
-                                                        .isBefore(openTime)) {
-                                                      ScaffoldMessenger.of(
-                                                              context)
-                                                          .showSnackBar(
-                                                        const SnackBar(
-                                                          content: Text(
-                                                              'Registration is not open yet.'),
-                                                          backgroundColor:
-                                                              Colors.blueGrey,
-                                                        ),
-                                                      );
-                                                      return;
+                                                showDialog(
+                                                  context: context,
+                                                  builder: (context) {
+                                                    final startTime =
+                                                        game.startTime;
+                                                    final now = DateTime.now();
+                                                    DateTime? startDateTime;
+                                                    int secondsLeft = 0;
+                                                    bool isFinished = false;
+                                                    if (startTime != null &&
+                                                        startTime.isNotEmpty) {
+                                                      try {
+                                                        startDateTime =
+                                                            DateTime.parse(
+                                                                startTime);
+                                                        secondsLeft =
+                                                            startDateTime
+                                                                .difference(now)
+                                                                .inSeconds;
+                                                        isFinished =
+                                                            secondsLeft <= 0;
+                                                      } catch (_) {
+                                                        isFinished = false;
+                                                      }
                                                     }
-                                                  }
-                                                  _showCountdownAndStartGame(
-                                                    context,
-                                                    game,
-                                                    playerId,
-                                                    playerName,
-                                                    details,
-                                                  );
-                                                } else {
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    const SnackBar(
-                                                      content: Text(
-                                                          'Could not load competition details. Please try again.'),
-                                                    ),
-                                                  );
-                                                }
+                                                    return AlertDialog(
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(16),
+                                                      ),
+                                                      title: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(game.title,
+                                                              style: const TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold)),
+                                                          if (startTime !=
+                                                                  null &&
+                                                              startTime
+                                                                  .isNotEmpty)
+                                                            Padding(
+                                                              padding:
+                                                                  const EdgeInsets
+                                                                      .only(
+                                                                      top: 8.0,
+                                                                      bottom:
+                                                                          8.0),
+                                                              child:
+                                                                  GameCountdownTimer(
+                                                                startTime:
+                                                                    startTime,
+                                                              ),
+                                                            ),
+                                                        ],
+                                                      ),
+                                                      content: Text(game
+                                                              .description ??
+                                                          'No description available.'),
+                                                      actions: [
+                                                        TextButton(
+                                                          onPressed: () =>
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop(),
+                                                          child: const Text(
+                                                              'Cancel'),
+                                                        ),
+                                                        if (isFinished)
+                                                          ElevatedButton(
+                                                            onPressed: null,
+                                                            style:
+                                                                ElevatedButton
+                                                                    .styleFrom(
+                                                              backgroundColor:
+                                                                  Colors.grey
+                                                                      .shade400,
+                                                              foregroundColor:
+                                                                  Colors.white,
+                                                            ),
+                                                            child: const Text(
+                                                                'Game Finished'),
+                                                          )
+                                                        else
+                                                          ElevatedButton(
+                                                            onPressed:
+                                                                () async {
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop();
+                                                              final authService =
+                                                                  Provider.of<
+                                                                          AuthService>(
+                                                                      context,
+                                                                      listen:
+                                                                          false);
+                                                              final playerId =
+                                                                  authService
+                                                                          .userId ??
+                                                                      'player_demo';
+                                                              final playerName =
+                                                                  authService
+                                                                          .nickname ??
+                                                                      'User';
+                                                              final token =
+                                                                  authService
+                                                                          .token ??
+                                                                      '';
+                                                              final details =
+                                                                  await fetchCompetitionDetails(
+                                                                      game.competitionId,
+                                                                      token);
+                                                              if (details !=
+                                                                  null) {
+                                                                // Check open_time before allowing registration
+                                                                final openTimeStr =
+                                                                    details['open_time'] ??
+                                                                        '';
+                                                                if (openTimeStr
+                                                                    .isNotEmpty) {
+                                                                  final openTime =
+                                                                      DateTime.parse(
+                                                                              openTimeStr)
+                                                                          .toUtc();
+                                                                  final now = DateTime
+                                                                          .now()
+                                                                      .toUtc();
+                                                                  if (now.isBefore(
+                                                                      openTime)) {
+                                                                    ScaffoldMessenger.of(
+                                                                            rootContext)
+                                                                        .showSnackBar(
+                                                                      const SnackBar(
+                                                                        content:
+                                                                            Text('Registration is not open yet.'),
+                                                                        backgroundColor:
+                                                                            Colors.blueGrey,
+                                                                      ),
+                                                                    );
+                                                                    return;
+                                                                  }
+                                                                }
+                                                                // Join competition
+                                                                final joined =
+                                                                    await joinCompetition(
+                                                                        game.competitionId,
+                                                                        token);
+                                                                if (!joined) {
+                                                                  return;
+                                                                }
+                                                                // Check if competition has started
+                                                                final startTime =
+                                                                    game.startTime;
+                                                                if (startTime !=
+                                                                        null &&
+                                                                    startTime
+                                                                        .isNotEmpty) {
+                                                                  try {
+                                                                    final startDateTime =
+                                                                        DateTime.parse(
+                                                                            startTime);
+                                                                    final now =
+                                                                        DateTime
+                                                                            .now();
+                                                                    final timeUntilStart = startDateTime
+                                                                        .difference(
+                                                                            now)
+                                                                        .inSeconds;
+                                                                    if (timeUntilStart >
+                                                                        0) {
+                                                                      Future.delayed(
+                                                                          Duration
+                                                                              .zero,
+                                                                          () {
+                                                                        showDialog(
+                                                                          context:
+                                                                              rootContext,
+                                                                          barrierDismissible:
+                                                                              false,
+                                                                          builder: (context) =>
+                                                                              CountdownDialog(
+                                                                            seconds:
+                                                                                timeUntilStart,
+                                                                            onCountdownComplete:
+                                                                                () {
+                                                                              Navigator.of(rootContext).pop();
+                                                                              Navigator.push(
+                                                                                rootContext,
+                                                                                MaterialPageRoute(
+                                                                                  builder: (context) => TriviaGameScreen(
+                                                                                    competitionId: game.competitionId,
+                                                                                    playerId: playerId,
+                                                                                    playerName: playerName,
+                                                                                    competitionDetails: details,
+                                                                                  ),
+                                                                                ),
+                                                                              );
+                                                                            },
+                                                                          ),
+                                                                        );
+                                                                      });
+                                                                      return;
+                                                                    }
+                                                                  } catch (e) {
+                                                                    // If error parsing, proceed to game
+                                                                  }
+                                                                }
+                                                                // Competition has started or no start time specified - proceed to game
+                                                                Navigator.push(
+                                                                  rootContext,
+                                                                  MaterialPageRoute(
+                                                                    builder:
+                                                                        (context) =>
+                                                                            TriviaGameScreen(
+                                                                      competitionId:
+                                                                          game.competitionId,
+                                                                      playerId:
+                                                                          playerId,
+                                                                      playerName:
+                                                                          playerName,
+                                                                      competitionDetails:
+                                                                          details,
+                                                                    ),
+                                                                  ),
+                                                                );
+                                                              } else {
+                                                                ScaffoldMessenger.of(
+                                                                        rootContext)
+                                                                    .showSnackBar(
+                                                                  const SnackBar(
+                                                                    content: Text(
+                                                                        'Could not load competition details. Please try again.'),
+                                                                  ),
+                                                                );
+                                                              }
+                                                            },
+                                                            style:
+                                                                ElevatedButton
+                                                                    .styleFrom(
+                                                              backgroundColor:
+                                                                  Colors.white,
+                                                              foregroundColor:
+                                                                  Colors.black,
+                                                            ),
+                                                            child: Row(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .min,
+                                                              children: const [
+                                                                Text(
+                                                                    'Play Now'),
+                                                                SizedBox(
+                                                                    width: 4),
+                                                                Icon(
+                                                                  Icons
+                                                                      .arrow_forward,
+                                                                  size: 16,
+                                                                  color: Colors
+                                                                      .black,
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                      ],
+                                                    );
+                                                  },
+                                                );
                                               },
                                               style: ElevatedButton.styleFrom(
                                                 backgroundColor: Colors.white,
@@ -585,13 +799,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   const Text(
-                                                    'Play Now',
+                                                    'Game Details',
                                                     style:
                                                         TextStyle(fontSize: 12),
                                                   ),
                                                   const SizedBox(width: 4),
                                                   Icon(
-                                                    Icons.arrow_forward,
+                                                    Icons.info_outline,
                                                     size: 12,
                                                     color: Colors.grey.shade800,
                                                   ),
