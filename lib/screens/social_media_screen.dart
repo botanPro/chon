@@ -58,7 +58,7 @@ class SocialMediaScreen extends StatelessWidget {
                     const url =
                         'https://www.facebook.com/share/16eFCBGGwE/?mibextid=wwXIfr';
                     await launchUrl(Uri.parse(url),
-                        mode: LaunchMode.platformDefault);
+                        mode: LaunchMode.externalApplication);
                   },
                 ),
                 const SizedBox(height: 16),
@@ -72,7 +72,7 @@ class SocialMediaScreen extends StatelessWidget {
                     const url =
                         'https://www.instagram.com/chon.app?igsh=dTV5ejNtczcwb3c1';
                     await launchUrl(Uri.parse(url),
-                        mode: LaunchMode.platformDefault);
+                        mode: LaunchMode.externalApplication);
                   },
                 ),
                 const SizedBox(height: 16),
@@ -86,7 +86,7 @@ class SocialMediaScreen extends StatelessWidget {
                     const url =
                         'https://www.linkedin.com/in/chon-app-34a029371?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app';
                     await launchUrl(Uri.parse(url),
-                        mode: LaunchMode.platformDefault);
+                        mode: LaunchMode.externalApplication);
                   },
                 ),
                 const Spacer(),
