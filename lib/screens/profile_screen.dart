@@ -428,6 +428,34 @@ class _ProfileScreenState extends State<ProfileScreen>
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
+                            // Info icon above points
+                            Align(
+                              alignment: Alignment.center,
+                              child: IconButton(
+                                icon: const Icon(Icons.priority_high_rounded,
+                                    color: Color(0xFF94C1BA), size: 22),
+                                padding: const EdgeInsets.only(bottom: 2),
+                                constraints: const BoxConstraints(),
+                                tooltip: 'What are points?',
+                                onPressed: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('Points Information'),
+                                      content: const Text(
+                                          'Points are accumulated through active participation in games. These points serve not only as a measure of user engagement and achievement, but also as a form of in-app currency. Certain games may initially be inaccessible; however, users can unlock these games by redeeming their earned points, thereby enhancing their overall experience and access within the application.'),
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.of(context).pop(),
+                                          child: const Text('OK'),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
                             // Animated label
                             TweenAnimationBuilder<double>(
                               duration: const Duration(milliseconds: 800),
