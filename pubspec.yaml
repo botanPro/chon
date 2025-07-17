@@ -24,6 +24,7 @@ dependencies:
     flutter_dotenv: ^5.1.0
     connectivity_plus: ^5.0.2
     url_launcher: ^6.2.5
+    timezone: ^0.10.1
 
 dev_dependencies:
     flutter_test:

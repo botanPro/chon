@@ -593,13 +593,6 @@ class _ProfileScreenState extends State<ProfileScreen>
           },
         ),
         _buildMenuItem(
-          icon: Icons.star_outline,
-          title: AppLocalizations.of(context)!.rateUs,
-          onTap: () {
-            // TODO: Implement app rating functionality
-          },
-        ),
-        _buildMenuItem(
           icon: Icons.group_outlined,
           title: AppLocalizations.of(context)!.socialMedia,
           onTap: () {

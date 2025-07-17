@@ -24,6 +24,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<dynamic>? _competitions;
   Map<int, bool> _gameTimerFinished = {};
+  Map<int, bool> _userRegistered = {}; // Track registration status per game
 
   @override
   void initState() {
@@ -72,8 +73,8 @@ class _HomeScreenState extends State<HomeScreen> {
       print('Error fetching competitions: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load competitions: $e'),
-          backgroundColor: Colors.red,
+          content: const Text('Could not load competitions. Please try again.'),
+          backgroundColor: Colors.blueGrey,
         ),
       );
     }
@@ -140,8 +141,9 @@ class _HomeScreenState extends State<HomeScreen> {
         print('Failed to join competition: \\${data['message']}');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to join competition: \\${data['message']}'),
-            backgroundColor: Colors.red,
+            content:
+                const Text('Could not join competition. Please try again.'),
+            backgroundColor: Colors.blueGrey,
           ),
         );
         return false;
@@ -150,8 +152,8 @@ class _HomeScreenState extends State<HomeScreen> {
       print('Error joining competition: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to join competition: $e'),
-          backgroundColor: Colors.red,
+          content: const Text('Could not join competition. Please try again.'),
+          backgroundColor: Colors.blueGrey,
         ),
       );
       return false;
@@ -362,6 +364,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           final game = games[index];
                           bool isTimerFinished =
                               _gameTimerFinished[index] ?? false;
+                          bool isUserRegistered =
+                              _userRegistered[index] ?? false;
                           return Container(
                             decoration: BoxDecoration(
                               color: const Color(0xFF101513),
@@ -402,14 +406,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                           CrossAxisAlignment.start,
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Text(
-                                          'Entry Fee: \$${game.prizeValue.toInt()}',
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
+                                        // Remove Entry Fee display
+                                        // Text(
+                                        //   'Entry Fee: \$${game.prizeValue.toInt()}',
+                                        //   style: const TextStyle(
+                                        //     color: Colors.white,
+                                        //     fontSize: 18,
+                                        //     fontWeight: FontWeight.bold,
+                                        //   ),
+                                        // ),
                                         const SizedBox(height: 2),
                                         Text(
                                           game.title,
@@ -464,8 +469,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                               borderRadius:
                                                   BorderRadius.circular(8),
                                               border: Border.all(
-                                                  color: Colors.green,
-                                                  width: 1),
+                                                color: Colors.green,
+                                                width: 1,
+                                              ),
                                             ),
                                             child: const Text(
                                               '✓ REGISTERED',
@@ -493,7 +499,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 });
                                               }),
                                         const Spacer(),
-                                        if (!isTimerFinished)
+                                        // Show different button states based on registration and timer
+                                        if (!isTimerFinished &&
+                                            !game.isRegistered)
                                           SizedBox(
                                             width: double.infinity,
                                             child: ElevatedButton(
@@ -515,18 +523,46 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         game.competitionId,
                                                         token);
                                                 if (details != null) {
+                                                  // Check open_time before allowing registration
+                                                  final openTimeStr =
+                                                      details['open_time'] ??
+                                                          '';
+                                                  if (openTimeStr.isNotEmpty) {
+                                                    final openTime =
+                                                        DateTime.parse(
+                                                                openTimeStr)
+                                                            .toUtc();
+                                                    final now =
+                                                        DateTime.now().toUtc();
+                                                    if (now
+                                                        .isBefore(openTime)) {
+                                                      ScaffoldMessenger.of(
+                                                              context)
+                                                          .showSnackBar(
+                                                        const SnackBar(
+                                                          content: Text(
+                                                              'Registration is not open yet.'),
+                                                          backgroundColor:
+                                                              Colors.blueGrey,
+                                                        ),
+                                                      );
+                                                      return;
+                                                    }
+                                                  }
                                                   _showCountdownAndStartGame(
-                                                      context,
-                                                      game,
-                                                      playerId,
-                                                      playerName,
-                                                      details);
+                                                    context,
+                                                    game,
+                                                    playerId,
+                                                    playerName,
+                                                    details,
+                                                  );
                                                 } else {
                                                   ScaffoldMessenger.of(context)
                                                       .showSnackBar(
                                                     const SnackBar(
-                                                        content: Text(
-                                                            'Failed to load competition details.')),
+                                                      content: Text(
+                                                          'Could not load competition details. Please try again.'),
+                                                    ),
                                                   );
                                                 }
                                               },
@@ -558,6 +594,143 @@ class _HomeScreenState extends State<HomeScreen> {
                                                     Icons.arrow_forward,
                                                     size: 12,
                                                     color: Colors.grey.shade800,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        // Show Registered state with countdown
+                                        if (!isTimerFinished &&
+                                            game.isRegistered)
+                                          Container(
+                                            width: double.infinity,
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 12, vertical: 6),
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  Colors.green.withOpacity(0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              border: Border.all(
+                                                color: Colors.green
+                                                    .withOpacity(0.3),
+                                                width: 1,
+                                              ),
+                                            ),
+                                            child: Column(
+                                              children: [
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: const [
+                                                    Icon(
+                                                      Icons.check_circle,
+                                                      color: Colors.green,
+                                                      size: 16,
+                                                    ),
+                                                    SizedBox(width: 6),
+                                                    Text(
+                                                      'Registered',
+                                                      style: TextStyle(
+                                                        color: Colors.green,
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 4),
+                                                const Text(
+                                                  'Game starts soon...',
+                                                  style: TextStyle(
+                                                    color: Colors.white70,
+                                                    fontSize: 10,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        // Show "Tap to Play" button after countdown for registered users
+                                        if (isTimerFinished &&
+                                            game.isRegistered)
+                                          SizedBox(
+                                            width: double.infinity,
+                                            child: ElevatedButton(
+                                              onPressed: () async {
+                                                final authService =
+                                                    Provider.of<AuthService>(
+                                                        context,
+                                                        listen: false);
+                                                final playerId =
+                                                    authService.userId ??
+                                                        'player_demo';
+                                                final playerName =
+                                                    authService.nickname ??
+                                                        'User';
+                                                final token =
+                                                    authService.token ?? '';
+                                                final details =
+                                                    await fetchCompetitionDetails(
+                                                        game.competitionId,
+                                                        token);
+                                                if (details != null) {
+                                                  // Navigate directly to game since user is already registered
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (context) =>
+                                                          TriviaGameScreen(
+                                                        competitionId:
+                                                            game.competitionId,
+                                                        playerId: playerId,
+                                                        playerName: playerName,
+                                                        competitionDetails:
+                                                            details,
+                                                      ),
+                                                    ),
+                                                  );
+                                                } else {
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    const SnackBar(
+                                                      content: Text(
+                                                          'Could not load competition details. Please try again.'),
+                                                    ),
+                                                  );
+                                                }
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor:
+                                                    const Color(0xFF96C3BC),
+                                                foregroundColor: Colors.white,
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        vertical: 8),
+                                                minimumSize:
+                                                    const Size.fromHeight(40),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                              ),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Text(
+                                                    'Tap to Play',
+                                                    style: TextStyle(
+                                                        fontSize: 12,
+                                                        fontWeight:
+                                                            FontWeight.w600),
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  const Icon(
+                                                    Icons.play_arrow,
+                                                    size: 16,
+                                                    color: Colors.white,
                                                   ),
                                                 ],
                                               ),

@@ -348,19 +348,30 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
       return;
     }
 
-    _socketService.joinCompetition(
-      competitionId.toString(),
-      playerName: playerName,
-    );
-
-    // Set up event listeners
+    // Set up event listeners BEFORE joining competition
     _socketService.onLeaderboardUpdate((data) {
       print('[DEBUG] Received leaderboard event:');
       print(data);
       if (mounted && data is List && data.isNotEmpty) {
+        // Convert backend leaderboard format to frontend format
+        List<Map<String, dynamic>> formattedLeaderboard = [];
+        for (int i = 0; i < data.length; i++) {
+          final entry = data[i];
+          if (entry is Map<String, dynamic>) {
+            formattedLeaderboard.add({
+              'playerId': entry['playerId'] ?? entry['player_id'] ?? null,
+              'nickname':
+                  entry['nickname'] ?? entry['player_name'] ?? 'Unknown',
+              'score': entry['score'] ?? 0,
+              'rank': i + 1,
+              'correctAnswers': entry['correctAnswers'] ?? 0,
+            });
+          }
+        }
         setState(() {
-          _leaderboard = List<Map<String, dynamic>>.from(data);
+          _leaderboard = formattedLeaderboard;
         });
+        print('[DEBUG] Formatted leaderboard: $_leaderboard');
       } else if (mounted) {
         setState(() {
           _leaderboard = [];
@@ -382,10 +393,28 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
       print('[DEBUG] Winners event:');
       print(data);
       if (mounted) {
+        // Convert backend winners format to frontend format
+        List<Map<String, dynamic>> formattedWinners = [];
+        if (data is List && data.isNotEmpty) {
+          for (int i = 0; i < data.length; i++) {
+            final entry = data[i];
+            if (entry is Map<String, dynamic>) {
+              formattedWinners.add({
+                'playerId': entry['playerId'] ?? entry['player_id'] ?? null,
+                'nickname':
+                    entry['nickname'] ?? entry['player_name'] ?? 'Unknown',
+                'score': entry['score'] ?? 0,
+                'rank': i + 1,
+                'correctAnswers': entry['correctAnswers'] ?? 0,
+              });
+            }
+          }
+        }
         setState(() {
           _showGameOver = true;
-          _leaderboard = List<Map<String, dynamic>>.from(data ?? []);
+          _leaderboard = formattedWinners;
         });
+        print('[DEBUG] Formatted winners: $_leaderboard');
         _gameOverAnimationController.forward();
         if (_timer.isActive) _timer.cancel();
       }
@@ -404,11 +433,20 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
     _socketService.onCompetitionData((data) {
       print('Competition data received: $data');
       List<Map<String, dynamic>> questions = [];
+      // Handle different data formats from backend
       if (data is Map<String, dynamic> && data['questions'] is List) {
         try {
           questions = List<Map<String, dynamic>>.from(data['questions']);
         } catch (e) {
-          print('Error parsing questions: $e');
+          print('Error parsing questions from data["questions"]: $e');
+          questions = [];
+        }
+      } else if (data is List) {
+        // Direct list of questions
+        try {
+          questions = List<Map<String, dynamic>>.from(data);
+        } catch (e) {
+          print('Error parsing questions from direct list: $e');
           questions = [];
         }
       } else {
@@ -456,21 +494,38 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
       }
     });
 
-    // Request competition data (questions) after a short delay to ensure connection
-    Timer(const Duration(milliseconds: 500), () {
+    // Wait for socket to connect before joining competition
+    Timer(const Duration(milliseconds: 100), () {
       if (mounted && _socketService.isConnected) {
-        print(
-            'Requesting competition data for  [38;5;28m${widget.competitionId} [0m');
-        _socketService.getCompetitionData(widget.competitionId);
+        print('[DEBUG] Socket connected, joining competition: $competitionId');
+        _socketService.joinCompetition(
+          competitionId.toString(),
+          playerName: playerName,
+        );
+        // Request competition data after joining
+        Timer(const Duration(milliseconds: 500), () {
+          if (mounted && _socketService.isConnected) {
+            print('[DEBUG] Requesting competition data for $competitionId');
+            _socketService.getCompetitionData(competitionId.toString());
+          }
+        });
+      } else {
+        print('[DEBUG] Socket not connected after 100ms, retrying...');
+        // Retry connection
+        Timer(const Duration(milliseconds: 2000), () {
+          if (mounted && !_socketService.isConnected) {
+            print('[DEBUG] Retrying socket connection...');
+            _socketService.connect('$socketUrl', token);
+          }
+        });
       }
     });
 
-    // Retry getting competition data if not received within 3 seconds
-    Timer(const Duration(seconds: 3), () {
+    // Retry getting competition data if not received within 5 seconds
+    Timer(const Duration(seconds: 5), () {
       if (mounted && _loadingQuestions && _socketService.isConnected) {
-        print(
-            'Retrying competition data request for  [38;5;28m${widget.competitionId} [0m');
-        _socketService.getCompetitionData(widget.competitionId);
+        print('[DEBUG] Retrying competition data request for $competitionId');
+        _socketService.getCompetitionData(competitionId.toString());
       }
     });
   }
@@ -701,16 +756,26 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
     };
     print('[DEBUG] Submitting answer payload: $payload');
 
+    // Check if socket is connected before submitting
+    if (!_socketService.isConnected) {
+      print('[ERROR] Socket not connected, cannot submit answer');
+      return;
+    }
+
     _socketService.submitAnswer(
       competitionId: competitionId,
       questionId: questionId,
       answer: answer,
     );
 
+    // Check if answer is correct for local tracking
     int correctIndex = options.indexWhere(
         (opt) => (opt as Map<String, dynamic>)['is_correct'] == true);
     if (answerIndex == correctIndex) {
       _correctAnswers++;
+      print('[DEBUG] Answer is correct! Total correct: $_correctAnswers');
+    } else {
+      print('[DEBUG] Answer is incorrect. Correct index was: $correctIndex');
     }
   }
 
@@ -752,11 +817,35 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
         },
       );
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body) as Map<String, dynamic>;
+        final responseData = jsonDecode(response.body);
+        print('[DEBUG] Results API response: $responseData');
+
+        // Handle different response formats
+        Map<String, dynamic> finalResults = {};
+        if (responseData is Map<String, dynamic>) {
+          if (responseData['data'] is List) {
+            // API returns {success: true, data: [...]}
+            finalResults = {
+              'leaderboard': responseData['data'],
+              'playerResult': null,
+            };
+          } else if (responseData['data'] is Map<String, dynamic>) {
+            // API returns {success: true, data: {...}}
+            finalResults = responseData['data'];
+          }
+        } else if (responseData is List) {
+          // If API returns a list directly, use it as leaderboard
+          finalResults = {
+            'leaderboard': responseData,
+            'playerResult': null,
+          };
+        }
+
         setState(() {
-          _finalResults = data['data'] ?? {};
+          _finalResults = finalResults;
           _loadingResults = false;
         });
+        print('[DEBUG] Final results set: $_finalResults');
       } else {
         setState(() {
           _loadingResults = false;
@@ -1236,83 +1325,120 @@ class _TriviaGameScreenState extends State<TriviaGameScreen>
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: const Color(0xFF96c3bc).withOpacity(0.1),
-                ),
-                child: Icon(
-                  Icons.people,
-                  color: const Color(0xFF96c3bc),
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              Row(
                 children: [
-                  Text(
-                    '${(_onlinePlayers / 1000).toStringAsFixed(0)}k',
-                    style: const TextStyle(
-                      color: Color(0xFF96c3bc),
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: const Color(0xFF96c3bc).withOpacity(0.1),
+                    ),
+                    child: Icon(
+                      Icons.people,
+                      color: const Color(0xFF96c3bc),
+                      size: 20,
                     ),
                   ),
-                  const Text(
-                    'Online Players',
-                    style: TextStyle(
-                      color: Color(0xFF96c3bc),
-                      fontSize: 12,
-                    ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${(_onlinePlayers / 1000).toStringAsFixed(0)}k',
+                        style: const TextStyle(
+                          color: Color(0xFF96c3bc),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const Text(
+                        'Online Players',
+                        style: TextStyle(
+                          color: Color(0xFF96c3bc),
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
+              ),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: RadialGradient(
+                    colors: [
+                      _timeRemaining <= 2
+                          ? Colors.redAccent.withOpacity(0.2)
+                          : const Color(0xFF96c3bc).withOpacity(0.2),
+                      _timeRemaining <= 2
+                          ? Colors.redAccent.withOpacity(0.05)
+                          : const Color(0xFF96c3bc).withOpacity(0.05),
+                    ],
+                  ),
+                  border: Border.all(
+                    color: _timeRemaining <= 2
+                        ? Colors.redAccent.withOpacity(0.3)
+                        : const Color(0xFF96c3bc).withOpacity(0.3),
+                    width: 1,
+                  ),
+                ),
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween(begin: 5.0, end: _timeRemaining.toDouble()),
+                  duration: const Duration(milliseconds: 300),
+                  builder: (context, value, child) {
+                    return Text(
+                      value.toInt().toString(),
+                      style: TextStyle(
+                        color: value <= 2
+                            ? Colors.redAccent
+                            : const Color(0xFF96c3bc),
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    );
+                  },
+                ),
               ),
             ],
           ),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  _timeRemaining <= 2
-                      ? Colors.redAccent.withOpacity(0.2)
-                      : const Color(0xFF96c3bc).withOpacity(0.2),
-                  _timeRemaining <= 2
-                      ? Colors.redAccent.withOpacity(0.05)
-                      : const Color(0xFF96c3bc).withOpacity(0.05),
+          // Debug leaderboard display
+          if (_leaderboard.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.3),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Leaderboard (${_leaderboard.length} players):',
+                    style: const TextStyle(
+                      color: Color(0xFF96c3bc),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  ...(_leaderboard.take(3).map((player) => Text(
+                        '${player['rank']}. ${player['nickname']} - ${player['score']} pts',
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 10,
+                        ),
+                      ))),
                 ],
               ),
-              border: Border.all(
-                color: _timeRemaining <= 2
-                    ? Colors.redAccent.withOpacity(0.3)
-                    : const Color(0xFF96c3bc).withOpacity(0.3),
-                width: 1,
-              ),
             ),
-            child: TweenAnimationBuilder<double>(
-              tween: Tween(begin: 5.0, end: _timeRemaining.toDouble()),
-              duration: const Duration(milliseconds: 300),
-              builder: (context, value, child) {
-                return Text(
-                  value.toInt().toString(),
-                  style: TextStyle(
-                    color:
-                        value <= 2 ? Colors.redAccent : const Color(0xFF96c3bc),
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
-                );
-              },
-            ),
-          ),
+          ],
         ],
       ),
     );

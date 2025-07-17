@@ -31,27 +31,22 @@ class TriviaSocketService {
   /// Connects to the socket server with JWT authentication.
   void connect(String url, String jwtToken) {
     if (_isConnected) return;
-    if (jwtToken == null || jwtToken.isEmpty) {
+    if (jwtToken.isEmpty) {
       print('[ERROR] Tried to connect socket without a valid JWT token!');
       return;
     }
-    print('Connecting to $url with JWT token: "' + jwtToken.toString() + '"');
+    print('Connecting to $url with JWT token: "${jwtToken.toString()}"');
 
-    // Convert HTTP URL to WebSocket URL if needed
-    String wsUrl = url;
-    if (url.startsWith('http://')) {
-      wsUrl = url.replaceFirst('http://', 'ws://');
-    } else if (url.startsWith('https://')) {
-      wsUrl = url.replaceFirst('https://', 'wss://');
-    }
-
-    print('Using WebSocket URL: $wsUrl');
+    // Use the URL as-is for Socket.IO (no protocol conversion needed)
+    String socketUrl = url;
+    print('Using Socket.IO URL: $socketUrl');
 
     socket = IO.io(
-      wsUrl,
+      socketUrl,
       IO.OptionBuilder().setTransports(['websocket', 'polling']).setAuth({
         'token': jwtToken
-      }).setExtraHeaders({'Authorization': 'Bearer $jwtToken'}).build(),
+      }).setExtraHeaders({'Authorization': 'Bearer $jwtToken'}).setQuery(
+          {'token': jwtToken}).build(),
     );
     print('Socket extra headers: Authorization: Bearer $jwtToken');
     socket.connect();
@@ -83,6 +78,12 @@ class TriviaSocketService {
 
   /// Joins a competition room. (matches HTML/Node backend)
   void joinCompetition(String competitionId, {required String playerName}) {
+    if (!isConnected) {
+      print('[ERROR] Socket not connected, cannot join competition!');
+      return;
+    }
+    print(
+        '[DEBUG] Joining competition: $competitionId with player: $playerName');
     socket.emit('joinCompetition', {
       'competitionId': competitionId,
       'playerName': playerName,
@@ -95,6 +96,13 @@ class TriviaSocketService {
     required int questionId,
     required int answer,
   }) {
+    if (!isConnected) {
+      print('[ERROR] Socket not connected, cannot submit answer!');
+      return;
+    }
+    print(
+        '[DEBUG] Submitting answer: competitionId=$competitionId, questionId=$questionId, answer=$answer');
+
     // Send only the fields expected by the backend (no playerId)
     socket.emit('submitAnswer', {
       'competitionId': competitionId,
