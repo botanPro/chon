@@ -196,27 +196,30 @@ class AuthService extends ChangeNotifier {
   }
 
   /// Initialize connectivity listener to monitor network changes
-  void _initializeConnectivityListener() {
-    _connectivitySubscription = Connectivity().onConnectivityChanged.listen(
-      (ConnectivityResult result) async {
-        bool wasConnected = _isConnected;
+void _initializeConnectivityListener() {
+  _connectivitySubscription =
+      Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> results) async {
+    bool wasConnected = _isConnected;
 
-        if (result == ConnectivityResult.none) {
-          _isConnected = false;
-          print('Network connectivity lost');
-        } else {
-          // Check actual internet connectivity
-          _isConnected = await _checkInternetConnectivity();
-          print('Network connectivity changed: $_isConnected');
-        }
+    // Get the primary connection type (if any)
+    final primaryResult = results.isNotEmpty ? results.first : ConnectivityResult.none;
 
-        // Only notify if the connection status actually changed
-        if (wasConnected != _isConnected) {
-          notifyListeners();
-        }
-      },
-    );
-  }
+    if (primaryResult == ConnectivityResult.none) {
+      _isConnected = false;
+      print('Network connectivity lost');
+    } else {
+      // Check actual internet connectivity (e.g., pinging Google or similar)
+      _isConnected = await _checkInternetConnectivity();
+      print('Network connectivity changed: $_isConnected');
+    }
+
+    // Notify listeners only if the connection status changed
+    if (wasConnected != _isConnected) {
+      notifyListeners();
+    }
+  }) as StreamSubscription<ConnectivityResult>?;
+}
+
 
   /// Check actual internet connectivity by trying to reach a server
   Future<bool> _checkInternetConnectivity() async {

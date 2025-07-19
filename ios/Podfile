@@ -1,5 +1,5 @@
 # Uncomment this line to define a global platform for your project
-platform :ios, '16.0'
+platform :ios, '13.0'
 
 # CocoaPods analytics sends network stats synchronously affecting flutter build latency.
 ENV['COCOAPODS_DISABLE_STATS'] = 'true'
@@ -32,13 +32,26 @@ target 'Runner' do
   use_modular_headers!
 
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+
   target 'RunnerTests' do
     inherit! :search_paths
   end
 end
 
+# ✅ Merge both post_install scripts into one:
 post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_ios_build_settings(target)
+
+    if target.name == 'connectivity_plus'
+      privacy_file = File.join(__dir__, 'PrivacyInfo.xcprivacy')
+      dest_dir = File.join(target.project.project_dir, target.name)
+      FileUtils.mkdir_p(dest_dir)
+      FileUtils.cp(privacy_file, dest_dir)
+      target.resources_build_phase.add_file_reference(
+        target.project.main_group.find_file_by_path(File.join(target.name, 'PrivacyInfo.xcprivacy'))
+      )
+    end
   end
 end
+
