@@ -1,5 +1,4 @@
 name: Build Flutter AAB
-
 on:
   push:
     branches: [ main ]
@@ -10,43 +9,65 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-
+      
     - name: Setup Java
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         distribution: 'zulu'
         java-version: '17'
-
+        
+    - name: Cache Flutter dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.pub-cache
+          ~/.flutter
+        key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-flutter-
+          
     - name: Setup Flutter
       uses: subosito/flutter-action@v2
       with:
-        flutter-version: '0.0.1'
         channel: 'stable'
-
+        cache: true
+        
+    - name: Flutter doctor
+      run: flutter doctor -v
+      
     - name: Get dependencies
       run: flutter pub get
-
+      
     - name: Analyze code (continue on error)
       run: flutter analyze || echo "Analysis completed with warnings"
-
+      
     - name: Run tests (skip if no tests)
       run: flutter test || echo "Skipping tests"
-
+      
     - name: Build AAB
       run: flutter build appbundle --release
-
+      
+    - name: Verify AAB exists
+      run: |
+        if [ ! -f "build/app/outputs/bundle/release/app-release.aab" ]; then
+          echo "AAB file not found!"
+          exit 1
+        fi
+        ls -la build/app/outputs/bundle/release/
+        
     - name: Upload AAB artifact
       uses: actions/upload-artifact@v4
       with:
-        name: app-release-aab
+        name: app-release-aab-${{ github.run_number }}
         path: build/app/outputs/bundle/release/app-release.aab
-
+        retention-days: 30
+        
     - name: Create Release
-      if: github.ref == 'refs/heads/main'
+      if: github.ref == 'refs/heads/main' && github.event_name == 'push'
       uses: softprops/action-gh-release@v1
       with:
         tag_name: v${{ github.run_number }}
@@ -54,5 +75,14 @@ jobs:
         files: build/app/outputs/bundle/release/app-release.aab
         draft: false
         prerelease: false
+        body: |
+          ## Release v${{ github.run_number }}
+          
+          **Changes in this release:**
+          - Automated build from commit ${{ github.sha }}
+          - Built on ${{ github.run_started_at }}
+          
+          **Files:**
+          - `app-release.aab` - Android App Bundle for Play Store upload
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
